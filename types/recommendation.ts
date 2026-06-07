@@ -31,7 +31,8 @@ export interface TrainingRecommendation {
   focus: string;
   intensity: IntensityLevel;
   headline: string;           // One-line coaching headline
-  body: string;               // 1–2 sentence rationale
+  body: string;               // 1–2 sentence coaching rationale
+  rationale: string;          // Scientific basis (for future "Why?" disclosure)
   suggestions: string[];      // Specific workout ideas
   signalDrivers: string[];    // Which signals drove this recommendation
   avoidNote?: string;         // Optional soft caution (never prescriptive)
@@ -43,6 +44,7 @@ export interface NutritionRecommendation {
   focus: string;
   headline: string;
   body: string;
+  rationale: string;          // Scientific basis (for future "Why?" disclosure)
   priorities: string[];       // Key nutritional priorities today
   macroEmphasis: string;      // e.g. "Lean protein + complex carbs"
   hydration: string;
@@ -56,7 +58,9 @@ export interface RecoveryRecommendation {
   focus: string;
   headline: string;
   body: string;
+  rationale: string;          // Scientific basis (for future "Why?" disclosure)
   sleepTarget: string;
+  sleepNote?: string;         // Phase-specific sleep architecture context
   practices: string[];
   stressNote?: string;
 }
