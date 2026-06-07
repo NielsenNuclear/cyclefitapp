@@ -40,7 +40,13 @@ export default function DashboardPage() {
       return;
     }
 
-    const user: OnboardingData = JSON.parse(raw);
+    let user: OnboardingData;
+    try {
+      user = JSON.parse(raw);
+    } catch {
+      router.push("/onboarding");
+      return;
+    }
     onboardingRef.current = user;
 
     const checkin = getTodayCheckin();
