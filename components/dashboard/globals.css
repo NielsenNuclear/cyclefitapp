@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Lora', Georgia, serif;
+  --font-body:    'DM Sans', 'Helvetica Neue', sans-serif;
+
+  /* Brand */
+  --c-brand:        #534AB7;
+  --c-brand-light:  #EEEDFE;
+  --c-teal:         #0F6E56;
+  --c-teal-light:   #E1F5EE;
+  --c-amber:        #854F0B;
+  --c-amber-light:  #FAEEDA;
+
+  /* Neutrals */
+  --c-bg:           #FAF9F5;
+  --c-text:         #1C1B18;
+  --c-text-muted:   #6B6860;
+  --c-text-faint:   #9B9690;
+  --c-border:       #E8E5DC;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--c-bg);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D3D1C7; border-radius: 2px; }
+
+/* Tap highlight */
+button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Entry animation for dashboard cards */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
