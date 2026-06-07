@@ -38,9 +38,9 @@ function getReadinessModifier(user: UserOnboarding): number {
 
 // ─── Helper: energy level (0–4) derived from pattern + readiness ─────────────
 
-type EnergyTier = "Very Low Energy" | "Low Energy" | "Moderate Energy" | "Good Energy" | "High Energy";
+export type EnergyTier = "Very Low Energy" | "Low Energy" | "Moderate Energy" | "Good Energy" | "High Energy";
 
-function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: EnergyTier } {
+export function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: EnergyTier } {
   const baseMap: Record<string, number> = {
     consistent_high:  3,
     morning_peak:     3,
@@ -56,9 +56,9 @@ function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: EnergyT
 
 // ─── Helper: training state awareness ────────────────────────────────────────
 
-type TrainingState = "fresh" | "loaded" | "fatigued" | "overreached";
+export type TrainingState = "fresh" | "loaded" | "fatigued" | "overreached";
 
-function getTrainingState(user: UserOnboarding): TrainingState {
+export function getTrainingState(user: UserOnboarding): TrainingState {
   const mod = getReadinessModifier(user);
   if (user.sessionsPerWeek >= 5 && mod <= -2) return "overreached";
   if (user.sessionsPerWeek >= 5 && mod <= 0)  return "fatigued";

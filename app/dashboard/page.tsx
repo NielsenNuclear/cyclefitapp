@@ -4,11 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import type { OnboardingData } from "@/lib/onboarding-types";
-import type { DailyRecommendation } from "@/types/recommendation";
+import type { DailyRecommendation, PhaseData } from "@/types/recommendation";
 import type { CheckinData } from "@/lib/checkin";
+import type { DifficultyLevel } from "@/lib/exercises/exerciseLibrary";
+import type { GeneratedWorkout } from "@/lib/exercises/generateWorkout";
 import { calculatePhase } from "@/lib/cycle/calculatePhase";
-import { generateRecommendation } from "@/lib/recommendations/generateRecommendation";
+import { generateRecommendation, deriveEnergyLevel, getTrainingState } from "@/lib/recommendations/generateRecommendation";
 import { getTodayCheckin } from "@/lib/checkin";
+import { generateWorkout } from "@/lib/exercises/generateWorkout";
+import { recommendedSplitType, getSplitTemplate } from "@/lib/exercises/workoutSplits";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -16,6 +20,13 @@ import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { TrainingCard, NutritionCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationExplanation } from "@/components/dashboard/RecommendationExplanation";
+import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
+
+function mapDifficulty(trainingLevel: string): DifficultyLevel {
+  if (trainingLevel === "beginner") return "Beginner";
+  if (trainingLevel === "advanced" || trainingLevel === "competitive") return "Advanced";
+  return "Intermediate";
+}
 
 function runPipeline(user: OnboardingData): DailyRecommendation {
   const phase = calculatePhase({
@@ -26,9 +37,29 @@ function runPipeline(user: OnboardingData): DailyRecommendation {
   return generateRecommendation(phase, user);
 }
 
+function runWorkoutPipeline(user: OnboardingData, phase: PhaseData): GeneratedWorkout {
+  const { level: energyLevel } = deriveEnergyLevel(user);
+  const trainingState          = getTrainingState(user);
+  const difficulty             = mapDifficulty(user.trainingLevel);
+  const splitType              = recommendedSplitType(user.sessionsPerWeek);
+  const template               = getSplitTemplate(splitType);
+  const dayIndex               = (new Date().getDay() + 6) % template.days.length;
+
+  return generateWorkout({
+    splitType,
+    dayIndex,
+    difficulty,
+    energyLevel,
+    trainingState,
+    phase,
+    sessionIndex: phase.cycleDay,
+  });
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [recommendation, setRecommendation] = useState<DailyRecommendation | null>(null);
+  const [workout, setWorkout]               = useState<GeneratedWorkout | null>(null);
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const onboardingRef = useRef<OnboardingData | null>(null);
@@ -50,12 +81,13 @@ export default function DashboardPage() {
     onboardingRef.current = user;
 
     const checkin = getTodayCheckin();
-
     const effectiveUser: OnboardingData = checkin
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
 
-    setRecommendation(runPipeline(effectiveUser));
+    const rec = runPipeline(effectiveUser);
+    setRecommendation(rec);
+    setWorkout(runWorkoutPipeline(effectiveUser, rec.phase));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -63,8 +95,10 @@ export default function DashboardPage() {
     setIsRecalculating(true);
     const user = onboardingRef.current;
     if (!user) return;
-    const newRec = runPipeline({ ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel });
+    const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
+    const newRec = runPipeline(effectiveUser);
     setRecommendation(newRec);
+    setWorkout(runWorkoutPipeline(effectiveUser, newRec.phase));
     setIsRecalculating(false);
   }
 
@@ -80,6 +114,7 @@ export default function DashboardPage() {
         )}
         <PhaseCard phase={recommendation.phase} />
         <TrainingCard training={recommendation.training} />
+        {workout && <WorkoutCard workout={workout} />}
         <NutritionCard nutrition={recommendation.nutrition} />
         <RecoveryCard recovery={recommendation.recovery} />
         <RecommendationExplanation
