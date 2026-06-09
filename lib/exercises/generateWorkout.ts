@@ -2,10 +2,11 @@
 // Complete workout prescription engine.
 // Pure logic — no React, no side effects.
 
-import type { Exercise, DifficultyLevel, MovementPattern } from "./exerciseLibrary";
+import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment } from "./exerciseLibrary";
 import type { SplitType }                                  from "./workoutSplits";
 import type { PhaseData }                                  from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
+import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,7 @@ export interface WorkoutGenerationInput {
   trainingState: TrainingState;
   phase:         PhaseData;
   sessionIndex?: number;        // increments across sessions for variety
+  environment?:  TrainingEnvironment; // if set, incompatible exercises are swapped
 }
 
 export interface WorkoutExercise {
@@ -246,6 +248,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     trainingState,
     phase,
     sessionIndex = 0,
+    environment,
   } = input;
 
   const workoutDay = buildWorkoutDay({
@@ -256,7 +259,17 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     sessionIndex,
   });
 
-  const exercises: WorkoutExercise[] = workoutDay.exercises.map(exercise =>
+  const resolvedExercises: Exercise[] = environment
+    ? workoutDay.exercises.map(ex => {
+        if (isCompatibleWith(ex, environment)) return ex;
+        const sub = findSubstitute(ex, environment, difficulty);
+        if (sub) return sub;
+        console.warn(`[generateWorkout] No substitute for "${ex.name}" in "${environment}" — keeping original`);
+        return ex;
+      })
+    : workoutDay.exercises;
+
+  const exercises: WorkoutExercise[] = resolvedExercises.map(exercise =>
     prescribeExercise(exercise, energyLevel, trainingState, phase.name)
   );
 

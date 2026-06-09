@@ -29,6 +29,23 @@ export type MuscleCategory =
   | "Full Body"
   | "Mobility";
 
+export type EquipmentCategory =
+  | "barbell"
+  | "dumbbell"
+  | "cable"
+  | "machine"
+  | "bodyweight"
+  | "kettlebell"
+  | "resistance_band"
+  | "pullup_bar"
+  | "other";
+
+export type TrainingEnvironment =
+  | "gym"
+  | "home_gym"
+  | "dumbbells_only"
+  | "bodyweight_only";
+
 export interface Exercise {
   name: string;
   primaryMuscles: string[];
@@ -38,6 +55,8 @@ export interface Exercise {
   equipment: string;
   biomechanicalNote: string;
   category: MuscleCategory;
+  equipmentCategory?: EquipmentCategory;
+  trainingEnvironment?: TrainingEnvironment[];
 }
 
 // ─── UPPER PUSH — Chest / Shoulders / Triceps (28 exercises) ─────────────────
