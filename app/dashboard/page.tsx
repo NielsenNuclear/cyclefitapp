@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { OnboardingData } from "@/lib/onboarding-types";
 import type { DailyRecommendation, PhaseData } from "@/types/recommendation";
 import type { CheckinData } from "@/lib/checkin";
-import type { DifficultyLevel } from "@/lib/exercises/exerciseLibrary";
+import type { DifficultyLevel, TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { GeneratedWorkout } from "@/lib/exercises/generateWorkout";
 import { calculatePhase } from "@/lib/cycle/calculatePhase";
 import { generateRecommendation, deriveEnergyLevel, getTrainingState } from "@/lib/recommendations/generateRecommendation";
@@ -37,7 +37,11 @@ function runPipeline(user: OnboardingData): DailyRecommendation {
   return generateRecommendation(phase, user);
 }
 
-function runWorkoutPipeline(user: OnboardingData, phase: PhaseData): GeneratedWorkout {
+function runWorkoutPipeline(
+  user: OnboardingData,
+  phase: PhaseData,
+  environment: TrainingEnvironment = "gym",
+): GeneratedWorkout {
   const { level: energyLevel } = deriveEnergyLevel(user);
   const trainingState          = getTrainingState(user);
   const difficulty             = mapDifficulty(user.trainingLevel);
@@ -53,8 +57,11 @@ function runWorkoutPipeline(user: OnboardingData, phase: PhaseData): GeneratedWo
     trainingState,
     phase,
     sessionIndex: phase.cycleDay,
+    environment,
   });
 }
+
+const ENV_STORAGE_KEY = "axis_training_env";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -62,6 +69,7 @@ export default function DashboardPage() {
   const [workout, setWorkout]               = useState<GeneratedWorkout | null>(null);
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
   const onboardingRef = useRef<OnboardingData | null>(null);
 
   useEffect(() => {
@@ -80,6 +88,9 @@ export default function DashboardPage() {
     }
     onboardingRef.current = user;
 
+    const savedEnv = (localStorage.getItem(ENV_STORAGE_KEY) as TrainingEnvironment | null) ?? "gym";
+    setEnvironment(savedEnv);
+
     const checkin = getTodayCheckin();
     const effectiveUser: OnboardingData = checkin
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
@@ -87,7 +98,7 @@ export default function DashboardPage() {
 
     const rec = runPipeline(effectiveUser);
     setRecommendation(rec);
-    setWorkout(runWorkoutPipeline(effectiveUser, rec.phase));
+    setWorkout(runWorkoutPipeline(effectiveUser, rec.phase, savedEnv));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -98,8 +109,20 @@ export default function DashboardPage() {
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const newRec = runPipeline(effectiveUser);
     setRecommendation(newRec);
-    setWorkout(runWorkoutPipeline(effectiveUser, newRec.phase));
+    setWorkout(runWorkoutPipeline(effectiveUser, newRec.phase, environment));
     setIsRecalculating(false);
+  }
+
+  function handleEnvironmentChange(env: TrainingEnvironment) {
+    setEnvironment(env);
+    localStorage.setItem(ENV_STORAGE_KEY, env);
+    const user = onboardingRef.current;
+    if (!user || !recommendation) return;
+    const checkin = getTodayCheckin();
+    const effectiveUser: OnboardingData = checkin
+      ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
+      : user;
+    setWorkout(runWorkoutPipeline(effectiveUser, recommendation.phase, env));
   }
 
   if (!recommendation) return null;
@@ -114,7 +137,13 @@ export default function DashboardPage() {
         )}
         <PhaseCard phase={recommendation.phase} />
         <TrainingCard training={recommendation.training} />
-        {workout && <WorkoutCard workout={workout} />}
+        {workout && (
+          <WorkoutCard
+            workout={workout}
+            environment={environment}
+            onEnvironmentChange={handleEnvironmentChange}
+          />
+        )}
         <NutritionCard nutrition={recommendation.nutrition} />
         <RecoveryCard recovery={recommendation.recovery} />
         <RecommendationExplanation

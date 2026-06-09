@@ -1,6 +1,7 @@
 "use client";
 
 import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generateWorkout";
+import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 
 // ─── Shared atoms (mirrors RecommendationCards.tsx) ───────────────────────────
 
@@ -29,6 +30,41 @@ function RpePill({ rpe }: { rpe: number }) {
     <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${color}`}>
       RPE {rpe}
     </span>
+  );
+}
+
+// ─── Environment selector ─────────────────────────────────────────────────────
+
+const ENV_OPTIONS: { value: TrainingEnvironment; label: string }[] = [
+  { value: "gym",             label: "Full Gym"   },
+  { value: "home_gym",        label: "Home Gym"   },
+  { value: "dumbbells_only",  label: "Dumbbells"  },
+  { value: "bodyweight_only", label: "Bodyweight" },
+];
+
+function EnvironmentSelector({
+  environment,
+  onChange,
+}: {
+  environment: TrainingEnvironment;
+  onChange: (env: TrainingEnvironment) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5 mb-4">
+      {ENV_OPTIONS.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
+            environment === opt.value
+              ? "bg-[#1C1B18] text-[#F5F3EE] border-[#1C1B18]"
+              : "bg-[#F5F3EE] text-[#6B6860] border-[#E0DDD4] hover:border-[#A09C94]"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -65,7 +101,13 @@ function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
 
 // ─── WorkoutCard ──────────────────────────────────────────────────────────────
 
-export function WorkoutCard({ workout }: { workout: GeneratedWorkout }) {
+interface WorkoutCardProps {
+  workout:            GeneratedWorkout;
+  environment:        TrainingEnvironment;
+  onEnvironmentChange: (env: TrainingEnvironment) => void;
+}
+
+export function WorkoutCard({ workout, environment, onEnvironmentChange }: WorkoutCardProps) {
   const stateWarning =
     workout.trainingState === "overreached"
       ? "Deload session — volume and intensity significantly reduced. Prioritise nervous system recovery."
@@ -76,6 +118,7 @@ export function WorkoutCard({ workout }: { workout: GeneratedWorkout }) {
   return (
     <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Today's Workout</CardLabel>
+      <EnvironmentSelector environment={environment} onChange={onEnvironmentChange} />
 
       {/* Name + duration */}
       <div className="flex items-start justify-between gap-3 mb-1">
