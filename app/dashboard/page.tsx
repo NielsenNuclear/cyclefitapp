@@ -8,12 +8,18 @@ import type { DailyRecommendation, PhaseData } from "@/types/recommendation";
 import type { CheckinData } from "@/lib/checkin";
 import type { DifficultyLevel, TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { GeneratedWorkout } from "@/lib/exercises/generateWorkout";
+import type { WorkoutHistorySummary } from "@/lib/history/workoutHistory";
+import type { TrainingLoadReport } from "@/lib/analytics/trainingLoad";
+import type { InsightReport } from "@/lib/insights/generateInsights";
 import { calculatePhase } from "@/lib/cycle/calculatePhase";
 import { generateRecommendation, deriveEnergyLevel, getTrainingState } from "@/lib/recommendations/generateRecommendation";
 import { getTodayCheckin } from "@/lib/checkin";
 import { generateWorkout } from "@/lib/exercises/generateWorkout";
 import { recommendedSplitType, getSplitTemplate } from "@/lib/exercises/workoutSplits";
 import { mapOnboardingGoalToGoalType } from "@/lib/exercises/goalBasedSelection";
+import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary } from "@/lib/history/workoutHistory";
+import { generateTrainingLoadReport } from "@/lib/analytics/trainingLoad";
+import { generateInsights } from "@/lib/insights/generateInsights";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -22,6 +28,9 @@ import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { TrainingCard, NutritionCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationExplanation } from "@/components/dashboard/RecommendationExplanation";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
+import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard";
+import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
+import { InsightsCard } from "@/components/dashboard/InsightsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "beginner") return "Beginner";
@@ -64,12 +73,40 @@ function runWorkoutPipeline(
   });
 }
 
+interface AnalyticsSnapshot {
+  summary:  WorkoutHistorySummary;
+  load:     TrainingLoadReport;
+  insights: InsightReport;
+}
+
+function runAnalyticsPipeline(workout: GeneratedWorkout, phase: PhaseData): AnalyticsSnapshot {
+  saveWorkoutToHistory(workout);
+  const history  = getWorkoutHistory();
+  const summary  = getWorkoutHistorySummary();
+  const load     = generateTrainingLoadReport({
+    history,
+    currentTrainingState: workout.trainingState,
+    currentEnergyLevel:   workout.energyLevel,
+  });
+  const insights = generateInsights({
+    phase,
+    energyLevel:   workout.energyLevel,
+    trainingState: workout.trainingState,
+    loadReport:    load,
+    history,
+  });
+  return { summary, load, insights };
+}
+
 const ENV_STORAGE_KEY = "axis_training_env";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [recommendation, setRecommendation] = useState<DailyRecommendation | null>(null);
-  const [workout, setWorkout]               = useState<GeneratedWorkout | null>(null);
+  const [recommendation, setRecommendation]   = useState<DailyRecommendation | null>(null);
+  const [workout, setWorkout]                 = useState<GeneratedWorkout | null>(null);
+  const [historySummary, setHistorySummary]   = useState<WorkoutHistorySummary | null>(null);
+  const [loadReport, setLoadReport]           = useState<TrainingLoadReport | null>(null);
+  const [insightReport, setInsightReport]     = useState<InsightReport | null>(null);
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
@@ -101,7 +138,12 @@ export default function DashboardPage() {
 
     const rec = runPipeline(effectiveUser);
     setRecommendation(rec);
-    setWorkout(runWorkoutPipeline(effectiveUser, rec.phase, savedEnv));
+    const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv);
+    setWorkout(wkt);
+    const { summary, load, insights } = runAnalyticsPipeline(wkt, rec.phase);
+    setHistorySummary(summary);
+    setLoadReport(load);
+    setInsightReport(insights);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -112,7 +154,12 @@ export default function DashboardPage() {
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const newRec = runPipeline(effectiveUser);
     setRecommendation(newRec);
-    setWorkout(runWorkoutPipeline(effectiveUser, newRec.phase, environment));
+    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment);
+    setWorkout(wkt);
+    const { summary, load, insights } = runAnalyticsPipeline(wkt, newRec.phase);
+    setHistorySummary(summary);
+    setLoadReport(load);
+    setInsightReport(insights);
     setIsRecalculating(false);
   }
 
@@ -125,7 +172,12 @@ export default function DashboardPage() {
     const effectiveUser: OnboardingData = checkin
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
-    setWorkout(runWorkoutPipeline(effectiveUser, recommendation.phase, env));
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env);
+    setWorkout(wkt);
+    const { summary, load, insights } = runAnalyticsPipeline(wkt, recommendation.phase);
+    setHistorySummary(summary);
+    setLoadReport(load);
+    setInsightReport(insights);
   }
 
   if (!recommendation) return null;
@@ -147,6 +199,9 @@ export default function DashboardPage() {
             onEnvironmentChange={handleEnvironmentChange}
           />
         )}
+        <TrainingSummaryCard summary={historySummary} />
+        <RecoveryStatusCard  report={loadReport} />
+        <InsightsCard        report={insightReport} />
         <NutritionCard nutrition={recommendation.nutrition} />
         <RecoveryCard recovery={recommendation.recovery} />
         <RecommendationExplanation
