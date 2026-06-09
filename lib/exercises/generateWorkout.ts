@@ -7,6 +7,8 @@ import type { SplitType }                                  from "./workoutSplits
 import type { PhaseData }                                  from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
 import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
+import type { GoalType }                                   from "./goalBasedSelection";
+import { GOAL_PROFILES }                                   from "./goalBasedSelection";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +23,7 @@ export interface WorkoutGenerationInput {
   phase:         PhaseData;
   sessionIndex?: number;        // increments across sessions for variety
   environment?:  TrainingEnvironment; // if set, incompatible exercises are swapped
+  goalType?:     GoalType;      // if set, exercises scored by goal alignment
 }
 
 export interface WorkoutExercise {
@@ -41,6 +44,7 @@ export interface GeneratedWorkout {
   phase:                PhaseData;
   dayName:              string;
   focus:                string;
+  goalFocus:            string;
   energyLevel:          number;
   trainingState:        TrainingState;
   exercises:            WorkoutExercise[];
@@ -249,6 +253,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     phase,
     sessionIndex = 0,
     environment,
+    goalType,
   } = input;
 
   const workoutDay = buildWorkoutDay({
@@ -257,6 +262,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     difficulty,
     energyLevel,
     sessionIndex,
+    goalType,
   });
 
   const resolvedExercises: Exercise[] = environment
@@ -280,6 +286,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     phase,
     dayName:              workoutDay.dayName,
     focus:                workoutDay.focus,
+    goalFocus:            goalType ? GOAL_PROFILES[goalType].focus : "Balanced Fitness",
     energyLevel,
     trainingState,
     exercises,

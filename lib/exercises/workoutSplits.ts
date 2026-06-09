@@ -7,6 +7,8 @@
 
 import type { Exercise, MuscleCategory, DifficultyLevel } from "./exerciseLibrary";
 import { exercisesByCategory } from "./exerciseLibrary";
+import type { GoalType } from "./goalBasedSelection";
+import { pickByGoal } from "./goalBasedSelection";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -291,8 +293,9 @@ export function buildWorkoutDay(params: {
   difficulty: DifficultyLevel;
   energyLevel: number;     // 0–4 from deriveEnergyLevel()
   sessionIndex?: number;   // increments across sessions for exercise variety
+  goalType?: GoalType;     // if set, uses goal-aware scoring instead of round-robin
 }): WorkoutDay {
-  const { splitType, dayIndex, difficulty, energyLevel, sessionIndex = 0 } = params;
+  const { splitType, dayIndex, difficulty, energyLevel, sessionIndex = 0, goalType } = params;
 
   const template = SPLIT_TEMPLATES[splitType];
   const day = template.days[dayIndex % template.days.length];
@@ -307,8 +310,15 @@ export function buildWorkoutDay(params: {
 
   const exercises: Exercise[] = effectiveSlots.flatMap((slot, slotIdx) => {
     const pool = buildPool(slot.category, difficulty, energyLevel, slot.muscleFocus);
-    // Vary selection per slot so the same category in two slots picks different exercises
-    return pickFromPool(pool, slot.count, sessionIndex + slotIdx * 7);
+    const slotOffset = sessionIndex + slotIdx * 7;
+    if (goalType) {
+      const effectiveDifficulty: DifficultyLevel =
+        energyLevel <= 1 ? stepDifficulty(difficulty, -1) :
+        energyLevel >= 4 ? stepDifficulty(difficulty, +1) :
+        difficulty;
+      return pickByGoal(pool, slot.count, goalType, effectiveDifficulty, slotOffset);
+    }
+    return pickFromPool(pool, slot.count, slotOffset);
   });
 
   // De-duplicate by name (possible when muscleFocus filter is narrow and pool is small)

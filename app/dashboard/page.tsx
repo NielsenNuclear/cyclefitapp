@@ -13,6 +13,7 @@ import { generateRecommendation, deriveEnergyLevel, getTrainingState } from "@/l
 import { getTodayCheckin } from "@/lib/checkin";
 import { generateWorkout } from "@/lib/exercises/generateWorkout";
 import { recommendedSplitType, getSplitTemplate } from "@/lib/exercises/workoutSplits";
+import { mapOnboardingGoalToGoalType } from "@/lib/exercises/goalBasedSelection";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -48,6 +49,7 @@ function runWorkoutPipeline(
   const splitType              = recommendedSplitType(user.sessionsPerWeek);
   const template               = getSplitTemplate(splitType);
   const dayIndex               = (new Date().getDay() + 6) % template.days.length;
+  const goalType               = mapOnboardingGoalToGoalType(user.goals ?? []);
 
   return generateWorkout({
     splitType,
@@ -58,6 +60,7 @@ function runWorkoutPipeline(
     phase,
     sessionIndex: phase.cycleDay,
     environment,
+    goalType,
   });
 }
 
