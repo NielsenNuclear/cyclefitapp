@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import type { OnboardingData } from "@/lib/onboarding-types";
+import type { AdaptiveProfile } from "@/lib/adaptive-profile";
 import type { DailyRecommendation, PhaseData } from "@/types/recommendation";
 import type { CheckinData } from "@/lib/checkin";
 import type { DifficultyLevel, TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
@@ -42,22 +43,24 @@ function mapDifficulty(trainingLevel: string): DifficultyLevel {
   return "Intermediate";   // recreational, consistent
 }
 
-function runPipeline(user: OnboardingData): DailyRecommendation {
+function runPipeline(user: OnboardingData, profile?: AdaptiveProfile): DailyRecommendation {
   const phase = calculatePhase({
     lastPeriodDate:  user.lastPeriodDate,
     cycleLength:     user.cycleLength,
     cycleRegularity: user.cycleRegularity || undefined,
   });
-  return generateRecommendation(phase, user);
+  return generateRecommendation(phase, user, profile);
 }
 
 function runWorkoutPipeline(
   user: OnboardingData,
   phase: PhaseData,
   environment: TrainingEnvironment = "gym",
+  profile?: AdaptiveProfile,
 ): GeneratedWorkout {
-  const { level: energyLevel } = deriveEnergyLevel(user);
-  const trainingState          = getTrainingState(user);
+  const weights                = profile?.readinessWeights;
+  const { level: energyLevel } = deriveEnergyLevel(user, weights);
+  const trainingState          = getTrainingState(user, weights);
   const difficulty             = mapDifficulty(user.trainingLevel);
   const splitType              = recommendedSplitType(user.sessionsPerWeek);
   const template               = getSplitTemplate(splitType);
@@ -145,6 +148,7 @@ export default function DashboardPage() {
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
   const onboardingRef = useRef<OnboardingData | null>(null);
+  const profileRef    = useRef<AdaptiveProfile | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -161,6 +165,10 @@ export default function DashboardPage() {
       return;
     }
     onboardingRef.current = user;
+    const profileRaw = localStorage.getItem("axis_adaptive_profile");
+    if (profileRaw) {
+      try { profileRef.current = JSON.parse(profileRaw); } catch {}
+    }
 
     const savedEnv = (localStorage.getItem(ENV_STORAGE_KEY) as TrainingEnvironment | null) ?? "gym";
     setEnvironment(savedEnv);
@@ -171,9 +179,10 @@ export default function DashboardPage() {
       : user;
 
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const rec = runPipeline(effectiveUser);
+    const profile = profileRef.current ?? undefined;
+    const rec = runPipeline(effectiveUser, profile);
     setRecommendation(rec);
-    const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv);
+    const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType);
     setHistorySummary(summary);
@@ -188,10 +197,11 @@ export default function DashboardPage() {
     const user = onboardingRef.current;
     if (!user) return;
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
-    const newRec = runPipeline(effectiveUser);
+    const profile = profileRef.current ?? undefined;
+    const newRec = runPipeline(effectiveUser, profile);
     setRecommendation(newRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment);
+    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType);
     setHistorySummary(summary);
@@ -236,7 +246,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType);
     setHistorySummary(summary);

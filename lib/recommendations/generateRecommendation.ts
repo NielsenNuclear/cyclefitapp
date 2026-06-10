@@ -8,6 +8,7 @@
 //   – Language is empowering and evidence-informed.
 
 import type { OnboardingData as UserOnboarding } from "@/lib/onboarding-types";
+import type { AdaptiveProfile } from "@/lib/adaptive-profile";
 import type {
   PhaseData,
   DailyRecommendation,
@@ -29,13 +30,24 @@ const SLEEP_MOD: Record<string, number> = {
   poor:      -2,
 };
 
-function getReadinessModifier(user: UserOnboarding): number {
-  let mod = 0;
-  mod += SLEEP_MOD[user.sleepQuality] ?? 0;
+type ReadinessWeights = AdaptiveProfile["readinessWeights"];
 
-  if (user.stressLevel >= 8) mod -= 2;
-  else if (user.stressLevel >= 6) mod -= 1;
-  else if (user.stressLevel <= 3) mod += 1;
+const SLEEP_WEIGHT_BASELINE  = 25;
+const STRESS_WEIGHT_BASELINE = 17;
+
+function weightScale(actual: number, baseline: number): number {
+  return Math.min(actual / baseline, 1.5);
+}
+
+function getReadinessModifier(user: UserOnboarding, weights?: ReadinessWeights): number {
+  const sleepScale  = weights ? weightScale(weights.sleep,  SLEEP_WEIGHT_BASELINE)  : 1.0;
+  const stressScale = weights ? weightScale(weights.stress, STRESS_WEIGHT_BASELINE) : 1.0;
+
+  let mod = 0;
+  mod += (SLEEP_MOD[user.sleepQuality] ?? 0) * sleepScale;
+
+  const stressMod = user.stressLevel >= 8 ? -2 : user.stressLevel >= 6 ? -1 : user.stressLevel <= 3 ? 1 : 0;
+  mod += stressMod * stressScale;
 
   if (user.sessionsPerWeek >= 5 && user.trainingLevel !== "competitive") mod -= 1;
 
@@ -46,7 +58,7 @@ function getReadinessModifier(user: UserOnboarding): number {
 
 export type EnergyTier = "Very Low Energy" | "Low Energy" | "Moderate Energy" | "Good Energy" | "High Energy";
 
-export function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: EnergyTier } {
+export function deriveEnergyLevel(user: UserOnboarding, weights?: ReadinessWeights): { level: number; tier: EnergyTier } {
   const baseMap: Record<string, number> = {
     consistent_high:  3,
     morning_peak:     3,
@@ -55,7 +67,7 @@ export function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: 
     consistently_low: 0,
   };
   const base = user.energyPattern ? (baseMap[user.energyPattern] ?? 2) : 2;
-  const level = Math.max(0, Math.min(4, base + getReadinessModifier(user)));
+  const level = Math.round(Math.max(0, Math.min(4, base + getReadinessModifier(user, weights))));
   const tiers: EnergyTier[] = ["Very Low Energy", "Low Energy", "Moderate Energy", "Good Energy", "High Energy"];
   return { level, tier: tiers[level] };
 }
@@ -64,8 +76,8 @@ export function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: 
 
 export type { TrainingState };
 
-export function getTrainingState(user: UserOnboarding): TrainingState {
-  const mod = getReadinessModifier(user);
+export function getTrainingState(user: UserOnboarding, weights?: ReadinessWeights): TrainingState {
+  const mod = getReadinessModifier(user, weights);
   if (user.sessionsPerWeek >= 5 && mod <= -2) return "overreached";
   if (user.sessionsPerWeek >= 5 && mod <= 0)  return "fatigued";
   if (user.sessionsPerWeek <= 2 || user.trainingLevel === "just_starting") return "fresh";
@@ -76,11 +88,12 @@ export function getTrainingState(user: UserOnboarding): TrainingState {
 
 function buildTraining(
   phase: PhaseData,
-  user: UserOnboarding
+  user: UserOnboarding,
+  weights?: ReadinessWeights,
 ): TrainingRecommendation {
-  const mod           = getReadinessModifier(user);
-  const trainingState = getTrainingState(user);
-  const { tier }      = deriveEnergyLevel(user);
+  const mod           = getReadinessModifier(user, weights);
+  const trainingState = getTrainingState(user, weights);
+  const { tier }      = deriveEnergyLevel(user, weights);
   const isStrengthFocused  = user.trainingStyles.includes("strength");
   const isEnduranceFocused = user.trainingStyles.includes("endurance") || user.trainingStyles.includes("running");
   const isRecoveryFocused  = user.goals.includes("recover_better");
@@ -273,9 +286,9 @@ function buildTraining(
 
 // ─── Nutrition recommendations per phase ─────────────────────────────────────
 
-function buildNutrition(phase: PhaseData, user: UserOnboarding): NutritionRecommendation {
+function buildNutrition(phase: PhaseData, user: UserOnboarding, weights?: ReadinessWeights): NutritionRecommendation {
   const isHighTraining   = user.sessionsPerWeek >= 4;
-  const { tier }         = deriveEnergyLevel(user);
+  const { tier }         = deriveEnergyLevel(user, weights);
   const hasLutealCraving = phase.name === "Luteal" || phase.name === "Late Luteal";
 
   switch (phase.name) {
@@ -343,10 +356,10 @@ function buildNutrition(phase: PhaseData, user: UserOnboarding): NutritionRecomm
 
 // ─── Recovery recommendations per phase ──────────────────────────────────────
 
-function buildRecovery(phase: PhaseData, user: UserOnboarding): RecoveryRecommendation {
+function buildRecovery(phase: PhaseData, user: UserOnboarding, weights?: ReadinessWeights): RecoveryRecommendation {
   const hasSleepIssues  = user.sleepQuality === "poor" || user.sleepQuality === "variable";
   const highStress      = user.stressLevel >= 7;
-  const trainingState   = getTrainingState(user);
+  const trainingState   = getTrainingState(user, weights);
 
   const sleepTargetText = `${user.sleepHours} hours (your baseline). ${
     hasSleepIssues
@@ -441,11 +454,12 @@ function buildRecovery(phase: PhaseData, user: UserOnboarding): RecoveryRecommen
 
 function buildExplanation(
   phase: PhaseData,
-  user: UserOnboarding
+  user: UserOnboarding,
+  weights?: ReadinessWeights,
 ): ExplanationPoint[] {
   const points: ExplanationPoint[] = [];
-  const { level, tier } = deriveEnergyLevel(user);
-  const trainingState   = getTrainingState(user);
+  const { level, tier } = deriveEnergyLevel(user, weights);
+  const trainingState   = getTrainingState(user, weights);
 
   // Phase
   points.push({
@@ -549,15 +563,17 @@ function buildExplanation(
 
 export function generateRecommendation(
   phase: PhaseData,
-  user: UserOnboarding
+  user: UserOnboarding,
+  profile?: AdaptiveProfile,
 ): DailyRecommendation {
+  const weights = profile?.readinessWeights;
   return {
     generatedAt:        new Date().toISOString(),
     phase,
-    training:           buildTraining(phase, user),
-    nutrition:          buildNutrition(phase, user),
-    recovery:           buildRecovery(phase, user),
-    explanationPoints:  buildExplanation(phase, user),
+    training:           buildTraining(phase, user, weights),
+    nutrition:          buildNutrition(phase, user, weights),
+    recovery:           buildRecovery(phase, user, weights),
+    explanationPoints:  buildExplanation(phase, user, weights),
     disclaimer:
       "These recommendations are guidance informed by physiology research and your profile data. They are not medical advice. Individual responses vary — your felt experience is always the primary signal.",
   };

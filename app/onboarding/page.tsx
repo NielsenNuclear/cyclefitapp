@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { OnboardingFlow } from "./OnboardingFlow";
 import type { OnboardingData } from "@/lib/onboarding-types";
+import { buildAdaptiveProfile } from "@/lib/adaptive-profile";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function OnboardingPage() {
     
     if (typeof window !== "undefined") {
       localStorage.setItem("axis_onboarding", JSON.stringify(data));
+      localStorage.setItem("axis_adaptive_profile", JSON.stringify(buildAdaptiveProfile(data)));
     }
 
     router.push("/dashboard");
