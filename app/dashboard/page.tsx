@@ -17,7 +17,8 @@ import { getTodayCheckin } from "@/lib/checkin";
 import { generateWorkout } from "@/lib/exercises/generateWorkout";
 import { recommendedSplitType, getSplitTemplate } from "@/lib/exercises/workoutSplits";
 import { mapOnboardingGoalToGoalType } from "@/lib/exercises/goalBasedSelection";
-import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary } from "@/lib/history/workoutHistory";
+import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
+import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary, markWorkoutCompleted, markWorkoutSkipped } from "@/lib/history/workoutHistory";
 import { generateTrainingLoadReport } from "@/lib/analytics/trainingLoad";
 import { generateInsights } from "@/lib/insights/generateInsights";
 
@@ -74,28 +75,31 @@ function runWorkoutPipeline(
 }
 
 interface AnalyticsSnapshot {
-  summary:  WorkoutHistorySummary;
-  load:     TrainingLoadReport;
-  insights: InsightReport;
+  summary:     WorkoutHistorySummary;
+  load:        TrainingLoadReport;
+  insights:    InsightReport;
+  todayStatus: WorkoutCompletionStatus;
 }
 
 function runAnalyticsPipeline(workout: GeneratedWorkout, phase: PhaseData): AnalyticsSnapshot {
   saveWorkoutToHistory(workout);
-  const history  = getWorkoutHistory();
-  const summary  = getWorkoutHistorySummary();
-  const load     = generateTrainingLoadReport({
+  const history    = getWorkoutHistory();
+  const summary    = getWorkoutHistorySummary();
+  const load       = generateTrainingLoadReport({
     history,
     currentTrainingState: workout.trainingState,
     currentEnergyLevel:   workout.energyLevel,
   });
-  const insights = generateInsights({
+  const insights   = generateInsights({
     phase,
     energyLevel:   workout.energyLevel,
     trainingState: workout.trainingState,
     loadReport:    load,
     history,
   });
-  return { summary, load, insights };
+  const todayStr   = new Date().toISOString().slice(0, 10);
+  const todayStatus: WorkoutCompletionStatus = history.find(e => e.id === todayStr)?.status ?? "pending";
+  return { summary, load, insights, todayStatus };
 }
 
 const ENV_STORAGE_KEY = "axis_training_env";
@@ -107,6 +111,7 @@ export default function DashboardPage() {
   const [historySummary, setHistorySummary]   = useState<WorkoutHistorySummary | null>(null);
   const [loadReport, setLoadReport]           = useState<TrainingLoadReport | null>(null);
   const [insightReport, setInsightReport]     = useState<InsightReport | null>(null);
+  const [todayStatus, setTodayStatus]         = useState<WorkoutCompletionStatus>("pending");
   const [checkinComplete, setCheckinComplete] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
@@ -140,10 +145,11 @@ export default function DashboardPage() {
     setRecommendation(rec);
     const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv);
     setWorkout(wkt);
-    const { summary, load, insights } = runAnalyticsPipeline(wkt, rec.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
+    setTodayStatus(ts);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -156,11 +162,28 @@ export default function DashboardPage() {
     setRecommendation(newRec);
     const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment);
     setWorkout(wkt);
-    const { summary, load, insights } = runAnalyticsPipeline(wkt, newRec.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
+    setTodayStatus(ts);
     setIsRecalculating(false);
+  }
+
+  function handleMarkComplete() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    markWorkoutCompleted(todayStr);
+    setTodayStatus("completed");
+    const summary = getWorkoutHistorySummary();
+    setHistorySummary(summary);
+  }
+
+  function handleMarkSkip() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    markWorkoutSkipped(todayStr);
+    setTodayStatus("skipped");
+    const summary = getWorkoutHistorySummary();
+    setHistorySummary(summary);
   }
 
   function handleEnvironmentChange(env: TrainingEnvironment) {
@@ -174,10 +197,11 @@ export default function DashboardPage() {
       : user;
     const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env);
     setWorkout(wkt);
-    const { summary, load, insights } = runAnalyticsPipeline(wkt, recommendation.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
+    setTodayStatus(ts);
   }
 
   if (!recommendation) return null;
@@ -197,6 +221,9 @@ export default function DashboardPage() {
             workout={workout}
             environment={environment}
             onEnvironmentChange={handleEnvironmentChange}
+            completionStatus={todayStatus}
+            onMarkComplete={handleMarkComplete}
+            onMarkSkip={handleMarkSkip}
           />
         )}
         <TrainingSummaryCard summary={historySummary} />

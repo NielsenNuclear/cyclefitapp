@@ -2,6 +2,7 @@
 
 import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generateWorkout";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
+import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 
 // ─── Shared atoms (mirrors RecommendationCards.tsx) ───────────────────────────
 
@@ -102,12 +103,22 @@ function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
 // ─── WorkoutCard ──────────────────────────────────────────────────────────────
 
 interface WorkoutCardProps {
-  workout:            GeneratedWorkout;
-  environment:        TrainingEnvironment;
+  workout:             GeneratedWorkout;
+  environment:         TrainingEnvironment;
   onEnvironmentChange: (env: TrainingEnvironment) => void;
+  completionStatus?:   WorkoutCompletionStatus;
+  onMarkComplete:      () => void;
+  onMarkSkip:          () => void;
 }
 
-export function WorkoutCard({ workout, environment, onEnvironmentChange }: WorkoutCardProps) {
+export function WorkoutCard({
+  workout,
+  environment,
+  onEnvironmentChange,
+  completionStatus = "pending",
+  onMarkComplete,
+  onMarkSkip,
+}: WorkoutCardProps) {
   const stateWarning =
     workout.trainingState === "overreached"
       ? "Deload session — volume and intensity significantly reduced. Prioritise nervous system recovery."
@@ -164,6 +175,37 @@ export function WorkoutCard({ workout, environment, onEnvironmentChange }: Worko
         <p className="text-[11px] text-[#6B6860] leading-relaxed italic">
           {workout.workoutRationale}
         </p>
+      </div>
+
+      {/* Completion actions */}
+      <div className="mt-4">
+        {completionStatus === "pending" && (
+          <div className="flex gap-2">
+            <button
+              onClick={onMarkComplete}
+              className="flex-1 py-2.5 rounded-xl bg-[#1C1B18] text-white text-[12px] font-semibold hover:bg-[#2E2D2A] transition-colors"
+            >
+              Mark complete
+            </button>
+            <button
+              onClick={onMarkSkip}
+              className="px-4 py-2.5 rounded-xl bg-[#F5F3EE] text-[#6B6860] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+        {(completionStatus === "completed" || completionStatus === "partially_completed") && (
+          <div className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#E1F5EE] border border-[#A3DCCA]">
+            <span className="text-[12px] font-semibold text-[#085041]">Logged</span>
+            <span className="text-[11px] text-[#2A7D62]">✓</span>
+          </div>
+        )}
+        {completionStatus === "skipped" && (
+          <div className="flex items-center justify-center py-2.5 rounded-xl bg-[#F5F3EE] border border-[#E0DDD4]">
+            <span className="text-[12px] font-medium text-[#9B9690]">Skipped</span>
+          </div>
+        )}
       </div>
     </div>
   );
