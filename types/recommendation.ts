@@ -24,6 +24,10 @@ export interface PhaseData {
   daysUntilNextPhase: number;
 }
 
+// ─── Training state ───────────────────────────────────────────────────────────
+
+export type TrainingState = "fresh" | "loaded" | "fatigued" | "overreached";
+
 // ─── Training recommendation ──────────────────────────────────────────────────
 
 export interface TrainingRecommendation {

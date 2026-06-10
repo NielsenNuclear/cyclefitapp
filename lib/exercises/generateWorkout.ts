@@ -4,7 +4,7 @@
 
 import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment } from "./exerciseLibrary";
 import type { SplitType }                                  from "./workoutSplits";
-import type { PhaseData }                                  from "@/types/recommendation";
+import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
 import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
 import type { GoalType }                                   from "./goalBasedSelection";
@@ -12,7 +12,7 @@ import { GOAL_PROFILES }                                   from "./goalBasedSele
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type TrainingState = "fresh" | "loaded" | "fatigued" | "overreached";
+export type { TrainingState } from "@/types/recommendation";
 
 export interface WorkoutGenerationInput {
   splitType:     SplitType;

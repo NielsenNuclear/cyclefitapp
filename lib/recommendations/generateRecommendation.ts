@@ -17,6 +17,7 @@ import type {
   ExplanationPoint,
   ReadinessBadge,
   IntensityLevel,
+  TrainingState,
 } from "@/types/recommendation";
 
 // ─── Helper: readiness modifier (-2 to +2) ───────────────────────────────────
@@ -56,7 +57,7 @@ export function deriveEnergyLevel(user: UserOnboarding): { level: number; tier: 
 
 // ─── Helper: training state awareness ────────────────────────────────────────
 
-export type TrainingState = "fresh" | "loaded" | "fatigued" | "overreached";
+export type { TrainingState };
 
 export function getTrainingState(user: UserOnboarding): TrainingState {
   const mod = getReadinessModifier(user);
