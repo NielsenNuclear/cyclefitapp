@@ -270,7 +270,6 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
         if (isCompatibleWith(ex, environment)) return ex;
         const sub = findSubstitute(ex, environment, difficulty);
         if (sub) return sub;
-        console.warn(`[generateWorkout] No substitute for "${ex.name}" in "${environment}" — keeping original`);
         return ex;
       })
     : workoutDay.exercises;

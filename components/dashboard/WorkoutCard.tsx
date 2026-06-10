@@ -108,6 +108,7 @@ interface WorkoutCardProps {
   onEnvironmentChange: (env: TrainingEnvironment) => void;
   completionStatus?:   WorkoutCompletionStatus;
   onMarkComplete:      () => void;
+  onMarkPartial:       () => void;
   onMarkSkip:          () => void;
 }
 
@@ -117,6 +118,7 @@ export function WorkoutCard({
   onEnvironmentChange,
   completionStatus = "pending",
   onMarkComplete,
+  onMarkPartial,
   onMarkSkip,
 }: WorkoutCardProps) {
   const stateWarning =
@@ -185,11 +187,17 @@ export function WorkoutCard({
               onClick={onMarkComplete}
               className="flex-1 py-2.5 rounded-xl bg-[#1C1B18] text-white text-[12px] font-semibold hover:bg-[#2E2D2A] transition-colors"
             >
-              Mark complete
+              Done
+            </button>
+            <button
+              onClick={onMarkPartial}
+              className="px-3 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            >
+              Partial
             </button>
             <button
               onClick={onMarkSkip}
-              className="px-4 py-2.5 rounded-xl bg-[#F5F3EE] text-[#6B6860] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+              className="px-3 py-2.5 rounded-xl bg-[#F5F3EE] text-[#9B9690] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
             >
               Skip
             </button>

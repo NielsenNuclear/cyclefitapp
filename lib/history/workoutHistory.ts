@@ -4,7 +4,7 @@
 
 import type { GeneratedWorkout } from "@/lib/exercises/generateWorkout";
 import type { SplitType } from "@/lib/exercises/workoutSplits";
-import type { TrainingState } from "@/lib/exercises/generateWorkout";
+import type { TrainingState } from "@/types/recommendation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,11 +15,13 @@ export type WorkoutCompletionStatus =
   | "skipped";
 
 export interface StoredExercise {
-  name:  string;
-  sets:  number;
-  reps:  string;
-  rest:  string;
-  rpe?:  number;
+  name:              string;
+  sets:              number;
+  reps:              string;
+  rest:              string;
+  rpe?:              number;
+  primaryMuscles?:   string[];
+  secondaryMuscles?: string[];
 }
 
 export interface WorkoutHistoryEntry {
@@ -116,11 +118,13 @@ export function saveWorkout(workout: GeneratedWorkout): void {
     trainingState:        workout.trainingState,
     estimatedDurationMin: workout.estimatedDurationMin,
     exercises:            workout.exercises.map(ex => ({
-      name: ex.name,
-      sets: ex.sets,
-      reps: ex.reps,
-      rest: ex.rest,
-      rpe:  ex.rpe,
+      name:              ex.name,
+      sets:              ex.sets,
+      reps:              ex.reps,
+      rest:              ex.rest,
+      rpe:               ex.rpe,
+      primaryMuscles:    ex.exercise.primaryMuscles,
+      secondaryMuscles:  ex.exercise.secondaryMuscles,
     })),
     status:  "pending",
     savedAt: now,

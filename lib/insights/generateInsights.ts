@@ -4,7 +4,7 @@
 // All language is evidence-informed and hedged. No deterministic medical claims.
 
 import type { PhaseData }             from "@/types/recommendation";
-import type { TrainingState }         from "@/lib/exercises/generateWorkout";
+import type { TrainingState }         from "@/types/recommendation";
 import type { VolumeReport, MuscleGroup } from "@/lib/exercises/volumeTracking";
 import type { TrainingLoadReport }    from "@/lib/analytics/trainingLoad";
 import type { WorkoutHistoryEntry }   from "@/lib/history/workoutHistory";

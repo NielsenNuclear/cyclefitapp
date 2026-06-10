@@ -68,7 +68,7 @@ export function getTrainingState(user: UserOnboarding): TrainingState {
   const mod = getReadinessModifier(user);
   if (user.sessionsPerWeek >= 5 && mod <= -2) return "overreached";
   if (user.sessionsPerWeek >= 5 && mod <= 0)  return "fatigued";
-  if (user.sessionsPerWeek <= 2 || user.trainingLevel === "beginner") return "fresh";
+  if (user.sessionsPerWeek <= 2 || user.trainingLevel === "just_starting") return "fresh";
   return "loaded";
 }
 

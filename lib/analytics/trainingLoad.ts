@@ -4,7 +4,7 @@
 // All values are estimates for informational purposes only.
 
 import type { WorkoutHistoryEntry } from "@/lib/history/workoutHistory";
-import type { TrainingState } from "@/lib/exercises/generateWorkout";
+import type { TrainingState } from "@/types/recommendation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

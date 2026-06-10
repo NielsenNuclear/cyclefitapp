@@ -57,11 +57,12 @@ function getCycleDay(lastPeriodDate: string, cycleLength: number): number {
 /** Phase-specific energy trends — research-informed, probabilistic. */
 function getEnergyTrend(phase: PhaseName, dayInPhase: number): EnergyTrend {
   switch (phase) {
-    case "Menstrual":   return "Low";
-    case "Follicular":  return dayInPhase <= 3 ? "Rising" : "Rising";
-    case "Ovulatory":   return "Peak";
-    case "Luteal":      return dayInPhase <= 5 ? "Variable" : "Declining";
-    default:            return "Variable";
+    case "Menstrual":    return "Low";
+    case "Follicular":   return "Rising";
+    case "Ovulatory":    return "Peak";
+    case "Luteal":       return dayInPhase <= 5 ? "Variable" : "Declining";
+    case "Late Luteal":  return "Declining";
+    default:             return "Variable";
   }
 }
 

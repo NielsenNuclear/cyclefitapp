@@ -249,3 +249,30 @@ export function weeklyVolumeReport(
 ): VolumeReport {
   return generateVolumeReport(calculateWeeklyVolume(workouts), goal);
 }
+
+// ─── Weekly volume from history entries (duck-typed) ─────────────────────────
+// Works with WorkoutHistoryEntry[] without importing from workoutHistory to
+// avoid a cross-module dependency. Entries only contribute if they have
+// primaryMuscles / secondaryMuscles populated (stored from Phase 8 onwards).
+
+interface HistoryLike {
+  exercises: Array<{
+    sets:              number;
+    primaryMuscles?:   string[];
+    secondaryMuscles?: string[];
+  }>;
+}
+
+export function calculateWeeklyVolumeFromHistory(entries: HistoryLike[]): WeeklyVolume {
+  const total = emptyVolume();
+  for (const entry of entries) {
+    for (const ex of entry.exercises) {
+      if (ex.primaryMuscles)   accumulateVolume(total, ex.primaryMuscles,   ex.sets, 1.0);
+      if (ex.secondaryMuscles) accumulateVolume(total, ex.secondaryMuscles, ex.sets, 0.5);
+    }
+  }
+  for (const group of ALL_MUSCLE_GROUPS) {
+    total[group] = Math.round(total[group] * 10) / 10;
+  }
+  return total;
+}

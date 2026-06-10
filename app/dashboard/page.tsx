@@ -18,9 +18,12 @@ import { generateWorkout } from "@/lib/exercises/generateWorkout";
 import { recommendedSplitType, getSplitTemplate } from "@/lib/exercises/workoutSplits";
 import { mapOnboardingGoalToGoalType } from "@/lib/exercises/goalBasedSelection";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
-import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary, markWorkoutCompleted, markWorkoutSkipped } from "@/lib/history/workoutHistory";
+import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary, markWorkoutCompleted, markWorkoutPartiallyCompleted, markWorkoutSkipped } from "@/lib/history/workoutHistory";
 import { generateTrainingLoadReport } from "@/lib/analytics/trainingLoad";
 import { generateInsights } from "@/lib/insights/generateInsights";
+import type { TrainingGoal } from "@/lib/exercises/volumeTracking";
+import { calculateWeeklyVolumeFromHistory, generateVolumeReport } from "@/lib/exercises/volumeTracking";
+import type { GoalType } from "@/lib/exercises/goalBasedSelection";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -81,7 +84,17 @@ interface AnalyticsSnapshot {
   todayStatus: WorkoutCompletionStatus;
 }
 
-function runAnalyticsPipeline(workout: GeneratedWorkout, phase: PhaseData): AnalyticsSnapshot {
+function toTrainingGoal(goalType: GoalType): TrainingGoal {
+  if (goalType === "strength")   return "strength";
+  if (goalType === "hypertrophy") return "hypertrophy";
+  return "maintenance";
+}
+
+function runAnalyticsPipeline(
+  workout:   GeneratedWorkout,
+  phase:     PhaseData,
+  goalType?: GoalType,
+): AnalyticsSnapshot {
   saveWorkoutToHistory(workout);
   const history    = getWorkoutHistory();
   const summary    = getWorkoutHistorySummary();
@@ -90,14 +103,30 @@ function runAnalyticsPipeline(workout: GeneratedWorkout, phase: PhaseData): Anal
     currentTrainingState: workout.trainingState,
     currentEnergyLevel:   workout.energyLevel,
   });
+
+  const todayStr   = new Date().toISOString().slice(0, 10);
+  const day7AgoDate = new Date();
+  day7AgoDate.setDate(day7AgoDate.getDate() - 7);
+  const day7AgoStr = day7AgoDate.toISOString().slice(0, 10);
+
+  const weeklyCompleted = history.filter(
+    e => (e.status === "completed" || e.status === "partially_completed")
+      && e.id >= day7AgoStr && e.id <= todayStr
+  );
+  const weeklyVolume = calculateWeeklyVolumeFromHistory(weeklyCompleted);
+  const volumeReport = generateVolumeReport(
+    weeklyVolume,
+    goalType ? toTrainingGoal(goalType) : "maintenance",
+  );
+
   const insights   = generateInsights({
     phase,
     energyLevel:   workout.energyLevel,
     trainingState: workout.trainingState,
     loadReport:    load,
+    volumeReport,
     history,
   });
-  const todayStr   = new Date().toISOString().slice(0, 10);
   const todayStatus: WorkoutCompletionStatus = history.find(e => e.id === todayStr)?.status ?? "pending";
   return { summary, load, insights, todayStatus };
 }
@@ -141,11 +170,12 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
 
+    const goalType = mapOnboardingGoalToGoalType(user.goals);
     const rec = runPipeline(effectiveUser);
     setRecommendation(rec);
     const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -160,9 +190,10 @@ export default function DashboardPage() {
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const newRec = runPipeline(effectiveUser);
     setRecommendation(newRec);
+    const goalType = mapOnboardingGoalToGoalType(user.goals);
     const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -170,20 +201,29 @@ export default function DashboardPage() {
     setIsRecalculating(false);
   }
 
+  function refreshAfterMark() {
+    if (!workout || !recommendation) return;
+    const goalType = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
+    const snap = runAnalyticsPipeline(workout, recommendation.phase, goalType);
+    setHistorySummary(snap.summary);
+    setLoadReport(snap.load);
+    setInsightReport(snap.insights);
+    setTodayStatus(snap.todayStatus);
+  }
+
   function handleMarkComplete() {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    markWorkoutCompleted(todayStr);
-    setTodayStatus("completed");
-    const summary = getWorkoutHistorySummary();
-    setHistorySummary(summary);
+    markWorkoutCompleted(new Date().toISOString().slice(0, 10));
+    refreshAfterMark();
+  }
+
+  function handleMarkPartial() {
+    markWorkoutPartiallyCompleted(new Date().toISOString().slice(0, 10));
+    refreshAfterMark();
   }
 
   function handleMarkSkip() {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    markWorkoutSkipped(todayStr);
-    setTodayStatus("skipped");
-    const summary = getWorkoutHistorySummary();
-    setHistorySummary(summary);
+    markWorkoutSkipped(new Date().toISOString().slice(0, 10));
+    refreshAfterMark();
   }
 
   function handleEnvironmentChange(env: TrainingEnvironment) {
@@ -195,9 +235,10 @@ export default function DashboardPage() {
     const effectiveUser: OnboardingData = checkin
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
+    const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
     const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -223,6 +264,7 @@ export default function DashboardPage() {
             onEnvironmentChange={handleEnvironmentChange}
             completionStatus={todayStatus}
             onMarkComplete={handleMarkComplete}
+            onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
           />
         )}
