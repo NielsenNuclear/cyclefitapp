@@ -218,9 +218,31 @@ export function Step8Cycle({ data, onChange }: StepProps) {
         <SegmentedControl
           options={TRACKING_PREFS}
           value={data.trackingPreference}
-          onChange={val => onChange({ trackingPreference: val })}
+          onChange={val => {
+            onChange({ trackingPreference: val });
+            if (val === "none") onChange({ lastPeriodDate: "" });
+          }}
         />
       </div>
+
+      {/* Last period date — shown when user wants cycle tracking */}
+      {data.trackingPreference !== "none" && data.trackingPreference !== "" && (
+        <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#E8E5DC]">
+          <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-1">
+            First day of last period
+          </div>
+          <div className="text-[11px] text-[#9B9690] mb-3">
+            Used to estimate your current cycle phase. Approximate is fine.
+          </div>
+          <input
+            type="date"
+            value={data.lastPeriodDate}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={e => onChange({ lastPeriodDate: e.target.value })}
+            className="w-full px-4 py-3 rounded-xl border border-[#E0DDD4] bg-white text-[13px] text-[#1C1B18] focus:outline-none focus:border-[#C4C0EE] focus:ring-1 focus:ring-[#C4C0EE]"
+          />
+        </div>
+      )}
     </div>
   );
 }

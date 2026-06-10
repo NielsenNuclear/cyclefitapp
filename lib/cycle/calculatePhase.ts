@@ -31,8 +31,13 @@ function getPhaseWindows(cycleLength: number): PhaseWindow[] {
 
 /** Resolve cycle day from last period date. Wraps cleanly across cycles. */
 function getCycleDay(lastPeriodDate: string, cycleLength: number): number {
+  if (!lastPeriodDate) return 1;  // guard: empty string → day 1 (safe default)
+
   const now    = new Date();
   const period = new Date(lastPeriodDate);
+
+  // Guard: unparseable date string → day 1
+  if (isNaN(period.getTime())) return 1;
 
   // Treat times as date-only to avoid timezone drift
   now.setHours(0, 0, 0, 0);

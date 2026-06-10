@@ -33,7 +33,11 @@ function canAdvance(step: number, data: OnboardingData): boolean {
     case 5:  return !!data.sleepQuality;
     case 6:  return true;   // slider always has a value
     case 7:  return !!data.energyPattern;
-    case 8:  return !!data.cycleRegularity && !!data.trackingPreference;
+    case 8: {
+      if (!data.cycleRegularity || !data.trackingPreference) return false;
+      if (data.trackingPreference !== "none" && !data.lastPeriodDate) return false;
+      return true;
+    }
     case 9:  return data.symptoms.length > 0;
     case 10: return data.performancePriorities.length > 0;
     default: return true;

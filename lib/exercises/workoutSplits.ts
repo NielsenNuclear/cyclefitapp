@@ -264,7 +264,7 @@ function pickFromPool(
 ): Exercise[] {
   if (pool.length === 0) return [];
   if (pool.length <= count) return pool;
-  const offset = sessionIndex % pool.length;
+  const offset = (isNaN(sessionIndex) ? 0 : sessionIndex) % pool.length;
   const result: Exercise[] = [];
   for (let i = 0; i < count; i++) {
     result.push(pool[(offset + i) % pool.length]);
