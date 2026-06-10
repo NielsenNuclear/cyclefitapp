@@ -37,9 +37,9 @@ import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
-  if (trainingLevel === "beginner") return "Beginner";
-  if (trainingLevel === "advanced" || trainingLevel === "competitive") return "Advanced";
-  return "Intermediate";
+  if (trainingLevel === "just_starting") return "Beginner";
+  if (trainingLevel === "competitive")   return "Advanced";
+  return "Intermediate";   // recreational, consistent
 }
 
 function runPipeline(user: OnboardingData): DailyRecommendation {
