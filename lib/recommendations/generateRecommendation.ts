@@ -22,11 +22,16 @@ import type {
 
 // ─── Helper: readiness modifier (-2 to +2) ───────────────────────────────────
 
+const SLEEP_MOD: Record<string, number> = {
+  excellent:  1,
+  good:       0,
+  variable:  -1,
+  poor:      -2,
+};
+
 function getReadinessModifier(user: UserOnboarding): number {
   let mod = 0;
-  if (user.sleepQuality === "excellent") mod += 1;
-  else if (user.sleepQuality === "poor") mod -= 2;
-  else if (user.sleepQuality === "variable") mod -= 1;
+  mod += SLEEP_MOD[user.sleepQuality] ?? 0;
 
   if (user.stressLevel >= 8) mod -= 2;
   else if (user.stressLevel >= 6) mod -= 1;
