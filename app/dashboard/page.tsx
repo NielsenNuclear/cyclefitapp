@@ -25,6 +25,10 @@ import { generateInsights } from "@/lib/insights/generateInsights";
 import type { TrainingGoal } from "@/lib/exercises/volumeTracking";
 import { calculateWeeklyVolumeFromHistory, generateVolumeReport } from "@/lib/exercises/volumeTracking";
 import type { GoalType } from "@/lib/exercises/goalBasedSelection";
+import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
+import { buildProgressionProfile } from "@/lib/progression/progressionProfile";
+import type { CoachingAdjustment } from "@/lib/progression/progressionRules";
+import { applyProgressionRules } from "@/lib/progression/progressionRules";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -36,6 +40,7 @@ import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard";
 import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
+import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -43,20 +48,25 @@ function mapDifficulty(trainingLevel: string): DifficultyLevel {
   return "Intermediate";   // recreational, consistent
 }
 
-function runPipeline(user: OnboardingData, profile?: AdaptiveProfile): DailyRecommendation {
+function runPipeline(
+  user:        OnboardingData,
+  profile?:    AdaptiveProfile,
+  progression?: ProgressionProfile,
+): DailyRecommendation {
   const phase = calculatePhase({
     lastPeriodDate:  user.lastPeriodDate,
     cycleLength:     user.cycleLength,
     cycleRegularity: user.cycleRegularity || undefined,
   });
-  return generateRecommendation(phase, user, profile);
+  return generateRecommendation(phase, user, profile, progression);
 }
 
 function runWorkoutPipeline(
-  user: OnboardingData,
-  phase: PhaseData,
+  user:        OnboardingData,
+  phase:       PhaseData,
   environment: TrainingEnvironment = "gym",
-  profile?: AdaptiveProfile,
+  profile?:    AdaptiveProfile,
+  adjustment?: CoachingAdjustment,
 ): GeneratedWorkout {
   const weights                = profile?.readinessWeights;
   const { level: energyLevel } = deriveEnergyLevel(user, weights);
@@ -74,10 +84,21 @@ function runWorkoutPipeline(
     energyLevel,
     trainingState,
     phase,
-    sessionIndex: phase.cycleDay,
+    sessionIndex:      phase.cycleDay,
     environment,
     goalType,
+    coachingAdjustment: adjustment,
   });
+}
+
+function computeProgression(history: ReturnType<typeof getWorkoutHistory>): {
+  profile:    ProgressionProfile;
+  adjustment: CoachingAdjustment;
+} {
+  const prelimLoad = generateTrainingLoadReport({ history });
+  const profile    = buildProgressionProfile(history, prelimLoad);
+  const adjustment = applyProgressionRules(profile);
+  return { profile, adjustment };
 }
 
 interface AnalyticsSnapshot {
@@ -138,17 +159,20 @@ const ENV_STORAGE_KEY = "axis_training_env";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [recommendation, setRecommendation]   = useState<DailyRecommendation | null>(null);
-  const [workout, setWorkout]                 = useState<GeneratedWorkout | null>(null);
-  const [historySummary, setHistorySummary]   = useState<WorkoutHistorySummary | null>(null);
-  const [loadReport, setLoadReport]           = useState<TrainingLoadReport | null>(null);
-  const [insightReport, setInsightReport]     = useState<InsightReport | null>(null);
-  const [todayStatus, setTodayStatus]         = useState<WorkoutCompletionStatus>("pending");
-  const [checkinComplete, setCheckinComplete] = useState(false);
-  const [isRecalculating, setIsRecalculating] = useState(false);
-  const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
-  const onboardingRef = useRef<OnboardingData | null>(null);
-  const profileRef    = useRef<AdaptiveProfile | null>(null);
+  const [recommendation, setRecommendation]       = useState<DailyRecommendation | null>(null);
+  const [workout, setWorkout]                     = useState<GeneratedWorkout | null>(null);
+  const [historySummary, setHistorySummary]       = useState<WorkoutHistorySummary | null>(null);
+  const [loadReport, setLoadReport]               = useState<TrainingLoadReport | null>(null);
+  const [insightReport, setInsightReport]         = useState<InsightReport | null>(null);
+  const [todayStatus, setTodayStatus]             = useState<WorkoutCompletionStatus>("pending");
+  const [checkinComplete, setCheckinComplete]     = useState(false);
+  const [isRecalculating, setIsRecalculating]     = useState(false);
+  const [environment, setEnvironment]             = useState<TrainingEnvironment>("gym");
+  const [progressionProfile, setProgressionProfile] = useState<ProgressionProfile | null>(null);
+  const [coachingAdjustment, setCoachingAdjustment] = useState<CoachingAdjustment | null>(null);
+  const onboardingRef  = useRef<OnboardingData | null>(null);
+  const profileRef     = useRef<AdaptiveProfile | null>(null);
+  const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -178,11 +202,18 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
 
-    const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const profile = profileRef.current ?? undefined;
-    const rec = runPipeline(effectiveUser, profile);
+    // Compute progression from existing history before generating today's workout
+    const rawHistory = getWorkoutHistory();
+    const { profile: prog, adjustment } = computeProgression(rawHistory);
+    setProgressionProfile(prog);
+    setCoachingAdjustment(adjustment);
+    adjustmentRef.current = adjustment;
+
+    const goalType  = mapOnboardingGoalToGoalType(user.goals);
+    const profile   = profileRef.current ?? undefined;
+    const rec       = runPipeline(effectiveUser, profile, prog);
     setRecommendation(rec);
-    const wkt = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile);
+    const wkt       = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType);
     setHistorySummary(summary);
@@ -197,11 +228,12 @@ export default function DashboardPage() {
     const user = onboardingRef.current;
     if (!user) return;
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
-    const profile = profileRef.current ?? undefined;
-    const newRec = runPipeline(effectiveUser, profile);
+    const profile       = profileRef.current ?? undefined;
+    const adjustment    = adjustmentRef.current ?? undefined;
+    const newRec        = runPipeline(effectiveUser, profile, progressionProfile ?? undefined);
     setRecommendation(newRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile);
+    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile, adjustment);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType);
     setHistorySummary(summary);
@@ -213,12 +245,18 @@ export default function DashboardPage() {
 
   function refreshAfterMark() {
     if (!workout || !recommendation) return;
-    const goalType = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
-    const snap = runAnalyticsPipeline(workout, recommendation.phase, goalType);
+    const goalType    = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
+    const snap        = runAnalyticsPipeline(workout, recommendation.phase, goalType);
     setHistorySummary(snap.summary);
     setLoadReport(snap.load);
     setInsightReport(snap.insights);
     setTodayStatus(snap.todayStatus);
+    // Recompute progression from updated history
+    const updatedHistory = getWorkoutHistory();
+    const { profile: prog, adjustment } = computeProgression(updatedHistory);
+    setProgressionProfile(prog);
+    setCoachingAdjustment(adjustment);
+    adjustmentRef.current = adjustment;
   }
 
   function handleMarkComplete() {
@@ -246,7 +284,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType);
     setHistorySummary(summary);
@@ -280,6 +318,7 @@ export default function DashboardPage() {
         )}
         <TrainingSummaryCard summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
+        <ProgressionCard     profile={progressionProfile} adjustment={coachingAdjustment} />
         <InsightsCard        report={insightReport} />
         <NutritionCard nutrition={recommendation.nutrition} />
         <RecoveryCard recovery={recommendation.recovery} />
