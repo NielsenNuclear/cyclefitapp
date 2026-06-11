@@ -65,6 +65,26 @@ export const EMPTY_ONBOARDING: OnboardingData = {
   primaryGoalDeadline: "",
 };
 
+export function canAdvance(step: number, data: OnboardingData): boolean {
+  switch (step) {
+    case 1:  return data.goals.length > 0;
+    case 2:  return !!data.trainingLevel;
+    case 3:  return data.trainingStyles.length > 0;
+    case 4:  return data.recoveryPractices.length > 0;
+    case 5:  return !!data.sleepQuality;
+    case 6:  return true;
+    case 7:  return !!data.energyPattern;
+    case 8: {
+      if (!data.cycleRegularity || !data.trackingPreference) return false;
+      if (data.trackingPreference !== "none" && !data.lastPeriodDate) return false;
+      return true;
+    }
+    case 9:  return data.symptoms.length > 0;
+    case 10: return data.performancePriorities.length > 0;
+    default: return true;
+  }
+}
+
 export interface StepConfig {
   id: number;
   title: string;

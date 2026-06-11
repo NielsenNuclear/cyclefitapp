@@ -18,31 +18,10 @@ import {
   Step9Symptoms,
   Step10Priorities,
 } from "@/components/onboarding/Steps6to10";
-import { EMPTY_ONBOARDING, type OnboardingData } from "@/lib/onboarding-types";
+import { EMPTY_ONBOARDING, canAdvance, type OnboardingData } from "@/lib/onboarding-types";
 import { buildAdaptiveProfile } from "@/lib/adaptive-profile";
 
 const TOTAL_STEPS = 10;
-
-// ─── Validation: what's required to continue from each step ──────────────────
-function canAdvance(step: number, data: OnboardingData): boolean {
-  switch (step) {
-    case 1:  return data.goals.length > 0;
-    case 2:  return !!data.trainingLevel;
-    case 3:  return data.trainingStyles.length > 0;
-    case 4:  return data.recoveryPractices.length > 0;
-    case 5:  return !!data.sleepQuality;
-    case 6:  return true;   // slider always has a value
-    case 7:  return !!data.energyPattern;
-    case 8: {
-      if (!data.cycleRegularity || !data.trackingPreference) return false;
-      if (data.trackingPreference !== "none" && !data.lastPeriodDate) return false;
-      return true;
-    }
-    case 9:  return data.symptoms.length > 0;
-    case 10: return data.performancePriorities.length > 0;
-    default: return true;
-  }
-}
 
 // ─── Main orchestrator ────────────────────────────────────────────────────────
 
