@@ -8,6 +8,8 @@ import type { TrainingState }         from "@/types/recommendation";
 import type { VolumeReport, MuscleGroup } from "@/lib/exercises/volumeTracking";
 import type { TrainingLoadReport }    from "@/lib/analytics/trainingLoad";
 import type { WorkoutHistoryEntry }   from "@/lib/history/workoutHistory";
+import type { ProgressionProfile }    from "@/lib/progression/progressionProfile";
+import type { ReadinessScore }        from "@/lib/readiness/calculateReadiness";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,7 +18,8 @@ export type InsightCategory =
   | "training"
   | "recovery"
   | "volume"
-  | "progression";
+  | "progression"
+  | "readiness";
 
 export interface Insight {
   category: InsightCategory;
@@ -31,12 +34,14 @@ export interface InsightReport {
 }
 
 export interface InsightInput {
-  phase:         PhaseData;
-  energyLevel:   number;               // 0–4 from deriveEnergyLevel()
-  trainingState: TrainingState;
-  volumeReport?: VolumeReport;         // optional — from generateVolumeReport()
-  loadReport?:   TrainingLoadReport;   // optional — from generateTrainingLoadReport()
-  history?:      WorkoutHistoryEntry[];
+  phase:               PhaseData;
+  energyLevel:         number;               // 0–4 from deriveEnergyLevel()
+  trainingState:       TrainingState;
+  volumeReport?:       VolumeReport;         // optional — from generateVolumeReport()
+  loadReport?:         TrainingLoadReport;   // optional — from generateTrainingLoadReport()
+  history?:            WorkoutHistoryEntry[];
+  progressionProfile?: ProgressionProfile;   // optional — from buildProgressionProfile()
+  readinessScore?:     ReadinessScore;       // optional — from calculateReadiness()
 }
 
 // ─── Muscle group display names ───────────────────────────────────────────────
@@ -257,17 +262,62 @@ function volumeInsight(report: VolumeReport): Insight | null {
 }
 
 // ─── Progression insight ──────────────────────────────────────────────────────
+// Uses ProgressionProfile data when available for concrete, score-referenced
+// language. Falls back to history-only logic when profile is absent.
 
 function progressionInsight(
   history:     WorkoutHistoryEntry[],
   loadReport?: TrainingLoadReport,
+  profile?:    ProgressionProfile,
 ): Insight | null {
   if (history.length === 0) return null;
 
-  const streak = loadReport?.currentStreak ?? 0;
+  // ── Rich path: profile data available ──
+  if (profile && profile.confidence >= 0.35) {
+    const { adherenceScore, recoveryScore, progressionScore, workloadTrend, recommendedAction } = profile;
+    let body: string;
+    let priority: number;
 
-  const nonPending  = history.filter(e => e.status !== "pending");
-  const completed   = nonPending.filter(
+    if (recommendedAction === "progress") {
+      priority = 4;
+      body =
+        `Adherence score is ${adherenceScore}/100 over the last 28 days and recovery is ` +
+        `strong (${recoveryScore}/100). Current training load supports progressive overload — ` +
+        `today's session includes one additional working set on primary movements.`;
+    } else if (recommendedAction === "deload") {
+      priority = 4;
+      body =
+        `Recovery score has dropped to ${recoveryScore}/100 with ${workloadTrend} workload. ` +
+        `A structured deload — 40% volume reduction — will restore adaptation capacity. ` +
+        `Deload sessions are not rest; they are a planned phase of training.`;
+    } else if (recommendedAction === "reduce") {
+      priority = 3;
+      if (adherenceScore < 50) {
+        body =
+          `Completion rate over the last 28 days is ${adherenceScore}/100. Reducing ` +
+          `session complexity may lower the barrier to consistent attendance — ` +
+          `volume is reduced 20% and one accessory movement removed.`;
+      } else {
+        body =
+          `Recovery signals are below threshold (${recoveryScore}/100). Volume is ` +
+          `reduced 20% this session to protect adaptation quality without stopping training.`;
+      }
+    } else {
+      // maintain
+      priority = 2;
+      body =
+        `Progression score is ${progressionScore}/100 — adherence (${adherenceScore}/100) ` +
+        `and recovery (${recoveryScore}/100) are balanced. Current training load is appropriate; ` +
+        `no progression adjustment applied today.`;
+    }
+
+    return { category: "progression", heading: "Progression Insight", body, priority };
+  }
+
+  // ── Fallback path: no profile or insufficient confidence ──
+  const streak         = loadReport?.currentStreak ?? 0;
+  const nonPending     = history.filter(e => e.status !== "pending");
+  const completed      = nonPending.filter(
     e => e.status === "completed" || e.status === "partially_completed"
   );
   const completionRate = nonPending.length > 0 ? completed.length / nonPending.length : 0;
@@ -289,7 +339,7 @@ function progressionInsight(
   } else if (loadReport?.workloadTrend === "Increasing" && completionRate >= 0.7) {
     priority = 3;
     body =
-      "Your training volume has been increasing alongside solid completion. Gradual, " +
+      "Training volume has been increasing alongside solid completion. Gradual, " +
       "progressive load increases are well-supported by evidence as a driver of adaptation.";
   } else if (streak >= 2) {
     priority = 2;
@@ -306,10 +356,134 @@ function progressionInsight(
   return { category: "progression", heading: "Progression Insight", body, priority };
 }
 
+// ─── Readiness insight ────────────────────────────────────────────────────────
+// Identifies the primary interaction between training load and recovery capacity.
+// Distinct from ReadinessCard (which shows the current score) — focuses on the
+// WHY and TREND rather than repeating the score breakdown.
+
+type ReadinessContribKey = keyof ReadinessScore["contributors"];
+
+const READINESS_SIGNAL_LABELS: Record<ReadinessContribKey, string> = {
+  sleep:        "Sleep quality",
+  stress:       "Stress load",
+  energy:       "Energy pattern",
+  cycle:        "Cycle phase",
+  trainingLoad: "Training load recovery",
+  adherence:    "Training consistency",
+};
+
+function readinessInsight(
+  score:        ReadinessScore,
+  loadReport?:  TrainingLoadReport,
+  progression?: ProgressionProfile,
+): Insight | null {
+  const entries = Object.entries(score.contributors) as [ReadinessContribKey, number][];
+  const primaryLimiter  = [...entries].sort((a, b) => a[1] - b[1])[0];
+  const primaryStrength = [...entries].sort((a, b) => b[1] - a[1])[0];
+  const trend           = loadReport?.workloadTrend;
+
+  // Increasing load + recovery capacity below threshold
+  if (score.contributors.trainingLoad <= 40 && trend === "Increasing") {
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `Training volume is increasing while recovery capacity is below threshold ` +
+        `(readiness ${score.score}/100). If load continues to rise without a deload week, ` +
+        `readiness is likely to decline further.`,
+      priority: 4,
+    };
+  }
+
+  // Sleep is dominant limiter
+  if (primaryLimiter[0] === "sleep" && primaryLimiter[1] <= 20) {
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `Sleep quality is the dominant readiness constraint today (${score.score}/100). ` +
+        `Sleep carries the highest weighting in the readiness model — improving it would have ` +
+        `more impact on readiness than any other single signal.`,
+      priority: 4,
+    };
+  }
+
+  // Stress is dominant limiter
+  if (primaryLimiter[0] === "stress" && primaryLimiter[1] <= 20) {
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `Elevated stress is the primary readiness constraint today (${score.score}/100). ` +
+        `Chronic high stress suppresses recovery efficiency — the physiological impact is ` +
+        `equivalent to missing sleep or adding training volume.`,
+      priority: 4,
+    };
+  }
+
+  // Low adherence is primary limiter
+  if (primaryLimiter[0] === "adherence" && primaryLimiter[1] <= 30 && progression) {
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `Training consistency is limiting readiness to ${score.score}/100 — ` +
+        `session completion is at ${progression.adherenceScore}/100 over the last 28 days. ` +
+        `Consistent attendance is the highest-leverage behaviour for long-term adaptation.`,
+      priority: 3,
+    };
+  }
+
+  // Positive trend: decreasing load + strong recovery
+  if (score.score >= 75 && trend === "Decreasing" && score.contributors.trainingLoad >= 70) {
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `Training load is decreasing while recovery capacity is positive ` +
+        `(readiness ${score.score}/100). This may be a well-timed window to gradually ` +
+        `reintroduce progressive volume if training goals support it.`,
+      priority: 3,
+    };
+  }
+
+  // Strong readiness — name the leading contributor
+  if (score.score >= 75 && primaryStrength[1] >= 80) {
+    const label = READINESS_SIGNAL_LABELS[primaryStrength[0]];
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `${label} is the strongest readiness contributor today — ` +
+        `readiness is at ${score.score}/100, supporting full training stimulus.`,
+      priority: 2,
+    };
+  }
+
+  // Generic cautious: name primary limiter
+  if (score.score < 60 && primaryLimiter[1] <= 45) {
+    const label = READINESS_SIGNAL_LABELS[primaryLimiter[0]];
+    return {
+      category: "readiness",
+      heading:  "Readiness Insight",
+      body:
+        `${label} is the primary readiness constraint today (${score.score}/100). ` +
+        `Session volume has been moderated accordingly.`,
+      priority: 3,
+    };
+  }
+
+  return null;
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function generateInsights(input: InsightInput): InsightReport {
-  const { phase, energyLevel, trainingState, volumeReport, loadReport, history } = input;
+  const {
+    phase, energyLevel, trainingState,
+    volumeReport, loadReport, history,
+    progressionProfile, readinessScore,
+  } = input;
 
   const candidates: Insight[] = [
     cycleInsight(phase),
@@ -323,12 +497,17 @@ export function generateInsights(input: InsightInput): InsightReport {
   }
 
   if (history && history.length > 0) {
-    const pi = progressionInsight(history, loadReport);
+    const pi = progressionInsight(history, loadReport, progressionProfile);
     if (pi) candidates.push(pi);
   }
 
+  if (readinessScore) {
+    const ri = readinessInsight(readinessScore, loadReport, progressionProfile);
+    if (ri) candidates.push(ri);
+  }
+
   // Sort priority desc; stable secondary sort by category for determinism
-  const ORDER: InsightCategory[] = ["cycle", "training", "recovery", "volume", "progression"];
+  const ORDER: InsightCategory[] = ["cycle", "training", "recovery", "volume", "progression", "readiness"];
   const sorted = candidates
     .sort((a, b) => b.priority - a.priority || ORDER.indexOf(a.category) - ORDER.indexOf(b.category))
     .slice(0, 5);

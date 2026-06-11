@@ -29,6 +29,11 @@ import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
 import { buildProgressionProfile } from "@/lib/progression/progressionProfile";
 import type { CoachingAdjustment } from "@/lib/progression/progressionRules";
 import { applyProgressionRules } from "@/lib/progression/progressionRules";
+import type { ReadinessScore } from "@/lib/readiness/calculateReadiness";
+import { calculateReadiness } from "@/lib/readiness/calculateReadiness";
+import { saveReadiness, getReadinessTrend, getReadinessHistory } from "@/lib/readiness/readinessHistory";
+import type { ReadinessTrend, ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
+import { computeReadinessFeedback } from "@/lib/readiness/adaptiveFeedback";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -41,6 +46,7 @@ import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard"
 import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
+import { ReadinessCard }   from "@/components/dashboard/ReadinessCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -48,17 +54,22 @@ function mapDifficulty(trainingLevel: string): DifficultyLevel {
   return "Intermediate";   // recreational, consistent
 }
 
-function runPipeline(
-  user:        OnboardingData,
-  profile?:    AdaptiveProfile,
-  progression?: ProgressionProfile,
-): DailyRecommendation {
-  const phase = calculatePhase({
+function computePhase(user: OnboardingData): PhaseData {
+  return calculatePhase({
     lastPeriodDate:  user.lastPeriodDate,
     cycleLength:     user.cycleLength,
     cycleRegularity: user.cycleRegularity || undefined,
   });
-  return generateRecommendation(phase, user, profile, progression);
+}
+
+function runPipeline(
+  user:        OnboardingData,
+  phase:       PhaseData,
+  profile?:    AdaptiveProfile,
+  progression?: ProgressionProfile,
+  readiness?:  ReadinessScore,
+): DailyRecommendation {
+  return generateRecommendation(phase, user, profile, progression, readiness);
 }
 
 function runWorkoutPipeline(
@@ -67,6 +78,7 @@ function runWorkoutPipeline(
   environment: TrainingEnvironment = "gym",
   profile?:    AdaptiveProfile,
   adjustment?: CoachingAdjustment,
+  readiness?:  ReadinessScore,
 ): GeneratedWorkout {
   const weights                = profile?.readinessWeights;
   const { level: energyLevel } = deriveEnergyLevel(user, weights);
@@ -84,21 +96,23 @@ function runWorkoutPipeline(
     energyLevel,
     trainingState,
     phase,
-    sessionIndex:      phase.cycleDay,
+    sessionIndex:       phase.cycleDay,
     environment,
     goalType,
     coachingAdjustment: adjustment,
+    readiness,
   });
 }
 
 function computeProgression(history: ReturnType<typeof getWorkoutHistory>): {
   profile:    ProgressionProfile;
   adjustment: CoachingAdjustment;
+  loadReport: TrainingLoadReport;
 } {
-  const prelimLoad = generateTrainingLoadReport({ history });
-  const profile    = buildProgressionProfile(history, prelimLoad);
+  const loadReport = generateTrainingLoadReport({ history });
+  const profile    = buildProgressionProfile(history, loadReport);
   const adjustment = applyProgressionRules(profile);
-  return { profile, adjustment };
+  return { profile, adjustment, loadReport };
 }
 
 interface AnalyticsSnapshot {
@@ -115,9 +129,11 @@ function toTrainingGoal(goalType: GoalType): TrainingGoal {
 }
 
 function runAnalyticsPipeline(
-  workout:   GeneratedWorkout,
-  phase:     PhaseData,
-  goalType?: GoalType,
+  workout:     GeneratedWorkout,
+  phase:       PhaseData,
+  goalType?:   GoalType,
+  progression?: ProgressionProfile,
+  readiness?:  ReadinessScore,
 ): AnalyticsSnapshot {
   saveWorkoutToHistory(workout);
   const history    = getWorkoutHistory();
@@ -145,11 +161,13 @@ function runAnalyticsPipeline(
 
   const insights   = generateInsights({
     phase,
-    energyLevel:   workout.energyLevel,
-    trainingState: workout.trainingState,
-    loadReport:    load,
+    energyLevel:        workout.energyLevel,
+    trainingState:      workout.trainingState,
+    loadReport:         load,
     volumeReport,
     history,
+    progressionProfile: progression,
+    readinessScore:     readiness,
   });
   const todayStatus: WorkoutCompletionStatus = history.find(e => e.id === todayStr)?.status ?? "pending";
   return { summary, load, insights, todayStatus };
@@ -170,6 +188,9 @@ export default function DashboardPage() {
   const [environment, setEnvironment]             = useState<TrainingEnvironment>("gym");
   const [progressionProfile, setProgressionProfile] = useState<ProgressionProfile | null>(null);
   const [coachingAdjustment, setCoachingAdjustment] = useState<CoachingAdjustment | null>(null);
+  const [readinessScore, setReadinessScore]         = useState<ReadinessScore | null>(null);
+  const [readinessTrend, setReadinessTrend]         = useState<ReadinessTrend>("insufficient_data");
+  const [readinessHistory, setReadinessHistory]     = useState<ReadinessHistoryEntry[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -202,20 +223,41 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
 
-    // Compute progression from existing history before generating today's workout
+    // Compute progression + readiness from existing history before generating today's workout
     const rawHistory = getWorkoutHistory();
-    const { profile: prog, adjustment } = computeProgression(rawHistory);
+    const { profile: prog, adjustment, loadReport: prelimLoad } = computeProgression(rawHistory);
     setProgressionProfile(prog);
     setCoachingAdjustment(adjustment);
     adjustmentRef.current = adjustment;
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
-    const rec       = runPipeline(effectiveUser, profile, prog);
+    const phase     = computePhase(effectiveUser);
+    const readiness = calculateReadiness({
+      user: effectiveUser, phase, loadReport: prelimLoad,
+      progressionProfile: prog, adaptiveProfile: profile,
+    });
+    setReadinessScore(readiness);
+    saveReadiness(readiness.score, readiness.category, readiness.contributors);
+    const fullRdxHistory = getReadinessHistory();
+    setReadinessTrend(getReadinessTrend());
+    setReadinessHistory(fullRdxHistory.slice(0, 7));
+
+    // Refine AdaptiveProfile weights after ≥14 days (weekly cadence)
+    if (profileRef.current) {
+      const updatedWeights = computeReadinessFeedback(fullRdxHistory, profileRef.current);
+      if (updatedWeights) {
+        const refined = { ...profileRef.current, readinessWeights: updatedWeights };
+        profileRef.current = refined;
+        localStorage.setItem("axis_adaptive_profile", JSON.stringify(refined));
+      }
+    }
+
+    const rec       = runPipeline(effectiveUser, phase, profile, prog, readiness);
     setRecommendation(rec);
-    const wkt       = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment);
+    const wkt       = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -230,12 +272,22 @@ export default function DashboardPage() {
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const adjustment    = adjustmentRef.current ?? undefined;
-    const newRec        = runPipeline(effectiveUser, profile, progressionProfile ?? undefined);
+    const phase         = computePhase(effectiveUser);
+    const newReadiness  = progressionProfile && loadReport
+      ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
+      : readinessScore;
+    if (newReadiness) {
+      setReadinessScore(newReadiness);
+      saveReadiness(newReadiness.score, newReadiness.category, newReadiness.contributors);
+      setReadinessTrend(getReadinessTrend());
+      setReadinessHistory(getReadinessHistory().slice(0, 7));
+    }
+    const newRec        = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
     setRecommendation(newRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile, adjustment);
+    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile, adjustment, newReadiness ?? undefined);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -246,7 +298,7 @@ export default function DashboardPage() {
   function refreshAfterMark() {
     if (!workout || !recommendation) return;
     const goalType    = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
-    const snap        = runAnalyticsPipeline(workout, recommendation.phase, goalType);
+    const snap        = runAnalyticsPipeline(workout, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined);
     setHistorySummary(snap.summary);
     setLoadReport(snap.load);
     setInsightReport(snap.insights);
@@ -284,9 +336,9 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -301,10 +353,28 @@ export default function DashboardPage() {
 
       <div className="px-5 space-y-4 pb-6">
         {!checkinComplete && (
-          <DailyCheckIn onComplete={handleCheckinComplete} />
+          <DailyCheckIn
+            onComplete={handleCheckinComplete}
+            lowReadinessAlert={(() => {
+              const d = new Date();
+              d.setDate(d.getDate() - 1);
+              const ys = d.toISOString().slice(0, 10);
+              const entry = readinessHistory.find(e => e.date === ys);
+              return !!entry && entry.score <= 45;
+            })()}
+          />
         )}
         <PhaseCard phase={recommendation.phase} />
-        <TrainingCard training={recommendation.training} />
+        <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+        <TrainingCard
+          training={recommendation.training}
+          restDaySignal={
+            readinessHistory.length >= 3 &&
+            readinessHistory.slice(0, 3).every(
+              e => e.category === "cautious" || e.category === "recover"
+            )
+          }
+        />
         {workout && (
           <WorkoutCard
             workout={workout}

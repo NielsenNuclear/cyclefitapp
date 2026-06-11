@@ -5,7 +5,8 @@ import type { CheckinData } from "@/lib/checkin";
 import { getTodayCheckin, saveTodayCheckin } from "@/lib/checkin";
 
 interface DailyCheckInProps {
-  onComplete: (data: CheckinData) => void;
+  onComplete:         (data: CheckinData) => void;
+  lowReadinessAlert?: boolean;
 }
 
 const SLEEP_OPTIONS: { value: CheckinData["sleepQuality"]; label: string }[] = [
@@ -15,7 +16,7 @@ const SLEEP_OPTIONS: { value: CheckinData["sleepQuality"]; label: string }[] = [
   { value: "poor",      label: "Poor"      },
 ];
 
-export function DailyCheckIn({ onComplete }: DailyCheckInProps) {
+export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyCheckInProps) {
   const [priorCheckin] = useState<CheckinData | null>(() => getTodayCheckin());
   const [isEditing, setIsEditing] = useState(false);
   const [sleepQuality, setSleepQuality] = useState<CheckinData["sleepQuality"] | null>(null);
@@ -77,6 +78,17 @@ export function DailyCheckIn({ onComplete }: DailyCheckInProps) {
       >
         How are you feeling today?
       </h3>
+
+      {/* Low-readiness contextual nudge */}
+      {lowReadinessAlert && (
+        <div className="mb-4 p-3 bg-[#FDF6EC] rounded-xl border border-[#E8C98A]">
+          <p className="text-[11px] text-[#633806] leading-relaxed">
+            Yesterday&apos;s readiness was in the cautious range. Sleep and stress carry the most
+            weight in the model — taking a moment to reflect before selecting may improve
+            today&apos;s recommendations.
+          </p>
+        </div>
+      )}
 
       {/* Sleep quality */}
       <div className="mb-5">

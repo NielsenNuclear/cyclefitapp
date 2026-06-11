@@ -49,12 +49,28 @@ const BADGE_CONFIG = {
 
 // ─── TrainingCard ─────────────────────────────────────────────────────────────
 
-export function TrainingCard({ training }: { training: TrainingRecommendation }) {
+export function TrainingCard({
+  training,
+  restDaySignal = false,
+}: {
+  training:       TrainingRecommendation;
+  restDaySignal?: boolean;
+}) {
   const badge = BADGE_CONFIG[training.badge] ?? BADGE_CONFIG.Maintain;
 
   return (
     <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Training</CardLabel>
+
+      {/* Rest-day signal banner */}
+      {restDaySignal && (
+        <div className="mb-4 p-3 bg-[#EEF0F2] rounded-xl border border-[#CBD0D8]">
+          <p className="text-[11px] text-[#3D4451] leading-relaxed">
+            Readiness has been below threshold for 3 consecutive days. A rest day or active
+            recovery session may better serve training outcomes than structured load today.
+          </p>
+        </div>
+      )}
 
       {/* Focus + badge */}
       <div className="flex items-start justify-between gap-3 mb-3">

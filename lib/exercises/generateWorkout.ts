@@ -9,7 +9,9 @@ import { buildWorkoutDay }                                 from "./workoutSplits
 import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
 import type { GoalType }                                   from "./goalBasedSelection";
 import { GOAL_PROFILES }                                   from "./goalBasedSelection";
-import type { CoachingAdjustment }                         from "@/lib/progression/progressionRules";
+import type { CoachingAdjustment, ComplexityModifier }     from "@/lib/progression/progressionRules";
+import type { RecommendedAction }                          from "@/lib/progression/progressionProfile";
+import type { ReadinessScore }                             from "@/lib/readiness/calculateReadiness";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,7 @@ export interface WorkoutGenerationInput {
   environment?:       TrainingEnvironment; // if set, incompatible exercises are swapped
   goalType?:          GoalType;      // if set, exercises scored by goal alignment
   coachingAdjustment?: CoachingAdjustment; // optional: from progression engine
+  readiness?:         ReadinessScore;      // optional: caps or confirms progression ceiling
 }
 
 export interface WorkoutExercise {
@@ -197,6 +200,51 @@ function buildWorkoutName(dayName: string, phaseName: string): string {
   return `${dayName} · ${phaseName}`;
 }
 
+// ─── Readiness × progression merger ──────────────────────────────────────────
+// Combines CoachingAdjustment (progression engine) with ReadinessScore as a
+// conservative ceiling. When readiness >= 75 the progression engine drives
+// everything. Below that, readiness caps volume/intensity so the two systems
+// never additively over-reduce.
+
+function resolveEffectiveAdjustment(
+  progression?: CoachingAdjustment,
+  readiness?:   ReadinessScore,
+): CoachingAdjustment | undefined {
+  // No readiness data or readiness is good → let progression engine drive
+  if (!readiness || readiness.score >= 75) return progression;
+
+  const base: CoachingAdjustment = progression ?? {
+    action:             "maintain",
+    volumeModifier:     1.0,
+    intensityModifier:  0,
+    complexityModifier: "maintain",
+    rationale:          "",
+  };
+
+  // Readiness-derived modifiers (ceiling, not additive)
+  const readinessVol = readiness.score >= 60 ? 0.90 : readiness.score >= 40 ? 0.75 : 0.60;
+  const readinessInt = readiness.score >= 60 ?  0   : readiness.score >= 40 ?  -1  : -2;
+
+  const finalVol     = Math.min(base.volumeModifier,    readinessVol);
+  const finalInt     = Math.min(base.intensityModifier, readinessInt);
+  const finalComplex: ComplexityModifier =
+    (base.complexityModifier === "decrease" || readiness.score < 60) ? "decrease" : "maintain";
+
+  // Derive effective action for exercise notes (most conservative wins)
+  const effectiveAction: RecommendedAction =
+    finalVol <= 0.65 ? "deload"  :
+    finalVol <= 0.85 ? "reduce"  :
+    base.action;
+
+  return {
+    action:             effectiveAction,
+    volumeModifier:     finalVol,
+    intensityModifier:  finalInt,
+    complexityModifier: finalComplex,
+    rationale:          base.rationale,
+  };
+}
+
 // ─── Exercise prescription ────────────────────────────────────────────────────
 
 function prescribeExercise(
@@ -270,7 +318,11 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     environment,
     goalType,
     coachingAdjustment,
+    readiness,
   } = input;
+
+  // Merge progression and readiness into a single effective adjustment
+  const effectiveAdjustment = resolveEffectiveAdjustment(coachingAdjustment, readiness);
 
   const workoutDay = buildWorkoutDay({
     splitType,
@@ -292,7 +344,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
 
   // Apply complexity modifier: reduce/deload trim the lowest-priority accessory
   const trimmedExercises: Exercise[] = (() => {
-    const complexity = coachingAdjustment?.complexityModifier;
+    const complexity = effectiveAdjustment?.complexityModifier;
     if (complexity === "decrease" && resolvedExercises.length > 3) {
       return resolvedExercises.slice(0, resolvedExercises.length - 1);
     }
@@ -300,7 +352,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
   })();
 
   const exercises: WorkoutExercise[] = trimmedExercises.map(exercise =>
-    prescribeExercise(exercise, energyLevel, trainingState, phase.name, coachingAdjustment)
+    prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment)
   );
 
   return {

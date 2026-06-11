@@ -10,6 +10,7 @@
 import type { OnboardingData as UserOnboarding } from "@/lib/onboarding-types";
 import type { AdaptiveProfile }    from "@/lib/adaptive-profile";
 import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
+import type { ReadinessScore }     from "@/lib/readiness/calculateReadiness";
 import type {
   PhaseData,
   DailyRecommendation,
@@ -85,16 +86,50 @@ export function getTrainingState(user: UserOnboarding, weights?: ReadinessWeight
   return "loaded";
 }
 
+// ─── Readiness score helpers ──────────────────────────────────────────────────
+// Bridge the 0–100 ReadinessScore to the -2…+2 modifier scale used throughout
+// suggestion branch logic — makes ReadinessScore the authoritative source while
+// keeping all existing suggestion content unchanged.
+
+function scoreToMod(score: number): -2 | -1 | 0 | 1 {
+  if (score >= 75) return  1;
+  if (score >= 60) return  0;
+  if (score >= 40) return -1;
+  return -2;
+}
+
+function scoreToBadge(score: number): ReadinessBadge {
+  if (score >= 90) return "Push";
+  if (score >= 60) return "Maintain";
+  if (score >= 40) return "Watch";
+  return "Recover";
+}
+
+// Legacy per-phase badge — used only when ReadinessScore is not available.
+function phaseBadge(phaseName: string, mod: number): ReadinessBadge {
+  switch (phaseName) {
+    case "Ovulatory":   return mod >= 0 ? "Push"    : "Maintain";
+    case "Follicular":  return mod >= 1 ? "Push"    : mod >= -1 ? "Maintain" : "Watch";
+    case "Luteal":      return mod >= 1 ? "Maintain": mod >= -1 ? "Watch"    : "Recover";
+    case "Late Luteal": return mod >= 1 ? "Watch"   : "Recover";
+    default:            return mod >= 1 ? "Maintain": "Watch"; // Menstrual
+  }
+}
+
 // ─── Training recommendations per phase ──────────────────────────────────────
 
 function buildTraining(
-  phase: PhaseData,
-  user: UserOnboarding,
-  weights?: ReadinessWeights,
+  phase:      PhaseData,
+  user:       UserOnboarding,
+  weights?:   ReadinessWeights,
+  readiness?: ReadinessScore,
 ): TrainingRecommendation {
-  const mod           = getReadinessModifier(user, weights);
+  // ReadinessScore is authoritative when provided; fall back to modifier derivation
+  const mod           = readiness !== undefined ? scoreToMod(readiness.score) : getReadinessModifier(user, weights);
   const trainingState = getTrainingState(user, weights);
   const { tier }      = deriveEnergyLevel(user, weights);
+  // Badge hoisted: score-driven when readiness present, per-phase fallback otherwise
+  const badge: ReadinessBadge = readiness !== undefined ? scoreToBadge(readiness.score) : phaseBadge(phase.name, mod);
   const isStrengthFocused  = user.trainingStyles.includes("strength");
   const isEnduranceFocused = user.trainingStyles.includes("endurance") || user.trainingStyles.includes("running");
   const isRecoveryFocused  = user.goals.includes("recover_better");
@@ -112,7 +147,6 @@ function buildTraining(
       drivers.push("Follicular phase (rising estrogen)");
       if (mod >= 0) drivers.push("Sleep quality adequate or better");
       drivers.push(tier);
-      const badge: ReadinessBadge = mod >= 1 ? "Push" : mod >= -1 ? "Maintain" : "Watch";
 
       const suggestions: string[] = (() => {
         if (trainingState === "overreached") {
@@ -154,7 +188,6 @@ function buildTraining(
     case "Ovulatory": {
       drivers.push("Ovulatory phase (estrogen peak, possible testosterone rise)");
       drivers.push(tier);
-      const badge: ReadinessBadge = mod >= 0 ? "Push" : "Maintain";
 
       const suggestions: string[] = (() => {
         if (trainingState === "overreached") {
@@ -192,7 +225,6 @@ function buildTraining(
       drivers.push("Luteal phase (progesterone rising)");
       if (user.stressLevel >= 6) drivers.push("Elevated baseline stress");
       drivers.push(tier);
-      const badge: ReadinessBadge = mod >= 1 ? "Maintain" : mod >= -1 ? "Watch" : "Recover";
 
       const suggestions: string[] = (() => {
         if (trainingState === "overreached" || mod <= -2) {
@@ -224,7 +256,6 @@ function buildTraining(
     case "Late Luteal": {
       drivers.push("Late luteal phase (estrogen and progesterone declining)");
       drivers.push(tier);
-      const badge: ReadinessBadge = mod >= 1 ? "Watch" : "Recover";
 
       const suggestions: string[] = (() => {
         if (trainingState === "overreached" || mod <= -2) {
@@ -258,7 +289,6 @@ function buildTraining(
         drivers.push("Reported cramps or fatigue");
       }
       drivers.push(tier);
-      const badge: ReadinessBadge = mod >= 1 ? "Maintain" : "Watch";
 
       const suggestions: string[] = (() => {
         if (trainingState === "overreached" || mod <= -2) {
@@ -615,25 +645,48 @@ function buildProgressionExplanation(
   };
 }
 
+// ─── Readiness explanation point ─────────────────────────────────────────────
+
+function buildReadinessExplanation(readiness: ReadinessScore): ExplanationPoint {
+  const categoryLabels: Record<string, string> = {
+    optimal:  "Optimal — all readiness signals positive",
+    ready:    "Ready — favourable for training",
+    moderate: "Moderate — standard training appropriate",
+    cautious: "Cautious — conservative approach recommended",
+    recover:  "Recovery priority — low intensity or rest",
+  };
+  return {
+    signal:      "Readiness score",
+    observation: `${readiness.score}/100 — ${categoryLabels[readiness.category]}`,
+    implication: readiness.rationale[0] ??
+                 "Readiness signals have been factored into today's recommendation.",
+    weight:      readiness.score < 60 ? "Primary" : "Secondary",
+  };
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function generateRecommendation(
-  phase:       PhaseData,
-  user:        UserOnboarding,
-  profile?:    AdaptiveProfile,
+  phase:        PhaseData,
+  user:         UserOnboarding,
+  profile?:     AdaptiveProfile,
   progression?: ProgressionProfile,
+  readiness?:   ReadinessScore,
 ): DailyRecommendation {
-  const weights        = profile?.readinessWeights;
-  const basePoints     = buildExplanation(phase, user, weights);
-  const progressionPt  = buildProgressionExplanation(progression);
-  const explanationPoints = progressionPt
-    ? [...basePoints, progressionPt]
-    : basePoints;
+  const weights       = profile?.readinessWeights;
+  const basePoints    = buildExplanation(phase, user, weights);
+  const progressionPt = buildProgressionExplanation(progression);
+  const readinessPt   = readiness ? buildReadinessExplanation(readiness) : null;
+  const explanationPoints = [
+    ...basePoints,
+    ...(progressionPt ? [progressionPt] : []),
+    ...(readinessPt   ? [readinessPt]   : []),
+  ];
 
   return {
     generatedAt: new Date().toISOString(),
     phase,
-    training:    buildTraining(phase, user, weights),
+    training:    buildTraining(phase, user, weights, readiness),
     nutrition:   buildNutrition(phase, user, weights),
     recovery:    buildRecovery(phase, user, weights),
     explanationPoints,

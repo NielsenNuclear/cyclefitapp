@@ -16,6 +16,7 @@ const CATEGORY_CHIP: Record<InsightCategory, string> = {
   recovery:    "bg-[#E1F5EE] text-[#085041] border-[#A3DCCA]",
   volume:      "bg-[#FDF6EC] text-[#633806] border-[#E8C98A]",
   progression: "bg-[#EEF4FD] text-[#1A3F8F] border-[#B3CEEF]",
+  readiness:   "bg-[#EEEDFE] text-[#3C3489] border-[#C4C0EE]",
 };
 
 const CATEGORY_LABEL: Record<InsightCategory, string> = {
@@ -24,6 +25,7 @@ const CATEGORY_LABEL: Record<InsightCategory, string> = {
   recovery:    "Recovery",
   volume:      "Volume",
   progression: "Progress",
+  readiness:   "Readiness",
 };
 
 function InsightRow({ insight }: { insight: Insight }) {
