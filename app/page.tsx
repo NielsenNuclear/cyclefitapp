@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -297,10 +298,23 @@ function StatCard({ value, suffix, label, delay }: { value: number; suffix: stri
 // ─── Main page component ──────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [heroVisible, setHeroVisible] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [ctaHover, setCtaHover] = useState(false);
+
+  function getDestination(): string {
+    return localStorage.getItem("axis_onboarding") ? "/dashboard" : "/onboarding";
+  }
+
+  function handleCta() {
+    router.push(getDestination());
+  }
+
+  function handleHowItWorks() {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -428,8 +442,8 @@ export default function HomePage() {
             <span className="hidden sm:inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEEDFE] text-[#3C3489] border border-[#C4C0EE]">Beta</span>
           </div>
           <div className="flex items-center gap-3">
-            <button className="text-[13px] text-[#6B6860] hover:text-[#1C1B18] transition-colors">Sign in</button>
-            <button className="text-[13px] font-medium px-4 py-1.5 rounded-full bg-[#1C1B18] text-white hover:bg-[#2C2B28] transition-colors">
+            <button onClick={handleCta} className="text-[13px] text-[#6B6860] hover:text-[#1C1B18] transition-colors">Sign in</button>
+            <button onClick={handleCta} className="text-[13px] font-medium px-4 py-1.5 rounded-full bg-[#1C1B18] text-white hover:bg-[#2C2B28] transition-colors">
               Get started
             </button>
           </div>
@@ -484,6 +498,7 @@ export default function HomePage() {
             {/* CTAs */}
             <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-10 animate-fadeUp delay-300 ${heroVisible ? "" : "opacity-0"}`}>
               <button
+                onClick={handleCta}
                 className="cta-gradient text-white text-[14px] font-semibold px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_4px_24px_rgba(83,74,183,0.3)] hover:shadow-[0_6px_32px_rgba(83,74,183,0.4)] transition-all duration-200 hover:-translate-y-0.5"
                 onMouseEnter={() => setCtaHover(true)}
                 onMouseLeave={() => setCtaHover(false)}
@@ -493,7 +508,7 @@ export default function HomePage() {
                   <IconArrowRight />
                 </span>
               </button>
-              <button className="secondary-btn text-[14px] text-[#534AB7] font-medium px-4 py-3 rounded-full flex items-center gap-2 hover:gap-3 transition-all">
+              <button onClick={handleHowItWorks} className="secondary-btn text-[14px] text-[#534AB7] font-medium px-4 py-3 rounded-full flex items-center gap-2 hover:gap-3 transition-all">
                 See how it works
                 <IconArrowRight />
               </button>
@@ -715,7 +730,7 @@ export default function HomePage() {
       </section>
 
       {/* ── How it works ─────────────────────────────────────────── */}
-      <section className="py-20 px-5 bg-[#F5F3EE] border-y border-[#E8E5DC]">
+      <section id="how-it-works" className="py-20 px-5 bg-[#F5F3EE] border-y border-[#E8E5DC]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-widest mb-3">The method</div>
@@ -793,7 +808,7 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button className="cta-gradient text-white text-[15px] font-semibold px-8 py-3.5 rounded-full flex items-center gap-2.5 shadow-[0_4px_32px_rgba(83,74,183,0.35)] hover:shadow-[0_8px_40px_rgba(83,74,183,0.45)] transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center">
+            <button onClick={handleCta} className="cta-gradient text-white text-[15px] font-semibold px-8 py-3.5 rounded-full flex items-center gap-2.5 shadow-[0_4px_32px_rgba(83,74,183,0.35)] hover:shadow-[0_8px_40px_rgba(83,74,183,0.45)] transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto justify-center">
               Begin assessment
               <IconArrowRight />
             </button>
