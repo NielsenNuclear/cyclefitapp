@@ -8,7 +8,8 @@
 //   – Language is empowering and evidence-informed.
 
 import type { OnboardingData as UserOnboarding } from "@/lib/onboarding-types";
-import type { AdaptiveProfile } from "@/lib/adaptive-profile";
+import type { AdaptiveProfile }    from "@/lib/adaptive-profile";
+import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
 import type {
   PhaseData,
   DailyRecommendation,
@@ -559,21 +560,83 @@ function buildExplanation(
   return points;
 }
 
+// ─── Progression explanation point ───────────────────────────────────────────
+// Only added when confidence >= 0.35 (sufficient data to make a traceable claim).
+
+function buildProgressionExplanation(
+  progression?: ProgressionProfile,
+): ExplanationPoint | null {
+  if (!progression || progression.confidence < 0.35) return null;
+
+  const { adherenceScore, recoveryScore, workloadTrend, recommendedAction, confidence } = progression;
+
+  const actionLabels: Record<string, string> = {
+    progress: "Progressive overload applied",
+    maintain: "Current load maintained",
+    reduce:   "Volume reduction applied",
+    deload:   "Structured deload applied",
+  };
+
+  const trendLabels: Record<string, string> = {
+    increasing: "increasing",
+    stable:     "stable",
+    decreasing: "decreasing",
+  };
+
+  const observation =
+    `${actionLabels[recommendedAction]} · ` +
+    `Adherence ${adherenceScore}/100 · ` +
+    `Recovery ${recoveryScore}/100 · ` +
+    `Workload ${trendLabels[workloadTrend]}`;
+
+  const implication: string = (() => {
+    if (recommendedAction === "progress") {
+      return `Strong adherence (${adherenceScore}/100) and positive recovery signals (${recoveryScore}/100) ` +
+             `support adding progressive load. One additional working set is applied to primary movements.`;
+    }
+    if (recommendedAction === "deload") {
+      return `Recovery score (${recoveryScore}/100) and ${workloadTrend} workload indicate accumulated fatigue. ` +
+             `Volume is reduced 40% and intensity targets are lowered. This is a performance investment.`;
+    }
+    if (recommendedAction === "reduce") {
+      return `${adherenceScore < 50
+        ? `Completion rate below 50% over 28 days (adherence ${adherenceScore}/100). Reducing volume and complexity to improve consistency.`
+        : `Recovery score is below threshold (${recoveryScore}/100). Volume reduced 20% to protect adaptation quality.`}`;
+    }
+    return `Adherence (${adherenceScore}/100) and recovery (${recoveryScore}/100) are balanced. ` +
+           `No progression adjustment applied — current prescription is appropriate.`;
+  })();
+
+  return {
+    signal:      "Adaptive progression",
+    observation,
+    implication,
+    weight:      (recommendedAction === "deload" || recommendedAction === "reduce") ? "Primary" : "Secondary",
+  };
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function generateRecommendation(
-  phase: PhaseData,
-  user: UserOnboarding,
-  profile?: AdaptiveProfile,
+  phase:       PhaseData,
+  user:        UserOnboarding,
+  profile?:    AdaptiveProfile,
+  progression?: ProgressionProfile,
 ): DailyRecommendation {
-  const weights = profile?.readinessWeights;
+  const weights        = profile?.readinessWeights;
+  const basePoints     = buildExplanation(phase, user, weights);
+  const progressionPt  = buildProgressionExplanation(progression);
+  const explanationPoints = progressionPt
+    ? [...basePoints, progressionPt]
+    : basePoints;
+
   return {
-    generatedAt:        new Date().toISOString(),
+    generatedAt: new Date().toISOString(),
     phase,
-    training:           buildTraining(phase, user, weights),
-    nutrition:          buildNutrition(phase, user, weights),
-    recovery:           buildRecovery(phase, user, weights),
-    explanationPoints:  buildExplanation(phase, user, weights),
+    training:    buildTraining(phase, user, weights),
+    nutrition:   buildNutrition(phase, user, weights),
+    recovery:    buildRecovery(phase, user, weights),
+    explanationPoints,
     disclaimer:
       "These recommendations are guidance informed by physiology research and your profile data. They are not medical advice. Individual responses vary — your felt experience is always the primary signal.",
   };
