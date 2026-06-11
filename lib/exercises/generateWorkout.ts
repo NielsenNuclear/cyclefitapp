@@ -9,21 +9,23 @@ import { buildWorkoutDay }                                 from "./workoutSplits
 import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
 import type { GoalType }                                   from "./goalBasedSelection";
 import { GOAL_PROFILES }                                   from "./goalBasedSelection";
+import type { CoachingAdjustment }                         from "@/lib/progression/progressionRules";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type { TrainingState } from "@/types/recommendation";
 
 export interface WorkoutGenerationInput {
-  splitType:     SplitType;
-  dayIndex:      number;
-  difficulty:    DifficultyLevel;
-  energyLevel:   number;        // 0–4 from deriveEnergyLevel()
-  trainingState: TrainingState;
-  phase:         PhaseData;
-  sessionIndex?: number;        // increments across sessions for variety
-  environment?:  TrainingEnvironment; // if set, incompatible exercises are swapped
-  goalType?:     GoalType;      // if set, exercises scored by goal alignment
+  splitType:          SplitType;
+  dayIndex:           number;
+  difficulty:         DifficultyLevel;
+  energyLevel:        number;        // 0–4 from deriveEnergyLevel()
+  trainingState:      TrainingState;
+  phase:              PhaseData;
+  sessionIndex?:      number;        // increments across sessions for variety
+  environment?:       TrainingEnvironment; // if set, incompatible exercises are swapped
+  goalType?:          GoalType;      // if set, exercises scored by goal alignment
+  coachingAdjustment?: CoachingAdjustment; // optional: from progression engine
 }
 
 export interface WorkoutExercise {
@@ -198,10 +200,11 @@ function buildWorkoutName(dayName: string, phaseName: string): string {
 // ─── Exercise prescription ────────────────────────────────────────────────────
 
 function prescribeExercise(
-  exercise:      Exercise,
-  energyLevel:   number,
-  trainingState: TrainingState,
-  phaseName:     string,
+  exercise:          Exercise,
+  energyLevel:       number,
+  trainingState:     TrainingState,
+  phaseName:         string,
+  adjustment?:       CoachingAdjustment,
 ): WorkoutExercise {
   if (exercise.category === "Mobility") {
     return {
@@ -215,14 +218,26 @@ function prescribeExercise(
   }
 
   const clampedEnergy = Math.max(0, Math.min(4, Math.round(energyLevel))) as 0 | 1 | 2 | 3 | 4;
-  const preset   = ENERGY_PRESETS[clampedEnergy];
-  const setDelta = TRAINING_STATE_SET_DELTA[trainingState];
-  const rpeDelta = PHASE_RPE_DELTA[phaseName] ?? 0;
+  const preset        = ENERGY_PRESETS[clampedEnergy];
+  const setDelta      = TRAINING_STATE_SET_DELTA[trainingState];
+  const rpeDelta      = PHASE_RPE_DELTA[phaseName] ?? 0;
 
-  const sets = Math.max(1, preset.baseSets + setDelta);
-  const rpe  = Math.max(3, Math.min(10, preset.baseRpe + rpeDelta));
+  // Apply training-state delta first, then multiply by progression modifier
+  const rawSets        = preset.baseSets + setDelta;
+  const volumeMod      = adjustment?.volumeModifier    ?? 1.0;
+  const intensityMod   = adjustment?.intensityModifier ?? 0;
+  const sets           = Math.max(1, Math.round(rawSets * volumeMod));
+  const rpe            = Math.max(3, Math.min(10, preset.baseRpe + rpeDelta + intensityMod));
 
-  const notes: string | undefined =
+  const progressionNote: string | undefined = (() => {
+    if (!adjustment) return undefined;
+    if (adjustment.action === "progress")  return "Progression: +1 set — adherence and recovery support overload.";
+    if (adjustment.action === "deload")    return "Deload — volume reduced 40%. Prioritise form over load.";
+    if (adjustment.action === "reduce")    return "Volume reduced — consistency takes priority over intensity.";
+    return undefined;
+  })();
+
+  const stateNote: string | undefined =
     trainingState === "overreached"
       ? "Deload — prioritise form and nervous system recovery over load."
       : trainingState === "fatigued"
@@ -237,7 +252,7 @@ function prescribeExercise(
     rest:      formatRest(preset.restSeconds),
     rpe,
     rationale: buildExerciseRationale(exercise, energyLevel, trainingState, phaseName),
-    notes,
+    notes:     progressionNote ?? stateNote,
   };
 }
 
@@ -254,6 +269,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     sessionIndex = 0,
     environment,
     goalType,
+    coachingAdjustment,
   } = input;
 
   const workoutDay = buildWorkoutDay({
@@ -274,8 +290,17 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       })
     : workoutDay.exercises;
 
-  const exercises: WorkoutExercise[] = resolvedExercises.map(exercise =>
-    prescribeExercise(exercise, energyLevel, trainingState, phase.name)
+  // Apply complexity modifier: reduce/deload trim the lowest-priority accessory
+  const trimmedExercises: Exercise[] = (() => {
+    const complexity = coachingAdjustment?.complexityModifier;
+    if (complexity === "decrease" && resolvedExercises.length > 3) {
+      return resolvedExercises.slice(0, resolvedExercises.length - 1);
+    }
+    return resolvedExercises;
+  })();
+
+  const exercises: WorkoutExercise[] = trimmedExercises.map(exercise =>
+    prescribeExercise(exercise, energyLevel, trainingState, phase.name, coachingAdjustment)
   );
 
   return {
