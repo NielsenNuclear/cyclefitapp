@@ -46,6 +46,7 @@ import { getLoggedWorkout, getWorkoutLog } from "@/lib/workoutExecution/workoutL
 import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
 import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
+import { recordRecoveryObservation } from "@/lib/adaptive/recoveryLearning";
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 
@@ -382,6 +383,7 @@ export default function DashboardPage() {
   function handleFeedbackComplete(feedback: WorkoutFeedback) {
     if (recommendation) {
       recordValidation(feedback.date, recommendation.training.badge, feedback);
+      recordRecoveryObservation(feedback, recommendation.phase.name);
       setAccuracyReport(getAccuracyReport());
     }
   }
