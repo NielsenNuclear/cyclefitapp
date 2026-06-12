@@ -44,6 +44,8 @@ import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
 import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
 import { getLoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
 import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
+import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
+import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -60,6 +62,7 @@ import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
 import { CyclePatternsCard }     from "@/components/dashboard/CyclePatternsCard";
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
+import { CoachAccuracyCard }     from "@/components/dashboard/CoachAccuracyCard";
 import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
@@ -209,6 +212,7 @@ export default function DashboardPage() {
   const [learnedPatterns, setLearnedPatterns]       = useState<LearnedPattern[]>([]);
   const [cycleForecast, setCycleForecast]           = useState<CycleForecast>({ symptomEvents: [], readinessDays: [] });
   const [showFeedback, setShowFeedback]             = useState<boolean>(false);
+  const [accuracyReport, setAccuracyReport]         = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -251,6 +255,7 @@ export default function DashboardPage() {
     const todayStr  = new Date().toISOString().slice(0, 10);
     setTodaySymptoms(getSymptomsForDate(todayStr));
     setShowFeedback(getLoggedWorkout(todayStr) !== null);
+    setAccuracyReport(getAccuracyReport());
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
@@ -369,8 +374,11 @@ export default function DashboardPage() {
     refreshAfterMark();
   }
 
-  function handleFeedbackComplete(_feedback: WorkoutFeedback) {
-    // Phase 15C+ will use this to run readiness validation and recovery learning.
+  function handleFeedbackComplete(feedback: WorkoutFeedback) {
+    if (recommendation) {
+      recordValidation(feedback.date, recommendation.training.badge, feedback);
+      setAccuracyReport(getAccuracyReport());
+    }
   }
 
   function handleEnvironmentChange(env: TrainingEnvironment) {
@@ -443,6 +451,7 @@ export default function DashboardPage() {
             onComplete={handleFeedbackComplete}
           />
         )}
+        <CoachAccuracyCard report={accuracyReport} />
         <TrainingSummaryCard summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
         <ProgressionCard     profile={progressionProfile} adjustment={coachingAdjustment} />
