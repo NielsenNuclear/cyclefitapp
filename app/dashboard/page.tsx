@@ -42,6 +42,8 @@ import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
 import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
 import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
+import { getLoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
+import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -55,8 +57,9 @@ import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
 import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
-import { SymptomSummaryCard } from "@/components/dashboard/SymptomSummaryCard";
-import { CyclePatternsCard }   from "@/components/dashboard/CyclePatternsCard";
+import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
+import { CyclePatternsCard }     from "@/components/dashboard/CyclePatternsCard";
+import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
 import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
@@ -205,6 +208,7 @@ export default function DashboardPage() {
   const [todaySymptoms, setTodaySymptoms]           = useState<SymptomEntry[]>([]);
   const [learnedPatterns, setLearnedPatterns]       = useState<LearnedPattern[]>([]);
   const [cycleForecast, setCycleForecast]           = useState<CycleForecast>({ symptomEvents: [], readinessDays: [] });
+  const [showFeedback, setShowFeedback]             = useState<boolean>(false);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -246,6 +250,7 @@ export default function DashboardPage() {
 
     const todayStr  = new Date().toISOString().slice(0, 10);
     setTodaySymptoms(getSymptomsForDate(todayStr));
+    setShowFeedback(getLoggedWorkout(todayStr) !== null);
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
@@ -360,11 +365,12 @@ export default function DashboardPage() {
   }
 
   function handleWorkoutLogged(_log: LoggedWorkout) {
-    // Phase 15A: log is persisted inside WorkoutCard via saveLoggedWorkout.
-    // Status sync (axis_workout_history) is handled by the onMarkComplete/Partial
-    // callbacks that WorkoutCard calls before onWorkoutLogged fires.
-    // Future phases will read the log here for RPE feedback and validation.
+    setShowFeedback(true);
     refreshAfterMark();
+  }
+
+  function handleFeedbackComplete(_feedback: WorkoutFeedback) {
+    // Phase 15C+ will use this to run readiness validation and recovery learning.
   }
 
   function handleEnvironmentChange(env: TrainingEnvironment) {
@@ -429,6 +435,12 @@ export default function DashboardPage() {
             onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
             onWorkoutLogged={handleWorkoutLogged}
+          />
+        )}
+        {showFeedback && (
+          <WorkoutFeedbackCard
+            date={new Date().toISOString().slice(0, 10)}
+            onComplete={handleFeedbackComplete}
           />
         )}
         <TrainingSummaryCard summary={historySummary} />
