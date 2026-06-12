@@ -46,7 +46,9 @@ import { getLoggedWorkout, getWorkoutLog } from "@/lib/workoutExecution/workoutL
 import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
 import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
-import { recordRecoveryObservation } from "@/lib/adaptive/recoveryLearning";
+import { recordRecoveryObservation, getRecoveryResponsePatterns } from "@/lib/adaptive/recoveryLearning";
+import type { CoachingMemoryItem } from "@/lib/adaptive/coachingMemory";
+import { buildCoachingMemory } from "@/lib/adaptive/coachingMemory";
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 
@@ -67,6 +69,7 @@ import { CyclePatternsCard }     from "@/components/dashboard/CyclePatternsCard"
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
 import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCard";
 import { PerformanceTrendsCard }    from "@/components/dashboard/PerformanceTrendsCard";
+import { CoachingMemoryCard }       from "@/components/dashboard/CoachingMemoryCard";
 import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
@@ -218,6 +221,7 @@ export default function DashboardPage() {
   const [showFeedback, setShowFeedback]             = useState<boolean>(false);
   const [accuracyReport, setAccuracyReport]         = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
   const [exerciseSummaries, setExerciseSummaries]   = useState<ExerciseProgressSummary[]>([]);
+  const [coachingMemory, setCoachingMemory]         = useState<CoachingMemoryItem[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -261,7 +265,8 @@ export default function DashboardPage() {
     setTodaySymptoms(getSymptomsForDate(todayStr));
     setShowFeedback(getLoggedWorkout(todayStr) !== null);
     setAccuracyReport(getAccuracyReport());
-    setExerciseSummaries(getExerciseProgress(getWorkoutLog()));
+    const exerciseSummariesVal = getExerciseProgress(getWorkoutLog());
+    setExerciseSummaries(exerciseSummariesVal);
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
@@ -270,6 +275,12 @@ export default function DashboardPage() {
     const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, user.cycleLength);
     setLearnedPatterns(patterns);
     setCycleForecast(computeCycleForecast(patterns, phase.cycleDay, user.cycleLength));
+    setCoachingMemory(buildCoachingMemory({
+      cyclePatterns:     patterns,
+      recoveryPatterns:  getRecoveryResponsePatterns(),
+      exerciseSummaries: exerciseSummariesVal,
+      accuracyReport:    getAccuracyReport(),
+    }));
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
       progressionProfile: prog, adaptiveProfile: profile,
@@ -384,7 +395,14 @@ export default function DashboardPage() {
     if (recommendation) {
       recordValidation(feedback.date, recommendation.training.badge, feedback);
       recordRecoveryObservation(feedback, recommendation.phase.name);
-      setAccuracyReport(getAccuracyReport());
+      const newAccuracy = getAccuracyReport();
+      setAccuracyReport(newAccuracy);
+      setCoachingMemory(buildCoachingMemory({
+        cyclePatterns:     learnedPatterns,
+        recoveryPatterns:  getRecoveryResponsePatterns(),
+        exerciseSummaries,
+        accuracyReport:    newAccuracy,
+      }));
     }
   }
 
@@ -460,6 +478,7 @@ export default function DashboardPage() {
         )}
         <CoachAccuracyCard      report={accuracyReport} />
         <PerformanceTrendsCard  summaries={exerciseSummaries} />
+        <CoachingMemoryCard     items={coachingMemory} />
         <TrainingSummaryCard    summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
         <ProgressionCard     profile={progressionProfile} adjustment={coachingAdjustment} />
