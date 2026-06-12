@@ -40,6 +40,7 @@ import type { LearnedPattern } from "@/lib/cycleLearning/types";
 import { getLearnedPatterns } from "@/lib/cycleLearning/patternDetection";
 import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
+import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -273,7 +274,7 @@ export default function DashboardPage() {
     }
 
     const rec       = runPipeline(effectiveUser, phase, profile, prog, readiness);
-    setRecommendation(rec);
+    setRecommendation(applyPatternModifiers(rec, patterns, phase.cycleDay));
     const wkt       = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
@@ -313,11 +314,12 @@ export default function DashboardPage() {
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
     const newRec        = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
-    setRecommendation(newRec);
+    const personalizedRec = applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay);
+    setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, newRec.phase, environment, profile, adjustment, newReadiness ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, newRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
