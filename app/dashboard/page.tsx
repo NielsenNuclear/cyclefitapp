@@ -41,6 +41,7 @@ import { getLearnedPatterns } from "@/lib/cycleLearning/patternDetection";
 import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
 import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
+import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -358,6 +359,14 @@ export default function DashboardPage() {
     refreshAfterMark();
   }
 
+  function handleWorkoutLogged(_log: LoggedWorkout) {
+    // Phase 15A: log is persisted inside WorkoutCard via saveLoggedWorkout.
+    // Status sync (axis_workout_history) is handled by the onMarkComplete/Partial
+    // callbacks that WorkoutCard calls before onWorkoutLogged fires.
+    // Future phases will read the log here for RPE feedback and validation.
+    refreshAfterMark();
+  }
+
   function handleEnvironmentChange(env: TrainingEnvironment) {
     setEnvironment(env);
     localStorage.setItem(ENV_STORAGE_KEY, env);
@@ -419,6 +428,7 @@ export default function DashboardPage() {
             onMarkComplete={handleMarkComplete}
             onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
+            onWorkoutLogged={handleWorkoutLogged}
           />
         )}
         <TrainingSummaryCard summary={historySummary} />
