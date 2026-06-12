@@ -15,6 +15,7 @@ import {
   Step7Energy,
   Step8Cycle,
 } from "@/components/onboarding/Steps6to10";
+import { SymptomPreferencesPanel } from "@/components/profile/SymptomPreferencesPanel";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -153,6 +154,17 @@ export default function ProfilePage() {
         <section>
           <SectionHeader title="Energy patterns" />
           <Step7Energy data={data} onChange={patch} />
+        </section>
+
+        <div className="border-t border-[#EAE7DE]" />
+
+        {/* Symptom preferences */}
+        <section>
+          <SectionHeader
+            title="Symptom preferences"
+            subtitle="Choose which symptoms appear in your daily check-in."
+          />
+          <SymptomPreferencesPanel />
         </section>
 
         {/* Validation error */}

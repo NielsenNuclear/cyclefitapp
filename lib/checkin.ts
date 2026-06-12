@@ -1,7 +1,13 @@
+export interface CheckinSymptom {
+  symptomId: string;
+  severity:  0 | 1 | 2 | 3;
+}
+
 export interface CheckinData {
   sleepQuality: "excellent" | "good" | "variable" | "poor";
-  stressLevel: number;
-  date: string; // "YYYY-MM-DD"
+  stressLevel:  number;
+  date:         string; // "YYYY-MM-DD"
+  symptoms?:    CheckinSymptom[];
 }
 
 function todayISO(): string {

@@ -34,6 +34,8 @@ import { calculateReadiness } from "@/lib/readiness/calculateReadiness";
 import { saveReadiness, getReadinessTrend, getReadinessHistory } from "@/lib/readiness/readinessHistory";
 import type { ReadinessTrend, ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
 import { computeReadinessFeedback } from "@/lib/readiness/adaptiveFeedback";
+import type { SymptomEntry } from "@/lib/symptoms/symptomHistory";
+import { saveDailySymptoms, getSymptomsForDate } from "@/lib/symptoms/symptomHistory";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -46,7 +48,8 @@ import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard"
 import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
-import { ReadinessCard }   from "@/components/dashboard/ReadinessCard";
+import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
+import { SymptomSummaryCard } from "@/components/dashboard/SymptomSummaryCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -191,6 +194,7 @@ export default function DashboardPage() {
   const [readinessScore, setReadinessScore]         = useState<ReadinessScore | null>(null);
   const [readinessTrend, setReadinessTrend]         = useState<ReadinessTrend>("insufficient_data");
   const [readinessHistory, setReadinessHistory]     = useState<ReadinessHistoryEntry[]>([]);
+  const [todaySymptoms, setTodaySymptoms]           = useState<SymptomEntry[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -229,6 +233,9 @@ export default function DashboardPage() {
     setProgressionProfile(prog);
     setCoachingAdjustment(adjustment);
     adjustmentRef.current = adjustment;
+
+    const todayStr  = new Date().toISOString().slice(0, 10);
+    setTodaySymptoms(getSymptomsForDate(todayStr));
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
@@ -269,6 +276,17 @@ export default function DashboardPage() {
     setIsRecalculating(true);
     const user = onboardingRef.current;
     if (!user) return;
+
+    // Persist symptoms and update summary card
+    if (data.symptoms && data.symptoms.length > 0) {
+      const entries: SymptomEntry[] = data.symptoms.map(s => ({
+        date:      data.date,
+        symptomId: s.symptomId,
+        severity:  s.severity,
+      }));
+      saveDailySymptoms(data.date, entries);
+      setTodaySymptoms(getSymptomsForDate(data.date));
+    }
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const adjustment    = adjustmentRef.current ?? undefined;
@@ -366,6 +384,7 @@ export default function DashboardPage() {
         )}
         <PhaseCard phase={recommendation.phase} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+        <SymptomSummaryCard symptoms={todaySymptoms} />
         <TrainingCard
           training={recommendation.training}
           restDaySignal={
