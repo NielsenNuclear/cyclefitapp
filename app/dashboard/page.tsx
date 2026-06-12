@@ -40,10 +40,17 @@ import type { LearnedPattern } from "@/lib/cycleLearning/types";
 import { getLearnedPatterns } from "@/lib/cycleLearning/patternDetection";
 import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
-import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
+import { applyPatternModifiers, applyTodaySymptomsModifier } from "@/lib/adaptive/recommendationModifiers";
 import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
 import { getLoggedWorkout, getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
-import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
+import { getAllFeedback, type WorkoutFeedback } from "@/lib/workoutExecution/feedback";
+import { computeWeeklyPlan, type WeeklyPlan } from "@/lib/planning/weeklyPlanner";
+import { getOrCreateBlock, type TrainingBlock } from "@/lib/planning/trainingBlocks";
+import { computeOverloadRecommendation, type OverloadRecommendation } from "@/lib/progression/progressiveOverload";
+import { detectDeload, type DeloadRecommendation } from "@/lib/recovery/deloadDetection";
+import { computeRecoveryCapacity, type RecoveryCapacity } from "@/lib/adaptive/recoveryCapacity";
+import { computePeriodizedCalendar, type PeriodizedCalendar } from "@/lib/planning/periodizedCalendar";
+import { buildCoachView, type CoachView } from "@/lib/coaching/coachView";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
 import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
 import { recordRecoveryObservation, getRecoveryResponsePatterns } from "@/lib/adaptive/recoveryLearning";
@@ -71,6 +78,13 @@ import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCa
 import { PerformanceTrendsCard }    from "@/components/dashboard/PerformanceTrendsCard";
 import { CoachingMemoryCard }       from "@/components/dashboard/CoachingMemoryCard";
 import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
+import { WeeklyPlanCard }       from "@/components/dashboard/WeeklyPlanCard";
+import { TrainingBlockCard }    from "@/components/dashboard/TrainingBlockCard";
+import { OverloadCard }         from "@/components/dashboard/OverloadCard";
+import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
+import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapacityCard";
+import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
+import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -222,6 +236,13 @@ export default function DashboardPage() {
   const [accuracyReport, setAccuracyReport]         = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
   const [exerciseSummaries, setExerciseSummaries]   = useState<ExerciseProgressSummary[]>([]);
   const [coachingMemory, setCoachingMemory]         = useState<CoachingMemoryItem[]>([]);
+  const [weeklyPlan, setWeeklyPlan]                 = useState<WeeklyPlan | null>(null);
+  const [trainingBlock, setTrainingBlock]           = useState<TrainingBlock | null>(null);
+  const [overloadRec, setOverloadRec]               = useState<OverloadRecommendation | null>(null);
+  const [deloadRec, setDeloadRec]                   = useState<DeloadRecommendation | null>(null);
+  const [recoveryCapacity, setRecoveryCapacity]     = useState<RecoveryCapacity | null>(null);
+  const [periodizedCalendar, setPeriodizedCalendar] = useState<PeriodizedCalendar | null>(null);
+  const [coachView, setCoachView]                   = useState<CoachView | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -262,25 +283,29 @@ export default function DashboardPage() {
     adjustmentRef.current = adjustment;
 
     const todayStr  = new Date().toISOString().slice(0, 10);
-    setTodaySymptoms(getSymptomsForDate(todayStr));
+    const todaySymptomsVal = getSymptomsForDate(todayStr);
+    setTodaySymptoms(todaySymptomsVal);
     setShowFeedback(getLoggedWorkout(todayStr) !== null);
     setAccuracyReport(getAccuracyReport());
     const exerciseSummariesVal = getExerciseProgress(getWorkoutLog());
     setExerciseSummaries(exerciseSummariesVal);
 
-    const goalType  = mapOnboardingGoalToGoalType(user.goals);
+    const goalType        = mapOnboardingGoalToGoalType(user.goals);
+    const trainingBlockVal = getOrCreateBlock(goalType);
+    setTrainingBlock(trainingBlockVal);
     const profile   = profileRef.current ?? undefined;
     const phase     = computePhase(effectiveUser);
 
     const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, user.cycleLength);
     setLearnedPatterns(patterns);
     setCycleForecast(computeCycleForecast(patterns, phase.cycleDay, user.cycleLength));
-    setCoachingMemory(buildCoachingMemory({
+    const coachingMemoryVal = buildCoachingMemory({
       cyclePatterns:     patterns,
       recoveryPatterns:  getRecoveryResponsePatterns(),
       exerciseSummaries: exerciseSummariesVal,
       accuracyReport:    getAccuracyReport(),
-    }));
+    });
+    setCoachingMemory(coachingMemoryVal);
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
       progressionProfile: prog, adaptiveProfile: profile,
@@ -290,6 +315,26 @@ export default function DashboardPage() {
     const fullRdxHistory = getReadinessHistory();
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
+
+    const fourteenDaysAgoStr = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 14);
+      return d.toISOString().slice(0, 10);
+    })();
+    const sevenDaysAgoStr = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      return d.toISOString().slice(0, 10);
+    })();
+    const weeklyPlanVal = computeWeeklyPlan({
+      sessionsPerWeek:  user.sessionsPerWeek,
+      readinessHistory: fullRdxHistory.slice(0, 7),
+      recentFeedback:   getAllFeedback().filter(f => f.date >= fourteenDaysAgoStr),
+      recentHistory:    rawHistory.filter(h => h.id >= fourteenDaysAgoStr),
+      recentSymptoms:   getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
+      currentPhase:     phase,
+    });
+    setWeeklyPlan(weeklyPlanVal);
 
     // Refine AdaptiveProfile weights after ≥14 days (weekly cadence)
     if (profileRef.current) {
@@ -301,9 +346,62 @@ export default function DashboardPage() {
       }
     }
 
-    const rec       = runPipeline(effectiveUser, phase, profile, prog, readiness);
-    setRecommendation(applyPatternModifiers(rec, patterns, phase.cycleDay));
-    const wkt       = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness);
+    const rec             = runPipeline(effectiveUser, phase, profile, prog, readiness);
+    const personalizedRec = applyTodaySymptomsModifier(
+      applyPatternModifiers(rec, patterns, phase.cycleDay),
+      todaySymptomsVal,
+    );
+    setRecommendation(personalizedRec);
+    const recentFeedbackVal = getAllFeedback().filter(f => f.date >= fourteenDaysAgoStr);
+    const overloadRecVal = computeOverloadRecommendation({
+      recentLog:         getWorkoutLog().filter(l => l.date >= fourteenDaysAgoStr),
+      recentFeedback:    recentFeedbackVal,
+      exerciseSummaries: exerciseSummariesVal,
+      currentBadge:      personalizedRec.training.badge,
+    });
+    setOverloadRec(overloadRecVal);
+    const deloadRecVal = detectDeload({
+      recentLog:         getWorkoutLog().filter(l => l.date >= fourteenDaysAgoStr),
+      recentFeedback:    recentFeedbackVal,
+      recentSymptoms:    getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
+      exerciseSummaries: exerciseSummariesVal,
+      readinessHistory:  fullRdxHistory.slice(0, 14),
+    });
+    setDeloadRec(deloadRecVal);
+    const thirtyDaysAgoStr = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 30);
+      return d.toISOString().slice(0, 10);
+    })();
+    const recoveryCapacityVal = computeRecoveryCapacity({
+      recentHistory:    rawHistory.filter(h => h.id >= thirtyDaysAgoStr),
+      recentFeedback:   getAllFeedback().filter(f => f.date >= thirtyDaysAgoStr),
+      recentSymptoms:   getSymptomHistory().filter(s => s.date >= thirtyDaysAgoStr),
+      recoveryPatterns: getRecoveryResponsePatterns(),
+    });
+    setRecoveryCapacity(recoveryCapacityVal);
+    setPeriodizedCalendar(computePeriodizedCalendar({
+      trainingBlock:    trainingBlockVal,
+      weeklyPlan:       weeklyPlanVal,
+      deloadRec:        deloadRecVal,
+      recoveryCapacity: recoveryCapacityVal,
+      learnedPatterns:  patterns,
+      currentCycleDay:  phase.cycleDay,
+      cycleLength:      user.cycleLength,
+      sessionsPerWeek:  user.sessionsPerWeek,
+    }));
+    setCoachView(buildCoachView({
+      recommendation:    personalizedRec,
+      weeklyPlan:        weeklyPlanVal,
+      trainingBlock:     trainingBlockVal,
+      overloadRec:       overloadRecVal,
+      deloadRec:         deloadRecVal,
+      recoveryCapacity:  recoveryCapacityVal,
+      coachingMemory:    coachingMemoryVal,
+      accuracyReport:    getAccuracyReport(),
+      exerciseSummaries: exerciseSummariesVal,
+    }));
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -326,8 +424,9 @@ export default function DashboardPage() {
         severity:  s.severity,
       }));
       saveDailySymptoms(data.date, entries);
-      setTodaySymptoms(getSymptomsForDate(data.date));
     }
+    const todaySymptomsVal = getSymptomsForDate(data.date);
+    setTodaySymptoms(todaySymptomsVal);
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const adjustment    = adjustmentRef.current ?? undefined;
@@ -341,8 +440,11 @@ export default function DashboardPage() {
       setReadinessTrend(getReadinessTrend());
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
-    const newRec        = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
-    const personalizedRec = applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay);
+    const newRec          = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
+    const personalizedRec = applyTodaySymptomsModifier(
+      applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay),
+      todaySymptomsVal,
+    );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
     const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined);
@@ -446,6 +548,13 @@ export default function DashboardPage() {
         )}
         <PhaseCard phase={recommendation.phase} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+        <CoachViewCard view={coachView} />
+        <WeeklyPlanCard plan={weeklyPlan} />
+        <TrainingBlockCard block={trainingBlock} />
+        <PeriodizedCalendarCard calendar={periodizedCalendar} />
+        <OverloadCard recommendation={overloadRec} />
+        <DeloadAlertCard recommendation={deloadRec} />
+        <RecoveryCapacityCard capacity={recoveryCapacity} />
         <SymptomSummaryCard symptoms={todaySymptoms} />
         <CyclePatternsCard  patterns={learnedPatterns} />
         <UpcomingTrendsCard forecast={cycleForecast} />

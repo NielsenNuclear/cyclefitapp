@@ -5,6 +5,7 @@ import type {
   ExplanationPoint,
 } from "@/types/recommendation";
 import type { LearnedPattern } from "@/lib/cycleLearning/types";
+import type { SymptomEntry } from "@/lib/symptoms/symptomHistory";
 import { SYMPTOM_BY_ID } from "@/lib/symptoms/symptomCatalog";
 
 // ─── Ordering tables (most demanding → least demanding) ───────────────────────
@@ -340,6 +341,149 @@ export function applyPatternModifiers(
 
   const newBadge     = downgradeBadge(    recommendation.training.badge,     totalBadgeDowngrade);
   const newIntensity = downgradeIntensity(recommendation.training.intensity,  totalIntensityDowngrade);
+
+  const combinedAvoidNote = [
+    ...(recommendation.training.avoidNote ? [recommendation.training.avoidNote] : []),
+    ...trainingAvoidNotes.slice(0, 2),
+  ].join(" ");
+
+  return {
+    ...recommendation,
+    training: {
+      ...recommendation.training,
+      badge:       newBadge,
+      intensity:   newIntensity,
+      avoidNote:   combinedAvoidNote || recommendation.training.avoidNote,
+      suggestions: [
+        ...trainingSuggestions.slice(0, 2),
+        ...recommendation.training.suggestions,
+      ],
+    },
+    nutrition: {
+      ...recommendation.nutrition,
+      priorities:  [
+        ...recommendation.nutrition.priorities,
+        ...nutritionPriorities,
+      ],
+      timingNote:  nutritionTimingNote ?? recommendation.nutrition.timingNote,
+    },
+    recovery: {
+      ...recommendation.recovery,
+      practices:  [
+        ...recommendation.recovery.practices,
+        ...recoveryPractices,
+      ],
+      stressNote: recoveryStressNote ?? recommendation.recovery.stressNote,
+      sleepNote:  recoverySleepNote  ?? recommendation.recovery.sleepNote,
+    },
+    explanationPoints: [
+      ...recommendation.explanationPoints,
+      ...explanationPoints,
+    ],
+  };
+}
+
+// ─── Today's symptom modifier ─────────────────────────────────────────────────
+// Applies today's check-in symptoms directly to the recommendation.
+// Runs after applyPatternModifiers — complements history-based patterns with
+// real-time signal.
+//
+// Severity scale (CheckinSymptom.severity): 0=none, 1=mild, 2=moderate, 3=severe
+//  - severity 0     → skip
+//  - severity 1     → explanation point only (no badge/intensity downgrade)
+//  - severity 2–3   → apply full downgrade per rule table if >= rule.minSeverity
+// Nutrition and recovery additions fire at severity >= 1 (additions only, no downgrade).
+
+export function applyTodaySymptomsModifier(
+  recommendation: DailyRecommendation,
+  todaySymptoms:  SymptomEntry[],
+): DailyRecommendation {
+  if (todaySymptoms.length === 0) return recommendation;
+
+  // Highest severity per symptom ID reported today
+  const severityMap = new Map<string, number>();
+  for (const s of todaySymptoms) {
+    if (s.severity === 0) continue;
+    const prev = severityMap.get(s.symptomId) ?? 0;
+    if (s.severity > prev) severityMap.set(s.symptomId, s.severity);
+  }
+  if (severityMap.size === 0) return recommendation;
+
+  function makeTodayPoint(symptomId: string, severity: number, implication: string): ExplanationPoint {
+    const name  = SYMPTOM_BY_ID[symptomId]?.name ?? symptomId;
+    const label = severity === 3 ? "severe" : severity === 2 ? "moderate" : "mild";
+    return {
+      signal:      "Today's symptoms",
+      observation: `${name} reported today (${label})`,
+      implication,
+      weight:      severity >= 3 ? "Primary" : "Secondary",
+    };
+  }
+
+  let totalBadgeDowngrade     = 0;
+  let totalIntensityDowngrade = 0;
+  const trainingAvoidNotes:  string[] = [];
+  const trainingSuggestions: string[] = [];
+  const nutritionPriorities: string[] = [];
+  let   nutritionTimingNote: string | undefined;
+  const recoveryPractices:   string[] = [];
+  let   recoveryStressNote:  string | undefined;
+  let   recoverySleepNote:   string | undefined;
+  const explanationPoints:   ExplanationPoint[] = [];
+
+  // Training rules — downgrade only at severity >= 2 AND >= rule threshold
+  for (const rule of TRAINING_RULES) {
+    const severity = severityMap.get(rule.symptomId);
+    if (severity === undefined) continue;
+    const name        = SYMPTOM_BY_ID[rule.symptomId]?.name ?? rule.symptomId;
+    const actionText  = rule.avoidNote.split(" — ")[1] ?? rule.suggestion;
+    if (severity >= 2 && severity >= rule.minSeverity) {
+      totalBadgeDowngrade     = Math.min(2, totalBadgeDowngrade + rule.badgeLevels);
+      totalIntensityDowngrade = Math.min(2, totalIntensityDowngrade + rule.intensityLevels);
+      trainingAvoidNotes.push(`${name} today — ${actionText}`);
+      trainingSuggestions.push(rule.suggestion);
+    }
+    explanationPoints.push(makeTodayPoint(rule.symptomId, severity, `${name} today — ${actionText}`));
+  }
+
+  // Nutrition rules — additions only, no badge/intensity change
+  let nutritionApplied = 0;
+  for (const rule of NUTRITION_RULES) {
+    if (nutritionApplied >= 2) break;
+    const severity = severityMap.get(rule.symptomId);
+    if (severity === undefined || severity < rule.minSeverity) continue;
+    nutritionPriorities.push(rule.priority);
+    if (rule.timingNote && !nutritionTimingNote) nutritionTimingNote = rule.timingNote;
+    explanationPoints.push(makeTodayPoint(rule.symptomId, severity, rule.priority));
+    nutritionApplied++;
+  }
+
+  // Recovery rules — additions only, no badge/intensity change
+  let recoveryApplied = 0;
+  for (const rule of RECOVERY_RULES) {
+    if (recoveryApplied >= 2) break;
+    const severity = severityMap.get(rule.symptomId);
+    if (severity === undefined || severity < rule.minSeverity) continue;
+    recoveryPractices.push(rule.practice);
+    if (rule.stressNote && !recoveryStressNote) recoveryStressNote = rule.stressNote;
+    if (rule.sleepNote  && !recoverySleepNote)  recoverySleepNote  = rule.sleepNote;
+    explanationPoints.push(makeTodayPoint(rule.symptomId, severity, rule.practice));
+    recoveryApplied++;
+  }
+
+  if (
+    totalBadgeDowngrade === 0 &&
+    totalIntensityDowngrade === 0 &&
+    trainingAvoidNotes.length === 0 &&
+    nutritionPriorities.length === 0 &&
+    recoveryPractices.length === 0 &&
+    explanationPoints.length === 0
+  ) {
+    return recommendation;
+  }
+
+  const newBadge     = downgradeBadge(recommendation.training.badge, totalBadgeDowngrade);
+  const newIntensity = downgradeIntensity(recommendation.training.intensity, totalIntensityDowngrade);
 
   const combinedAvoidNote = [
     ...(recommendation.training.avoidNote ? [recommendation.training.avoidNote] : []),
