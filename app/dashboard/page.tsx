@@ -42,10 +42,12 @@ import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
 import { applyPatternModifiers } from "@/lib/adaptive/recommendationModifiers";
 import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
-import { getLoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
+import { getLoggedWorkout, getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
 import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
 import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
+import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
+import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -62,7 +64,8 @@ import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
 import { CyclePatternsCard }     from "@/components/dashboard/CyclePatternsCard";
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
-import { CoachAccuracyCard }     from "@/components/dashboard/CoachAccuracyCard";
+import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCard";
+import { PerformanceTrendsCard }    from "@/components/dashboard/PerformanceTrendsCard";
 import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
@@ -213,6 +216,7 @@ export default function DashboardPage() {
   const [cycleForecast, setCycleForecast]           = useState<CycleForecast>({ symptomEvents: [], readinessDays: [] });
   const [showFeedback, setShowFeedback]             = useState<boolean>(false);
   const [accuracyReport, setAccuracyReport]         = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
+  const [exerciseSummaries, setExerciseSummaries]   = useState<ExerciseProgressSummary[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -256,6 +260,7 @@ export default function DashboardPage() {
     setTodaySymptoms(getSymptomsForDate(todayStr));
     setShowFeedback(getLoggedWorkout(todayStr) !== null);
     setAccuracyReport(getAccuracyReport());
+    setExerciseSummaries(getExerciseProgress(getWorkoutLog()));
 
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
@@ -451,8 +456,9 @@ export default function DashboardPage() {
             onComplete={handleFeedbackComplete}
           />
         )}
-        <CoachAccuracyCard report={accuracyReport} />
-        <TrainingSummaryCard summary={historySummary} />
+        <CoachAccuracyCard      report={accuracyReport} />
+        <PerformanceTrendsCard  summaries={exerciseSummaries} />
+        <TrainingSummaryCard    summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
         <ProgressionCard     profile={progressionProfile} adjustment={coachingAdjustment} />
         <InsightsCard        report={insightReport} />
