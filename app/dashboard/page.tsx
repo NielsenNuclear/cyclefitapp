@@ -35,7 +35,11 @@ import { saveReadiness, getReadinessTrend, getReadinessHistory } from "@/lib/rea
 import type { ReadinessTrend, ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
 import { computeReadinessFeedback } from "@/lib/readiness/adaptiveFeedback";
 import type { SymptomEntry } from "@/lib/symptoms/symptomHistory";
-import { saveDailySymptoms, getSymptomsForDate } from "@/lib/symptoms/symptomHistory";
+import { saveDailySymptoms, getSymptomsForDate, getSymptomHistory } from "@/lib/symptoms/symptomHistory";
+import type { LearnedPattern } from "@/lib/cycleLearning/types";
+import { getLearnedPatterns } from "@/lib/cycleLearning/patternDetection";
+import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
+import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -50,6 +54,8 @@ import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
 import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
 import { SymptomSummaryCard } from "@/components/dashboard/SymptomSummaryCard";
+import { CyclePatternsCard }   from "@/components/dashboard/CyclePatternsCard";
+import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -195,6 +201,8 @@ export default function DashboardPage() {
   const [readinessTrend, setReadinessTrend]         = useState<ReadinessTrend>("insufficient_data");
   const [readinessHistory, setReadinessHistory]     = useState<ReadinessHistoryEntry[]>([]);
   const [todaySymptoms, setTodaySymptoms]           = useState<SymptomEntry[]>([]);
+  const [learnedPatterns, setLearnedPatterns]       = useState<LearnedPattern[]>([]);
+  const [cycleForecast, setCycleForecast]           = useState<CycleForecast>({ symptomEvents: [], readinessDays: [] });
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -240,6 +248,10 @@ export default function DashboardPage() {
     const goalType  = mapOnboardingGoalToGoalType(user.goals);
     const profile   = profileRef.current ?? undefined;
     const phase     = computePhase(effectiveUser);
+
+    const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, user.cycleLength);
+    setLearnedPatterns(patterns);
+    setCycleForecast(computeCycleForecast(patterns, phase.cycleDay, user.cycleLength));
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
       progressionProfile: prog, adaptiveProfile: profile,
@@ -385,6 +397,8 @@ export default function DashboardPage() {
         <PhaseCard phase={recommendation.phase} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <SymptomSummaryCard symptoms={todaySymptoms} />
+        <CyclePatternsCard  patterns={learnedPatterns} />
+        <UpcomingTrendsCard forecast={cycleForecast} />
         <TrainingCard
           training={recommendation.training}
           restDaySignal={
