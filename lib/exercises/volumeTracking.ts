@@ -36,10 +36,20 @@ export type VolumeStatus = "under" | "on_target" | "over";
 
 export type TrainingGoal = "maintenance" | "hypertrophy" | "strength";
 
+export interface VolumeLandmarks {
+  mev:        number;   // minimum effective sets per week (personalised)
+  mrv:        number;   // maximum recoverable sets per week (personalised)
+  confidence: number;   // 0–1; full confidence after ~8 calibrated weeks
+  source:     "prior" | "calibrated";
+}
+
+export type VolumeLandmarkReport = Partial<Record<MuscleGroup, VolumeLandmarks>>;
+
 export interface MuscleVolumeEntry {
   sets:   number;        // accumulated weighted sets
-  target: VolumeTarget;  // weekly targets per goal
-  status: VolumeStatus;  // evaluated against the selected goal
+  target: VolumeTarget;  // static weekly targets (kept for reference)
+  status: VolumeStatus;  // evaluated against effective target (personalised when available)
+  mrv?:   number;        // personalised MRV (present when landmarks confidence ≥ 0.3)
 }
 
 export type VolumeReport = Record<MuscleGroup, MuscleVolumeEntry>;
@@ -229,14 +239,23 @@ function resolveStatus(sets: number, target: number): VolumeStatus {
 // ─── Report generation ────────────────────────────────────────────────────────
 
 export function generateVolumeReport(
-  volume: WeeklyVolume,
-  goal:   TrainingGoal,
+  volume:     WeeklyVolume,
+  goal:       TrainingGoal,
+  landmarks?: VolumeLandmarkReport,
 ): VolumeReport {
   return Object.fromEntries(
     ALL_MUSCLE_GROUPS.map(group => {
-      const sets   = volume[group];
-      const target = VOLUME_TARGETS[group];
-      return [group, { sets, target, status: resolveStatus(sets, target[goal]) }];
+      const sets     = volume[group];
+      const target   = VOLUME_TARGETS[group];
+      const landmark = landmarks?.[group];
+      const usePersonalised = landmark && landmark.confidence >= 0.3;
+
+      return [group, {
+        sets,
+        target,
+        status: resolveStatus(sets, usePersonalised ? landmark.mev : target[goal]),
+        mrv:    usePersonalised ? landmark.mrv : undefined,
+      }];
     })
   ) as VolumeReport;
 }

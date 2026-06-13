@@ -22,8 +22,9 @@ import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import { saveWorkout as saveWorkoutToHistory, getWorkoutHistory, getWorkoutHistorySummary, markWorkoutCompleted, markWorkoutPartiallyCompleted, markWorkoutSkipped } from "@/lib/history/workoutHistory";
 import { generateTrainingLoadReport } from "@/lib/analytics/trainingLoad";
 import { generateInsights } from "@/lib/insights/generateInsights";
-import type { TrainingGoal } from "@/lib/exercises/volumeTracking";
+import type { TrainingGoal, WeeklyVolume, VolumeLandmarkReport } from "@/lib/exercises/volumeTracking";
 import { calculateWeeklyVolumeFromHistory, generateVolumeReport } from "@/lib/exercises/volumeTracking";
+import { computeVolumeLandmarks } from "@/lib/progression/volumeLandmarks";
 import type { GoalType } from "@/lib/exercises/goalBasedSelection";
 import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
 import { buildProgressionProfile } from "@/lib/progression/progressionProfile";
@@ -179,6 +180,35 @@ interface AnalyticsSnapshot {
   todayStatus: WorkoutCompletionStatus;
 }
 
+function groupHistoryIntoWeeks(
+  history:  ReturnType<typeof getWorkoutHistory>,
+  numWeeks: number,
+): WeeklyVolume[] {
+  const result: WeeklyVolume[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let w = 0; w < numWeeks; w++) {
+    const weekEnd   = new Date(today);
+    weekEnd.setDate(today.getDate() - w * 7);
+    const weekStart = new Date(weekEnd);
+    weekStart.setDate(weekEnd.getDate() - 7);
+
+    const endStr   = weekEnd.toISOString().slice(0, 10);
+    const startStr = weekStart.toISOString().slice(0, 10);
+
+    const entries = history.filter(
+      h => h.id > startStr && h.id <= endStr &&
+           (h.status === "completed" || h.status === "partially_completed"),
+    );
+    if (entries.length > 0) {
+      result.push(calculateWeeklyVolumeFromHistory(entries));
+    }
+  }
+
+  return result;
+}
+
 function toTrainingGoal(goalType: GoalType): TrainingGoal {
   if (goalType === "strength")   return "strength";
   if (goalType === "hypertrophy") return "hypertrophy";
@@ -191,6 +221,7 @@ function runAnalyticsPipeline(
   goalType?:   GoalType,
   progression?: ProgressionProfile,
   readiness?:  ReadinessScore,
+  landmarks?:  VolumeLandmarkReport,
 ): AnalyticsSnapshot {
   saveWorkoutToHistory(workout);
   const history    = getWorkoutHistory();
@@ -214,6 +245,7 @@ function runAnalyticsPipeline(
   const volumeReport = generateVolumeReport(
     weeklyVolume,
     goalType ? toTrainingGoal(goalType) : "maintenance",
+    landmarks,
   );
 
   const insights   = generateInsights({
@@ -263,6 +295,7 @@ export default function DashboardPage() {
   const [periodizedCalendar, setPeriodizedCalendar] = useState<PeriodizedCalendar | null>(null);
   const [coachView, setCoachView]                   = useState<CoachView | null>(null);
   const [calibrationFactors, setCalibrationFactors] = useState<CalibrationFactors | null>(null);
+  const [volumeLandmarks, setVolumeLandmarks]       = useState<VolumeLandmarkReport | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -311,6 +344,9 @@ export default function DashboardPage() {
     setExerciseSummaries(exerciseSummariesVal);
 
     const goalType        = mapOnboardingGoalToGoalType(user.goals);
+    const weeklyVolumesVal = groupHistoryIntoWeeks(rawHistory, 8);
+    const landmarksVal     = computeVolumeLandmarks(weeklyVolumesVal, toTrainingGoal(goalType));
+    setVolumeLandmarks(landmarksVal);
     const trainingBlockVal = getOrCreateBlock(goalType);
     setTrainingBlock(trainingBlockVal);
     const profile   = profileRef.current ?? undefined;
@@ -445,7 +481,7 @@ export default function DashboardPage() {
     }));
     const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level, exerciseSummariesVal);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness, landmarksVal);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -505,7 +541,7 @@ export default function DashboardPage() {
     const goalType = mapOnboardingGoalToGoalType(user.goals);
     const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
@@ -516,7 +552,7 @@ export default function DashboardPage() {
   function refreshAfterMark() {
     if (!workout || !recommendation) return;
     const goalType    = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
-    const snap        = runAnalyticsPipeline(workout, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined);
+    const snap        = runAnalyticsPipeline(workout, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(snap.summary);
     setLoadReport(snap.load);
     setInsightReport(snap.insights);
@@ -576,7 +612,7 @@ export default function DashboardPage() {
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
     const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, undefined, undefined, exerciseSummaries);
     setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
     setInsightReport(insights);
