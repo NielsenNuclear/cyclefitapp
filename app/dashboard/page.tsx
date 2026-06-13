@@ -98,10 +98,7 @@ import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
 import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapacityCard";
 import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
-import { OvulationEstimateCard }    from "@/components/dashboard/OvulationEstimateCard";
-import { TrainingWindowCard }       from "@/components/dashboard/TrainingWindowCard";
-import { RecoveryWindowCard }       from "@/components/dashboard/RecoveryWindowCard";
-import { CycleHealthCard }          from "@/components/dashboard/CycleHealthCard";
+import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -700,10 +697,13 @@ export default function DashboardPage() {
           />
         )}
         <PhaseCard phase={recommendation.phase} />
-        <OvulationEstimateCard estimate={ovulationEstimate} />
-        <TrainingWindowCard window={primeTrainingWindow} />
-        <RecoveryWindowCard window={recoveryWindow} />
-        <CycleHealthCard report={cycleHealthReport} />
+        <CycleIntelligenceCard
+          cycleAccuracy={cycleAccuracy}
+          performanceProfile={performanceProfile}
+          symptomTimeline={symptomTimeline}
+          ovulationEstimate={ovulationEstimate}
+          cycleHealthReport={cycleHealthReport}
+        />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
