@@ -473,15 +473,17 @@ export default function DashboardPage() {
       sessionsPerWeek:  user.sessionsPerWeek,
     }));
     setCoachView(buildCoachView({
-      recommendation:    personalizedRec,
-      weeklyPlan:        weeklyPlanVal,
-      trainingBlock:     trainingBlockVal,
-      overloadRec:       overloadRecVal,
-      deloadRec:         deloadRecVal,
-      recoveryCapacity:  recoveryCapacityVal,
-      coachingMemory:    coachingMemoryVal,
-      accuracyReport:    getAccuracyReport(),
-      exerciseSummaries: exerciseSummariesVal,
+      recommendation:     personalizedRec,
+      weeklyPlan:         weeklyPlanVal,
+      trainingBlock:      trainingBlockVal,
+      overloadRec:        overloadRecVal,
+      deloadRec:          deloadRecVal,
+      recoveryCapacity:   recoveryCapacityVal,
+      coachingMemory:     coachingMemoryVal,
+      accuracyReport:     getAccuracyReport(),
+      exerciseSummaries:  exerciseSummariesVal,
+      coachingAdjustment: finalAdjustmentVal,
+      goalType,
     }));
     const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level, exerciseSummariesVal);
     setWorkout(wkt);
