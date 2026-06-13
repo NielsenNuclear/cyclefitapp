@@ -63,6 +63,7 @@ import { computeForecastBurden, applyForecastModifier } from "@/lib/adaptive/for
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 import { applyExerciseProgressionRules, mergeCoachingAdjustments } from "@/lib/progression/exerciseProgressionRules";
+import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -296,6 +297,7 @@ export default function DashboardPage() {
   const [coachView, setCoachView]                   = useState<CoachView | null>(null);
   const [calibrationFactors, setCalibrationFactors] = useState<CalibrationFactors | null>(null);
   const [volumeLandmarks, setVolumeLandmarks]       = useState<VolumeLandmarkReport | null>(null);
+  const [cycleAccuracy, setCycleAccuracy]           = useState<CycleAccuracyReport | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -315,6 +317,14 @@ export default function DashboardPage() {
       return;
     }
     onboardingRef.current = user;
+
+    // Seed period history from onboarding if no entries recorded yet
+    if (getPeriodHistory().length === 0 && user.lastPeriodDate) {
+      logPeriod(user.lastPeriodDate);
+    }
+    const cycleAccuracyVal = computeCycleAccuracy(getPeriodHistory(), user.cycleLength);
+    setCycleAccuracy(cycleAccuracyVal);
+
     const profileRaw = localStorage.getItem("axis_adaptive_profile");
     if (profileRaw) {
       try { profileRef.current = JSON.parse(profileRaw); } catch {}
