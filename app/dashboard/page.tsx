@@ -52,10 +52,12 @@ import { computeRecoveryCapacity, type RecoveryCapacity, type CapacityLevel } fr
 import { computePeriodizedCalendar, type PeriodizedCalendar } from "@/lib/planning/periodizedCalendar";
 import { buildCoachView, type CoachView } from "@/lib/coaching/coachView";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
-import { recordValidation, getAccuracyReport } from "@/lib/adaptive/readinessValidation";
+import { recordValidation, getAccuracyReport, getAllValidations } from "@/lib/adaptive/readinessValidation";
 import { recordRecoveryObservation, getRecoveryResponsePatterns } from "@/lib/adaptive/recoveryLearning";
 import type { CoachingMemoryItem } from "@/lib/adaptive/coachingMemory";
 import { buildCoachingMemory } from "@/lib/adaptive/coachingMemory";
+import type { CalibrationFactors } from "@/lib/adaptive/accuracyCalibration";
+import { computeCalibration, applyAccuracyCalibration } from "@/lib/adaptive/accuracyCalibration";
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 
@@ -256,6 +258,7 @@ export default function DashboardPage() {
   const [recoveryCapacity, setRecoveryCapacity]     = useState<RecoveryCapacity | null>(null);
   const [periodizedCalendar, setPeriodizedCalendar] = useState<PeriodizedCalendar | null>(null);
   const [coachView, setCoachView]                   = useState<CoachView | null>(null);
+  const [calibrationFactors, setCalibrationFactors] = useState<CalibrationFactors | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -372,9 +375,15 @@ export default function DashboardPage() {
       }
     }
 
-    const rec             = runPipeline(effectiveUser, phase, profile, prog, readiness);
-    const personalizedRec = applyTodaySymptomsModifier(
-      applyPatternModifiers(rec, patterns, phase.cycleDay),
+    const rec                   = runPipeline(effectiveUser, phase, profile, prog, readiness);
+    const calibrationFactorsVal = computeCalibration(getAllValidations(), getSymptomHistory());
+    setCalibrationFactors(calibrationFactorsVal);
+    const personalizedRec = applyAccuracyCalibration(
+      applyTodaySymptomsModifier(
+        applyPatternModifiers(rec, patterns, phase.cycleDay),
+        todaySymptomsVal,
+      ),
+      calibrationFactorsVal,
       todaySymptomsVal,
     );
     setRecommendation(personalizedRec);
@@ -463,8 +472,12 @@ export default function DashboardPage() {
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
     const newRec          = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
-    const personalizedRec = applyTodaySymptomsModifier(
-      applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay),
+    const personalizedRec = applyAccuracyCalibration(
+      applyTodaySymptomsModifier(
+        applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay),
+        todaySymptomsVal,
+      ),
+      calibrationFactors,
       todaySymptomsVal,
     );
     setRecommendation(personalizedRec);
