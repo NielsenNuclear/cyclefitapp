@@ -64,6 +64,7 @@ import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 import { applyExerciseProgressionRules, mergeCoachingAdjustments } from "@/lib/progression/exerciseProgressionRules";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
+import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -91,6 +92,7 @@ import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
 import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapacityCard";
 import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
+import { OvulationEstimateCard }    from "@/components/dashboard/OvulationEstimateCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -298,6 +300,7 @@ export default function DashboardPage() {
   const [calibrationFactors, setCalibrationFactors] = useState<CalibrationFactors | null>(null);
   const [volumeLandmarks, setVolumeLandmarks]       = useState<VolumeLandmarkReport | null>(null);
   const [cycleAccuracy, setCycleAccuracy]           = useState<CycleAccuracyReport | null>(null);
+  const [ovulationEstimate, setOvulationEstimate]   = useState<OvulationEstimate | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -382,6 +385,7 @@ export default function DashboardPage() {
     const fullRdxHistory = getReadinessHistory();
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
+    setOvulationEstimate(estimateOvulation(getPeriodHistory(), fullRdxHistory, user.cycleLength));
 
     const fourteenDaysAgoStr = (() => {
       const d = new Date();
@@ -658,6 +662,7 @@ export default function DashboardPage() {
           />
         )}
         <PhaseCard phase={recommendation.phase} />
+        <OvulationEstimateCard estimate={ovulationEstimate} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
