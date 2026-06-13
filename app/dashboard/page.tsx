@@ -378,6 +378,11 @@ export default function DashboardPage() {
       readinessHistory:  fullRdxHistory.slice(0, 14),
     });
     setDeloadRec(deloadRecVal);
+    const effectiveAdjustmentVal = deloadRecVal.needed
+      ? applyProgressionRules({ ...prog, recommendedAction: "deload" })
+      : adjustment;
+    setCoachingAdjustment(effectiveAdjustmentVal);
+    adjustmentRef.current = effectiveAdjustmentVal;
     const thirtyDaysAgoStr = (() => {
       const d = new Date();
       d.setDate(d.getDate() - 30);
@@ -411,7 +416,7 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
       exerciseSummaries: exerciseSummariesVal,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness, badgeToEnergyCap(personalizedRec.training.badge));
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, effectiveAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge));
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -439,7 +444,9 @@ export default function DashboardPage() {
     setTodaySymptoms(todaySymptomsVal);
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
-    const adjustment    = adjustmentRef.current ?? undefined;
+    const adjustment    = (deloadRec?.needed && progressionProfile)
+      ? applyProgressionRules({ ...progressionProfile, recommendedAction: "deload" })
+      : adjustmentRef.current ?? undefined;
     const phase         = computePhase(effectiveUser);
     const newReadiness  = progressionProfile && loadReport
       ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
