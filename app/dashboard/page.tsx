@@ -58,6 +58,7 @@ import type { CoachingMemoryItem } from "@/lib/adaptive/coachingMemory";
 import { buildCoachingMemory } from "@/lib/adaptive/coachingMemory";
 import type { CalibrationFactors } from "@/lib/adaptive/accuracyCalibration";
 import { computeCalibration, applyAccuracyCalibration } from "@/lib/adaptive/accuracyCalibration";
+import { computeForecastBurden, applyForecastModifier } from "@/lib/adaptive/forecastModifier";
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 
@@ -314,7 +315,8 @@ export default function DashboardPage() {
 
     const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, user.cycleLength);
     setLearnedPatterns(patterns);
-    setCycleForecast(computeCycleForecast(patterns, phase.cycleDay, user.cycleLength));
+    const cycleForecastVal = computeCycleForecast(patterns, phase.cycleDay, user.cycleLength);
+    setCycleForecast(cycleForecastVal);
     const coachingMemoryVal = buildCoachingMemory({
       cyclePatterns:     patterns,
       recoveryPatterns:  getRecoveryResponsePatterns(),
@@ -376,12 +378,16 @@ export default function DashboardPage() {
     }
 
     const rec                   = runPipeline(effectiveUser, phase, profile, prog, readiness);
+    const forecastBurden        = computeForecastBurden(cycleForecastVal.symptomEvents);
     const calibrationFactorsVal = computeCalibration(getAllValidations(), getSymptomHistory());
     setCalibrationFactors(calibrationFactorsVal);
     const personalizedRec = applyAccuracyCalibration(
-      applyTodaySymptomsModifier(
-        applyPatternModifiers(rec, patterns, phase.cycleDay),
-        todaySymptomsVal,
+      applyForecastModifier(
+        applyTodaySymptomsModifier(
+          applyPatternModifiers(rec, patterns, phase.cycleDay),
+          todaySymptomsVal,
+        ),
+        forecastBurden,
       ),
       calibrationFactorsVal,
       todaySymptomsVal,
@@ -472,10 +478,14 @@ export default function DashboardPage() {
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
     const newRec          = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
+    const forecastBurden  = computeForecastBurden(cycleForecast.symptomEvents);
     const personalizedRec = applyAccuracyCalibration(
-      applyTodaySymptomsModifier(
-        applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay),
-        todaySymptomsVal,
+      applyForecastModifier(
+        applyTodaySymptomsModifier(
+          applyPatternModifiers(newRec, learnedPatterns, phase.cycleDay),
+          todaySymptomsVal,
+        ),
+        forecastBurden,
       ),
       calibrationFactors,
       todaySymptomsVal,
