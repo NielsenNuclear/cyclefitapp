@@ -121,14 +121,15 @@ function runPipeline(
 }
 
 function runWorkoutPipeline(
-  user:            OnboardingData,
-  phase:           PhaseData,
-  environment:     TrainingEnvironment = "gym",
-  profile?:        AdaptiveProfile,
-  adjustment?:     CoachingAdjustment,
-  readiness?:      ReadinessScore,
-  maxEnergyLevel?: number,
-  capacityLevel?:  CapacityLevel,
+  user:               OnboardingData,
+  phase:              PhaseData,
+  environment:        TrainingEnvironment = "gym",
+  profile?:           AdaptiveProfile,
+  adjustment?:        CoachingAdjustment,
+  readiness?:         ReadinessScore,
+  maxEnergyLevel?:    number,
+  capacityLevel?:     CapacityLevel,
+  exerciseSummaries?: ExerciseProgressSummary[],
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -156,6 +157,7 @@ function runWorkoutPipeline(
     goalType,
     coachingAdjustment: adjustment,
     readiness,
+    exerciseSummaries,
   });
 }
 
@@ -441,7 +443,7 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
       exerciseSummaries: exerciseSummariesVal,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level);
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level, exerciseSummariesVal);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -501,7 +503,7 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
     setHistorySummary(summary);
@@ -572,7 +574,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, undefined, undefined, exerciseSummaries);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined);
     setHistorySummary(summary);

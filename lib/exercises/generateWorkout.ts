@@ -6,12 +6,13 @@ import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment } 
 import type { SplitType }                                  from "./workoutSplits";
 import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
-import { isCompatibleWith, findSubstitute }                from "./exerciseSubstitutions";
+import { isCompatibleWith, findSubstitute, getExerciseSubstitutions } from "./exerciseSubstitutions";
 import type { GoalType }                                   from "./goalBasedSelection";
 import { GOAL_PROFILES }                                   from "./goalBasedSelection";
 import type { CoachingAdjustment, ComplexityModifier }     from "@/lib/progression/progressionRules";
 import type { RecommendedAction }                          from "@/lib/progression/progressionProfile";
 import type { ReadinessScore }                             from "@/lib/readiness/calculateReadiness";
+import type { ExerciseProgressSummary }                    from "@/lib/progression/exerciseProgress";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,8 +28,9 @@ export interface WorkoutGenerationInput {
   sessionIndex?:      number;        // increments across sessions for variety
   environment?:       TrainingEnvironment; // if set, incompatible exercises are swapped
   goalType?:          GoalType;      // if set, exercises scored by goal alignment
-  coachingAdjustment?: CoachingAdjustment; // optional: from progression engine
-  readiness?:         ReadinessScore;      // optional: caps or confirms progression ceiling
+  coachingAdjustment?:  CoachingAdjustment;       // optional: from progression engine
+  readiness?:           ReadinessScore;            // optional: caps or confirms progression ceiling
+  exerciseSummaries?:   ExerciseProgressSummary[]; // optional: drives skip-rate rotation
 }
 
 export interface WorkoutExercise {
@@ -319,6 +321,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     goalType,
     coachingAdjustment,
     readiness,
+    exerciseSummaries,
   } = input;
 
   // Merge progression and readiness into a single effective adjustment
@@ -342,18 +345,44 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       })
     : workoutDay.exercises;
 
+  // Skip-rate rotation: swap out exercises the user repeatedly skips
+  // rotationMap: new exercise name → original exercise name (for note injection)
+  const rotationMap = new Map<string, string>();
+  const rotatedExercises: Exercise[] = exerciseSummaries && exerciseSummaries.length > 0
+    ? resolvedExercises.map(ex => {
+        const summary = exerciseSummaries.find(s => s.exerciseName === ex.name);
+        if (!summary || summary.progressionStatus !== "regressing") return ex;
+
+        const env = environment ?? "gym";
+        const candidates = getExerciseSubstitutions({ exercise: ex, environment: env, difficulty });
+        const viable = candidates.filter(c => {
+          const cs = exerciseSummaries.find(s => s.exerciseName === c.name);
+          return !cs || cs.progressionStatus !== "regressing";
+        });
+        if (viable.length === 0) return ex;
+
+        rotationMap.set(viable[0].name, ex.name);
+        return viable[0];
+      })
+    : resolvedExercises;
+
   // Apply complexity modifier: reduce/deload trim the lowest-priority accessory
   const trimmedExercises: Exercise[] = (() => {
     const complexity = effectiveAdjustment?.complexityModifier;
-    if (complexity === "decrease" && resolvedExercises.length > 3) {
-      return resolvedExercises.slice(0, resolvedExercises.length - 1);
+    if (complexity === "decrease" && rotatedExercises.length > 3) {
+      return rotatedExercises.slice(0, rotatedExercises.length - 1);
     }
-    return resolvedExercises;
+    return rotatedExercises;
   })();
 
-  const exercises: WorkoutExercise[] = trimmedExercises.map(exercise =>
-    prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment)
-  );
+  const exercises: WorkoutExercise[] = trimmedExercises.map(exercise => {
+    const prescribed = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
+    const replacedName = rotationMap.get(exercise.name);
+    if (replacedName) {
+      prescribed.notes = `Rotated in for ${replacedName} — you've been skipping that exercise recently. Same movement pattern and muscle focus.`;
+    }
+    return prescribed;
+  });
 
   return {
     workoutName:          buildWorkoutName(workoutDay.dayName, phase.name),
