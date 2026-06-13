@@ -3,6 +3,7 @@
 // Pure logic only — no UI, no persistence, no side effects.
 
 import type { ProgressionProfile, RecommendedAction } from "./progressionProfile";
+import type { GoalType } from "@/lib/exercises/goalBasedSelection";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,6 +82,78 @@ const RULES: Record<RecommendedAction, RuleSpec> = {
       `is recommended to restore adaptation capacity. Deload sessions are training, not rest.`,
   },
 };
+
+// ─── Goal-specific progression modifiers ─────────────────────────────────────
+// Only applies to action === "progress". Reduce/maintain/deload are recovery
+// management decisions — goal type doesn't change how you pull back.
+
+interface GoalProgressSpec {
+  volumeModifier:     number;
+  intensityModifier:  number;
+  complexityModifier: ComplexityModifier;
+  rationale:          string;
+}
+
+const GOAL_PROGRESS_SPECS: Record<GoalType, GoalProgressSpec> = {
+  general_fitness: {
+    volumeModifier:     1.10,
+    intensityModifier:  0,
+    complexityModifier: "maintain",
+    rationale: "",  // keep existing rationale from RULES
+  },
+  hypertrophy: {
+    volumeModifier:     1.15,
+    intensityModifier:  0,
+    complexityModifier: "maintain",
+    rationale:
+      "Volume increased 15% to maximise mechanical tension and metabolic stress — " +
+      "the primary drivers of hypertrophic adaptation. Load is held steady to keep " +
+      "rep ranges in the hypertrophy window.",
+  },
+  strength: {
+    volumeModifier:     1.05,
+    intensityModifier:  2,
+    complexityModifier: "maintain",
+    rationale:
+      "Volume increase is kept modest to preserve recovery for heavier loading. " +
+      "RPE target raised by 2 points to drive neural adaptation and maximal strength " +
+      "development — the primary stimulus for strength goals.",
+  },
+  fat_loss: {
+    volumeModifier:     1.05,
+    intensityModifier:  1,
+    complexityModifier: "maintain",
+    rationale:
+      "Slight volume and intensity increase to raise metabolic demand and preserve " +
+      "lean mass during a fat-loss phase. Overload is kept conservative to maintain " +
+      "training density without compromising recovery.",
+  },
+  athletic_performance: {
+    volumeModifier:     1.10,
+    intensityModifier:  1,
+    complexityModifier: "increase",
+    rationale:
+      "Volume and intensity both increased; movement complexity is elevated to develop " +
+      "multi-planar coordination and power output — the hallmarks of athletic performance. " +
+      "Progressive complexity mirrors the demands of sport-specific preparation.",
+  },
+};
+
+export function applyGoalModifiers(
+  adjustment: CoachingAdjustment,
+  goalType:   GoalType,
+): CoachingAdjustment {
+  if (adjustment.action !== "progress") return adjustment;
+
+  const spec = GOAL_PROGRESS_SPECS[goalType];
+  return {
+    ...adjustment,
+    volumeModifier:     spec.volumeModifier,
+    intensityModifier:  spec.intensityModifier,
+    complexityModifier: spec.complexityModifier,
+    rationale:          spec.rationale || adjustment.rationale,
+  };
+}
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 

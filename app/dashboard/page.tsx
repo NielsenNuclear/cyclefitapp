@@ -29,7 +29,7 @@ import type { GoalType } from "@/lib/exercises/goalBasedSelection";
 import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
 import { buildProgressionProfile, applyCapacityModifier } from "@/lib/progression/progressionProfile";
 import type { CoachingAdjustment } from "@/lib/progression/progressionRules";
-import { applyProgressionRules } from "@/lib/progression/progressionRules";
+import { applyProgressionRules, applyGoalModifiers } from "@/lib/progression/progressionRules";
 import type { ReadinessScore } from "@/lib/readiness/calculateReadiness";
 import { calculateReadiness } from "@/lib/readiness/calculateReadiness";
 import { saveReadiness, getReadinessTrend, getReadinessHistory } from "@/lib/readiness/readinessHistory";
@@ -456,9 +456,10 @@ export default function DashboardPage() {
       ? applyProgressionRules({ ...capacityProfile, recommendedAction: "deload" })
       : applyProgressionRules(capacityProfile);
     const exerciseAdjVal = applyExerciseProgressionRules(exerciseSummariesVal);
-    const finalAdjustmentVal = exerciseAdjVal
+    const mergedAdjVal = exerciseAdjVal
       ? mergeCoachingAdjustments(effectiveAdjustmentVal, exerciseAdjVal)
       : effectiveAdjustmentVal;
+    const finalAdjustmentVal = applyGoalModifiers(mergedAdjVal, goalType);
     setCoachingAdjustment(finalAdjustmentVal);
     adjustmentRef.current = finalAdjustmentVal;
     setPeriodizedCalendar(computePeriodizedCalendar({
@@ -514,9 +515,12 @@ export default function DashboardPage() {
       ? applyProgressionRules({ ...progressionProfile, recommendedAction: "deload" })
       : adjustmentRef.current ?? undefined;
     const exerciseAdjCheckin = applyExerciseProgressionRules(exerciseSummaries);
-    const adjustment = (baseAdj && exerciseAdjCheckin)
+    const mergedAdj = (baseAdj && exerciseAdjCheckin)
       ? mergeCoachingAdjustments(baseAdj, exerciseAdjCheckin)
       : baseAdj;
+    const adjustment = mergedAdj
+      ? applyGoalModifiers(mergedAdj, mapOnboardingGoalToGoalType(user.goals))
+      : mergedAdj;
     const phase         = computePhase(effectiveUser);
     const newReadiness  = progressionProfile && loadReport
       ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
