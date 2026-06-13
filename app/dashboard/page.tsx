@@ -65,6 +65,7 @@ import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 import { applyExerciseProgressionRules, mergeCoachingAdjustments } from "@/lib/progression/exerciseProgressionRules";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
+import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -301,6 +302,7 @@ export default function DashboardPage() {
   const [volumeLandmarks, setVolumeLandmarks]       = useState<VolumeLandmarkReport | null>(null);
   const [cycleAccuracy, setCycleAccuracy]           = useState<CycleAccuracyReport | null>(null);
   const [ovulationEstimate, setOvulationEstimate]   = useState<OvulationEstimate | null>(null);
+  const [symptomTimeline, setSymptomTimeline]       = useState<SymptomTimeline | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -386,6 +388,7 @@ export default function DashboardPage() {
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
     setOvulationEstimate(estimateOvulation(getPeriodHistory(), fullRdxHistory, user.cycleLength));
+    setSymptomTimeline(buildSymptomTimeline(getSymptomHistory(), getPeriodHistory(), user.cycleLength));
 
     const fourteenDaysAgoStr = (() => {
       const d = new Date();
@@ -525,6 +528,7 @@ export default function DashboardPage() {
     }
     const todaySymptomsVal = getSymptomsForDate(data.date);
     setTodaySymptoms(todaySymptomsVal);
+    setSymptomTimeline(buildSymptomTimeline(getSymptomHistory(), getPeriodHistory(), user.cycleLength));
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const baseAdj = (deloadRec?.needed && progressionProfile)

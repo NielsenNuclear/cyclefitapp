@@ -4,6 +4,7 @@
 
 import type { PeriodEntry } from "./cycleAccuracy";
 import type { ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
+import { toCycleDay, getPeriodStartForDate } from "./cycleUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,29 +13,6 @@ export interface OvulationEstimate {
   window:       [number, number, number]; // [day-1, day, day+1]
   confidence:   "low" | "medium" | "high";
   basis:        "physiological" | "behavioral" | "combined";
-}
-
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
-function daysBetween(a: string, b: string): number {
-  const msPerDay = 86_400_000;
-  return Math.round(
-    (new Date(b).setHours(0, 0, 0, 0) - new Date(a).setHours(0, 0, 0, 0)) / msPerDay,
-  );
-}
-
-// Maps a calendar date to a cycle day (1-indexed) using the nearest preceding
-// period start. Returns null when no prior period is found.
-function toCycleDay(
-  date:          string,
-  sortedPeriods: PeriodEntry[],
-  cycleLength:   number,
-): number | null {
-  const periodStart = [...sortedPeriods].filter(p => p.startDate <= date).pop();
-  if (!periodStart) return null;
-  const days       = daysBetween(periodStart.startDate, date);
-  const dayInCycle = (days % cycleLength) + 1;
-  return dayInCycle;
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -90,11 +68,10 @@ export function estimateOvulation(
   // Count distinct cycles that contributed readiness data in the window
   const cyclesWithData = new Set<string>();
   for (const entry of readinessHistory) {
-    const periodStart = [...sortedPeriods].filter(p => p.startDate <= entry.date).pop();
-    if (!periodStart) continue;
-    const cd = toCycleDay(entry.date, sortedPeriods, cycleLength);
-    if (cd !== null && cd >= windowMin && cd <= windowMax) {
-      cyclesWithData.add(periodStart.startDate);
+    const cd          = toCycleDay(entry.date, sortedPeriods, cycleLength);
+    const periodStart = getPeriodStartForDate(entry.date, sortedPeriods);
+    if (cd !== null && periodStart !== null && cd >= windowMin && cd <= windowMax) {
+      cyclesWithData.add(periodStart);
     }
   }
   const cycleCount = cyclesWithData.size;
