@@ -68,6 +68,7 @@ import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulation
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
 import { buildSymptomClusters, type SymptomCluster } from "@/lib/cycle/symptomClusters";
 import { detectPrimeTrainingWindow, type TrainingWindow } from "@/lib/cycle/trainingWindows";
+import { detectRecoveryWindow, type RecoveryWindow } from "@/lib/cycle/recoveryWindows";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -97,6 +98,7 @@ import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCale
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 import { OvulationEstimateCard }    from "@/components/dashboard/OvulationEstimateCard";
 import { TrainingWindowCard }       from "@/components/dashboard/TrainingWindowCard";
+import { RecoveryWindowCard }       from "@/components/dashboard/RecoveryWindowCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -308,6 +310,7 @@ export default function DashboardPage() {
   const [symptomTimeline, setSymptomTimeline]       = useState<SymptomTimeline | null>(null);
   const [symptomClusters, setSymptomClusters]       = useState<SymptomCluster[]>([]);
   const [primeTrainingWindow, setPrimeTrainingWindow] = useState<TrainingWindow | null>(null);
+  const [recoveryWindow, setRecoveryWindow]           = useState<RecoveryWindow | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -394,6 +397,7 @@ export default function DashboardPage() {
     setReadinessHistory(fullRdxHistory.slice(0, 7));
     setOvulationEstimate(estimateOvulation(getPeriodHistory(), fullRdxHistory, user.cycleLength));
     setPrimeTrainingWindow(detectPrimeTrainingWindow(fullRdxHistory, getPeriodHistory(), user.cycleLength));
+    setRecoveryWindow(detectRecoveryWindow(fullRdxHistory, getPeriodHistory(), user.cycleLength));
     const timelineVal = buildSymptomTimeline(getSymptomHistory(), getPeriodHistory(), user.cycleLength);
     setSymptomTimeline(timelineVal);
     setSymptomClusters(buildSymptomClusters(timelineVal, user.cycleLength));
@@ -678,6 +682,7 @@ export default function DashboardPage() {
         <PhaseCard phase={recommendation.phase} />
         <OvulationEstimateCard estimate={ovulationEstimate} />
         <TrainingWindowCard window={primeTrainingWindow} />
+        <RecoveryWindowCard window={recoveryWindow} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
