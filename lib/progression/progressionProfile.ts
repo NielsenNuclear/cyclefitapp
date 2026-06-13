@@ -4,6 +4,7 @@
 
 import type { WorkoutHistoryEntry } from "@/lib/history/workoutHistory";
 import type { TrainingLoadReport }  from "@/lib/analytics/trainingLoad";
+import type { RecoveryCapacity }    from "@/lib/adaptive/recoveryCapacity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -182,6 +183,46 @@ function calcRecommendedAction(
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
+
+// ─── applyCapacityModifier ────────────────────────────────────────────────────
+//
+// Post-processes a ProgressionProfile by adjusting recommendedAction based on
+// the user's RecoveryCapacity. Only fires when capacity confidence is not "early"
+// (≥7 feedback entries) to avoid early-data noise.
+//
+// Low capacity suppresses progress (body cannot absorb overload even if
+// adherence looks strong). High capacity allows progress at a lower adherence
+// threshold and can lift a borderline reduce back to maintain.
+
+export function applyCapacityModifier(
+  profile:  ProgressionProfile,
+  capacity: RecoveryCapacity,
+): ProgressionProfile {
+  if (capacity.confidence === "early") return profile;
+
+  let action = profile.recommendedAction;
+
+  if (capacity.level === "low") {
+    if (action === "progress") {
+      action = "maintain";
+    } else if (action === "maintain" && profile.recoveryScore < 50) {
+      action = "reduce";
+    }
+  }
+
+  if (capacity.level === "high") {
+    if (action === "maintain" && profile.adherenceScore >= 75 && profile.recoveryScore >= 65) {
+      action = "progress";
+    } else if (action === "reduce" && profile.adherenceScore >= 60 && profile.recoveryScore >= 50) {
+      action = "maintain";
+    }
+  }
+
+  if (action === profile.recommendedAction) return profile;
+  return { ...profile, recommendedAction: action };
+}
+
+// ─── buildProgressionProfile ──────────────────────────────────────────────────
 
 export function buildProgressionProfile(
   history:    WorkoutHistoryEntry[],

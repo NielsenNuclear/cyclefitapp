@@ -27,7 +27,7 @@ import { calculateWeeklyVolumeFromHistory, generateVolumeReport } from "@/lib/ex
 import { computeVolumeLandmarks } from "@/lib/progression/volumeLandmarks";
 import type { GoalType } from "@/lib/exercises/goalBasedSelection";
 import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
-import { buildProgressionProfile } from "@/lib/progression/progressionProfile";
+import { buildProgressionProfile, applyCapacityModifier } from "@/lib/progression/progressionProfile";
 import type { CoachingAdjustment } from "@/lib/progression/progressionRules";
 import { applyProgressionRules } from "@/lib/progression/progressionRules";
 import type { ReadinessScore } from "@/lib/readiness/calculateReadiness";
@@ -449,9 +449,12 @@ export default function DashboardPage() {
       recoveryCapacity:  recoveryCapacityVal,
     });
     setDeloadRec(deloadRecVal);
+    const capacityProfile = (recoveryCapacityVal.confidence !== "early")
+      ? applyCapacityModifier(prog, recoveryCapacityVal)
+      : prog;
     const effectiveAdjustmentVal = deloadRecVal.needed
-      ? applyProgressionRules({ ...prog, recommendedAction: "deload" })
-      : adjustment;
+      ? applyProgressionRules({ ...capacityProfile, recommendedAction: "deload" })
+      : applyProgressionRules(capacityProfile);
     const exerciseAdjVal = applyExerciseProgressionRules(exerciseSummariesVal);
     const finalAdjustmentVal = exerciseAdjVal
       ? mergeCoachingAdjustments(effectiveAdjustmentVal, exerciseAdjVal)
