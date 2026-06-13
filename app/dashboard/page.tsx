@@ -70,6 +70,7 @@ import { buildSymptomClusters, type SymptomCluster } from "@/lib/cycle/symptomCl
 import { detectPrimeTrainingWindow, type TrainingWindow } from "@/lib/cycle/trainingWindows";
 import { detectRecoveryWindow, type RecoveryWindow } from "@/lib/cycle/recoveryWindows";
 import { buildPerformanceProfile, type PersonalPerformanceProfile } from "@/lib/cycle/performanceProfile";
+import { buildCycleHealthReport, type CycleHealthReport } from "@/lib/cycle/cycleHealth";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -100,6 +101,7 @@ import { CoachViewCard }             from "@/components/dashboard/CoachViewCard"
 import { OvulationEstimateCard }    from "@/components/dashboard/OvulationEstimateCard";
 import { TrainingWindowCard }       from "@/components/dashboard/TrainingWindowCard";
 import { RecoveryWindowCard }       from "@/components/dashboard/RecoveryWindowCard";
+import { CycleHealthCard }          from "@/components/dashboard/CycleHealthCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -313,6 +315,7 @@ export default function DashboardPage() {
   const [primeTrainingWindow, setPrimeTrainingWindow] = useState<TrainingWindow | null>(null);
   const [recoveryWindow, setRecoveryWindow]           = useState<RecoveryWindow | null>(null);
   const [performanceProfile, setPerformanceProfile]   = useState<PersonalPerformanceProfile | null>(null);
+  const [cycleHealthReport, setCycleHealthReport]     = useState<CycleHealthReport | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -339,6 +342,7 @@ export default function DashboardPage() {
     }
     const cycleAccuracyVal = computeCycleAccuracy(getPeriodHistory(), user.cycleLength);
     setCycleAccuracy(cycleAccuracyVal);
+    if (cycleAccuracyVal) setCycleHealthReport(buildCycleHealthReport(cycleAccuracyVal));
 
     const profileRaw = localStorage.getItem("axis_adaptive_profile");
     if (profileRaw) {
@@ -699,6 +703,7 @@ export default function DashboardPage() {
         <OvulationEstimateCard estimate={ovulationEstimate} />
         <TrainingWindowCard window={primeTrainingWindow} />
         <RecoveryWindowCard window={recoveryWindow} />
+        <CycleHealthCard report={cycleHealthReport} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
