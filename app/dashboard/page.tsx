@@ -61,6 +61,7 @@ import { computeCalibration, applyAccuracyCalibration } from "@/lib/adaptive/acc
 import { computeForecastBurden, applyForecastModifier } from "@/lib/adaptive/forecastModifier";
 import type { ExerciseProgressSummary } from "@/lib/progression/exerciseProgress";
 import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
+import { applyExerciseProgressionRules, mergeCoachingAdjustments } from "@/lib/progression/exerciseProgressionRules";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -413,8 +414,12 @@ export default function DashboardPage() {
     const effectiveAdjustmentVal = deloadRecVal.needed
       ? applyProgressionRules({ ...prog, recommendedAction: "deload" })
       : adjustment;
-    setCoachingAdjustment(effectiveAdjustmentVal);
-    adjustmentRef.current = effectiveAdjustmentVal;
+    const exerciseAdjVal = applyExerciseProgressionRules(exerciseSummariesVal);
+    const finalAdjustmentVal = exerciseAdjVal
+      ? mergeCoachingAdjustments(effectiveAdjustmentVal, exerciseAdjVal)
+      : effectiveAdjustmentVal;
+    setCoachingAdjustment(finalAdjustmentVal);
+    adjustmentRef.current = finalAdjustmentVal;
     setPeriodizedCalendar(computePeriodizedCalendar({
       trainingBlock:    trainingBlockVal,
       weeklyPlan:       weeklyPlanVal,
@@ -436,7 +441,7 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
       exerciseSummaries: exerciseSummariesVal,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, effectiveAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level);
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -464,9 +469,13 @@ export default function DashboardPage() {
     setTodaySymptoms(todaySymptomsVal);
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
-    const adjustment    = (deloadRec?.needed && progressionProfile)
+    const baseAdj = (deloadRec?.needed && progressionProfile)
       ? applyProgressionRules({ ...progressionProfile, recommendedAction: "deload" })
       : adjustmentRef.current ?? undefined;
+    const exerciseAdjCheckin = applyExerciseProgressionRules(exerciseSummaries);
+    const adjustment = (baseAdj && exerciseAdjCheckin)
+      ? mergeCoachingAdjustments(baseAdj, exerciseAdjCheckin)
+      : baseAdj;
     const phase         = computePhase(effectiveUser);
     const newReadiness  = progressionProfile && loadReport
       ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
