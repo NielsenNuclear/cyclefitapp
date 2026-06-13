@@ -5,8 +5,19 @@ import type { PersonalPerformanceProfile } from "@/lib/cycle/performanceProfile"
 import type { SymptomTimeline } from "@/lib/cycle/symptomTimeline";
 import type { OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import type { CycleHealthReport } from "@/lib/cycle/cycleHealth";
+import { computeConfidenceScore } from "@/lib/cycle/confidence";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+const CONFIDENCE_BADGE: Record<
+  ReturnType<typeof computeConfidenceScore>["level"],
+  { label: string; badge: string }
+> = {
+  none:     { label: "No data",          badge: "bg-[#F5F3EE] text-[#9B9690]" },
+  low:      { label: "Low confidence",   badge: "bg-[#F5F3EE] text-[#5C5850]" },
+  moderate: { label: "Moderate",         badge: "bg-[#FDF6EC] text-[#854F0B]" },
+  high:     { label: "High confidence",  badge: "bg-[#E1F5EE] text-[#085041]" },
+};
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -184,9 +195,19 @@ export function CycleIntelligenceCard({
   const showOvulation = ovulationEstimate !== null;
   const showHealth    = cycleHealthReport?.hasObservations;
 
+  const confidence = computeConfidenceScore(cycleAccuracy.cycleCount);
+  const confStyle  = CONFIDENCE_BADGE[confidence.level];
+
   return (
     <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <CardLabel>Cycle intelligence</CardLabel>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+          Cycle intelligence
+        </span>
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${confStyle.badge}`}>
+          {confStyle.label}
+        </span>
+      </div>
 
       <CycleMetricsSection accuracy={cycleAccuracy} />
 
