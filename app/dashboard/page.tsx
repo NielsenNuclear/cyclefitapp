@@ -69,6 +69,7 @@ import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomT
 import { buildSymptomClusters, type SymptomCluster } from "@/lib/cycle/symptomClusters";
 import { detectPrimeTrainingWindow, type TrainingWindow } from "@/lib/cycle/trainingWindows";
 import { detectRecoveryWindow, type RecoveryWindow } from "@/lib/cycle/recoveryWindows";
+import { buildPerformanceProfile, type PersonalPerformanceProfile } from "@/lib/cycle/performanceProfile";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -311,6 +312,7 @@ export default function DashboardPage() {
   const [symptomClusters, setSymptomClusters]       = useState<SymptomCluster[]>([]);
   const [primeTrainingWindow, setPrimeTrainingWindow] = useState<TrainingWindow | null>(null);
   const [recoveryWindow, setRecoveryWindow]           = useState<RecoveryWindow | null>(null);
+  const [performanceProfile, setPerformanceProfile]   = useState<PersonalPerformanceProfile | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -395,12 +397,26 @@ export default function DashboardPage() {
     const fullRdxHistory = getReadinessHistory();
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
-    setOvulationEstimate(estimateOvulation(getPeriodHistory(), fullRdxHistory, user.cycleLength));
-    setPrimeTrainingWindow(detectPrimeTrainingWindow(fullRdxHistory, getPeriodHistory(), user.cycleLength));
-    setRecoveryWindow(detectRecoveryWindow(fullRdxHistory, getPeriodHistory(), user.cycleLength));
-    const timelineVal = buildSymptomTimeline(getSymptomHistory(), getPeriodHistory(), user.cycleLength);
+    const periodHistoryVal     = getPeriodHistory();
+    const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, user.cycleLength);
+    setOvulationEstimate(ovulationEstimateVal);
+    const primeWindowVal = detectPrimeTrainingWindow(fullRdxHistory, periodHistoryVal, user.cycleLength);
+    setPrimeTrainingWindow(primeWindowVal);
+    const recoveryWindowVal = detectRecoveryWindow(fullRdxHistory, periodHistoryVal, user.cycleLength);
+    setRecoveryWindow(recoveryWindowVal);
+    const timelineVal  = buildSymptomTimeline(getSymptomHistory(), periodHistoryVal, user.cycleLength);
     setSymptomTimeline(timelineVal);
-    setSymptomClusters(buildSymptomClusters(timelineVal, user.cycleLength));
+    const clustersVal  = buildSymptomClusters(timelineVal, user.cycleLength);
+    setSymptomClusters(clustersVal);
+    setPerformanceProfile(buildPerformanceProfile({
+      readinessHistory:  fullRdxHistory,
+      periodHistory:     periodHistoryVal,
+      cycleLength:       user.cycleLength,
+      primeWindow:       primeWindowVal,
+      recoveryWindow:    recoveryWindowVal,
+      ovulationEstimate: ovulationEstimateVal,
+      symptomClusters:   clustersVal,
+    }));
 
     const fourteenDaysAgoStr = (() => {
       const d = new Date();

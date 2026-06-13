@@ -38,3 +38,15 @@ export function getPeriodStartForDate(
   const entry = [...sortedPeriods].filter(p => p.startDate <= date).pop();
   return entry?.startDate ?? null;
 }
+
+/**
+ * Maps a 1-indexed cycle day to a named phase label.
+ * Boundaries are proportional to cycleLength so they work for any cycle.
+ */
+export function toCyclePhaseName(cycleDay: number, cycleLength: number): string {
+  if (cycleDay <= 5)                                   return "Menstrual Phase";
+  if (cycleDay <= Math.round(cycleLength * 0.45))      return "Follicular Phase";
+  if (cycleDay <= Math.round(cycleLength * 0.55))      return "Ovulation Phase";
+  if (cycleDay <= cycleLength - 5)                     return "Luteal Phase";
+  return "Pre-Menstrual Phase";
+}

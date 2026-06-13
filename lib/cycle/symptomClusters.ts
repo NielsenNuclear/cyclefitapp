@@ -3,6 +3,7 @@
 // Uses window-based merging (no k-means) — appropriate for ≤25 symptoms.
 
 import type { SymptomTimeline } from "./symptomTimeline";
+import { toCyclePhaseName } from "./cycleUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -11,16 +12,6 @@ export interface SymptomCluster {
   centroidDay: number;    // mean peakDay of all symptoms in cluster
   symptoms:    string[];  // symptomName values
   strength:    number;    // mean frequency across cluster members (0–1, 2 dp)
-}
-
-// ─── Phase label assignment ───────────────────────────────────────────────────
-
-function phaseLabel(centroidDay: number, cycleLength: number): string {
-  if (centroidDay <= 5)                                    return "Menstrual Phase";
-  if (centroidDay <= Math.round(cycleLength * 0.45))      return "Follicular Phase";
-  if (centroidDay <= Math.round(cycleLength * 0.55))      return "Ovulation Phase";
-  if (centroidDay <= cycleLength - 5)                     return "Luteal Phase";
-  return "Pre-Menstrual Phase";
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -72,7 +63,7 @@ export function buildSymptomClusters(
     ) / 100;
 
     clusters.push({
-      label:       phaseLabel(centroidDay, cycleLength),
+      label:       toCyclePhaseName(centroidDay, cycleLength),
       centroidDay,
       symptoms:    group.map(e => e.symptomName),
       strength,
