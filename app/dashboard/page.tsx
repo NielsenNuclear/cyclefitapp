@@ -48,7 +48,7 @@ import { computeWeeklyPlan, type WeeklyPlan } from "@/lib/planning/weeklyPlanner
 import { getOrCreateBlock, type TrainingBlock } from "@/lib/planning/trainingBlocks";
 import { computeOverloadRecommendation, type OverloadRecommendation } from "@/lib/progression/progressiveOverload";
 import { detectDeload, type DeloadRecommendation } from "@/lib/recovery/deloadDetection";
-import { computeRecoveryCapacity, type RecoveryCapacity } from "@/lib/adaptive/recoveryCapacity";
+import { computeRecoveryCapacity, type RecoveryCapacity, type CapacityLevel } from "@/lib/adaptive/recoveryCapacity";
 import { computePeriodizedCalendar, type PeriodizedCalendar } from "@/lib/planning/periodizedCalendar";
 import { buildCoachView, type CoachView } from "@/lib/coaching/coachView";
 import type { AccuracyReport } from "@/lib/adaptive/readinessValidation";
@@ -124,12 +124,15 @@ function runWorkoutPipeline(
   adjustment?:     CoachingAdjustment,
   readiness?:      ReadinessScore,
   maxEnergyLevel?: number,
+  capacityLevel?:  CapacityLevel,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
-  const energyLevel          = maxEnergyLevel !== undefined
-    ? Math.min(rawEnergy, maxEnergyLevel)
-    : rawEnergy;
+  const capacityCap          = capacityLevel === "low" ? Math.max(0, rawEnergy - 1) : undefined;
+  const finalCap             = (maxEnergyLevel !== undefined || capacityCap !== undefined)
+    ? Math.min(maxEnergyLevel ?? 4, capacityCap ?? 4)
+    : undefined;
+  const energyLevel          = finalCap !== undefined ? Math.min(rawEnergy, finalCap) : rawEnergy;
   const trainingState          = getTrainingState(user, weights);
   const difficulty             = mapDifficulty(user.trainingLevel);
   const splitType              = recommendedSplitType(user.sessionsPerWeek);
@@ -336,6 +339,18 @@ export default function DashboardPage() {
       d.setDate(d.getDate() - 7);
       return d.toISOString().slice(0, 10);
     })();
+    const thirtyDaysAgoStr = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 30);
+      return d.toISOString().slice(0, 10);
+    })();
+    const recoveryCapacityVal = computeRecoveryCapacity({
+      recentHistory:    rawHistory.filter(h => h.id >= thirtyDaysAgoStr),
+      recentFeedback:   getAllFeedback().filter(f => f.date >= thirtyDaysAgoStr),
+      recentSymptoms:   getSymptomHistory().filter(s => s.date >= thirtyDaysAgoStr),
+      recoveryPatterns: getRecoveryResponsePatterns(),
+    });
+    setRecoveryCapacity(recoveryCapacityVal);
     const weeklyPlanVal = computeWeeklyPlan({
       sessionsPerWeek:  user.sessionsPerWeek,
       readinessHistory: fullRdxHistory.slice(0, 7),
@@ -343,6 +358,7 @@ export default function DashboardPage() {
       recentHistory:    rawHistory.filter(h => h.id >= fourteenDaysAgoStr),
       recentSymptoms:   getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
       currentPhase:     phase,
+      recoveryCapacity: recoveryCapacityVal,
     });
     setWeeklyPlan(weeklyPlanVal);
 
@@ -376,6 +392,7 @@ export default function DashboardPage() {
       recentSymptoms:    getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
       exerciseSummaries: exerciseSummariesVal,
       readinessHistory:  fullRdxHistory.slice(0, 14),
+      recoveryCapacity:  recoveryCapacityVal,
     });
     setDeloadRec(deloadRecVal);
     const effectiveAdjustmentVal = deloadRecVal.needed
@@ -383,18 +400,6 @@ export default function DashboardPage() {
       : adjustment;
     setCoachingAdjustment(effectiveAdjustmentVal);
     adjustmentRef.current = effectiveAdjustmentVal;
-    const thirtyDaysAgoStr = (() => {
-      const d = new Date();
-      d.setDate(d.getDate() - 30);
-      return d.toISOString().slice(0, 10);
-    })();
-    const recoveryCapacityVal = computeRecoveryCapacity({
-      recentHistory:    rawHistory.filter(h => h.id >= thirtyDaysAgoStr),
-      recentFeedback:   getAllFeedback().filter(f => f.date >= thirtyDaysAgoStr),
-      recentSymptoms:   getSymptomHistory().filter(s => s.date >= thirtyDaysAgoStr),
-      recoveryPatterns: getRecoveryResponsePatterns(),
-    });
-    setRecoveryCapacity(recoveryCapacityVal);
     setPeriodizedCalendar(computePeriodizedCalendar({
       trainingBlock:    trainingBlockVal,
       weeklyPlan:       weeklyPlanVal,
@@ -416,7 +421,7 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
       exerciseSummaries: exerciseSummariesVal,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, effectiveAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge));
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, effectiveAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -464,7 +469,7 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge));
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
     setHistorySummary(summary);
