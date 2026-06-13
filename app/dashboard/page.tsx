@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import type { OnboardingData } from "@/lib/onboarding-types";
 import type { AdaptiveProfile } from "@/lib/adaptive-profile";
-import type { DailyRecommendation, PhaseData } from "@/types/recommendation";
+import type { DailyRecommendation, PhaseData, ReadinessBadge } from "@/types/recommendation";
 import type { CheckinData } from "@/lib/checkin";
 import type { DifficultyLevel, TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { GeneratedWorkout } from "@/lib/exercises/generateWorkout";
@@ -92,6 +92,12 @@ function mapDifficulty(trainingLevel: string): DifficultyLevel {
   return "Intermediate";   // recreational, consistent
 }
 
+function badgeToEnergyCap(badge: ReadinessBadge): number | undefined {
+  if (badge === "Recover") return 1;
+  if (badge === "Watch")   return 2;
+  return undefined;
+}
+
 function computePhase(user: OnboardingData): PhaseData {
   return calculatePhase({
     lastPeriodDate:  user.lastPeriodDate,
@@ -111,15 +117,19 @@ function runPipeline(
 }
 
 function runWorkoutPipeline(
-  user:        OnboardingData,
-  phase:       PhaseData,
-  environment: TrainingEnvironment = "gym",
-  profile?:    AdaptiveProfile,
-  adjustment?: CoachingAdjustment,
-  readiness?:  ReadinessScore,
+  user:            OnboardingData,
+  phase:           PhaseData,
+  environment:     TrainingEnvironment = "gym",
+  profile?:        AdaptiveProfile,
+  adjustment?:     CoachingAdjustment,
+  readiness?:      ReadinessScore,
+  maxEnergyLevel?: number,
 ): GeneratedWorkout {
-  const weights                = profile?.readinessWeights;
-  const { level: energyLevel } = deriveEnergyLevel(user, weights);
+  const weights              = profile?.readinessWeights;
+  const { level: rawEnergy } = deriveEnergyLevel(user, weights);
+  const energyLevel          = maxEnergyLevel !== undefined
+    ? Math.min(rawEnergy, maxEnergyLevel)
+    : rawEnergy;
   const trainingState          = getTrainingState(user, weights);
   const difficulty             = mapDifficulty(user.trainingLevel);
   const splitType              = recommendedSplitType(user.sessionsPerWeek);
@@ -401,7 +411,7 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
       exerciseSummaries: exerciseSummariesVal,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness);
+    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, adjustment, readiness, badgeToEnergyCap(personalizedRec.training.badge));
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness);
     setHistorySummary(summary);
@@ -447,7 +457,7 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge));
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined);
     setHistorySummary(summary);

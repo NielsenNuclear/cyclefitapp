@@ -94,6 +94,15 @@ const TRAINING_RULES: TrainingRule[] = [
     avoidNote:       "Recurring joint discomfort — lower-impact options preferred around this phase.",
     suggestion:      "Favour machines, cables, and controlled tempo over free-weight loading.",
   },
+  {
+    symptomId:       "headache",
+    minSeverity:     2.0,
+    minConsistency:  50,
+    badgeLevels:     1,
+    intensityLevels: 1,
+    avoidNote:       "Headache present — high-intensity loading and jarring movements can worsen symptoms.",
+    suggestion:      "Reduce RPE by 1–2 points, favour controlled tempo, and ensure hydration throughout.",
+  },
 ];
 
 const NUTRITION_RULES: NutritionRule[] = [
@@ -135,6 +144,13 @@ const NUTRITION_RULES: NutritionRule[] = [
     minConsistency: 50,
     priority:       "Bland, easy-to-digest foods — nausea historically noted around this phase.",
   },
+  {
+    symptomId:      "headache",
+    minSeverity:    1.0,
+    minConsistency: 40,
+    priority:       "Dehydration is a common headache trigger — prioritise fluid intake today.",
+    timingNote:     "Drink water before, during, and after your session — aim for more than your usual intake.",
+  },
 ];
 
 const RECOVERY_RULES: RecoveryRule[] = [
@@ -164,6 +180,13 @@ const RECOVERY_RULES: RecoveryRule[] = [
     minSeverity:    3.0,
     minConsistency: 60,
     practice:       "Extra recovery emphasis — severe fatigue historically peaks around this phase. Consider an additional rest day.",
+  },
+  {
+    symptomId:      "headache",
+    minSeverity:    2.0,
+    minConsistency: 40,
+    practice:       "Low-stimulus environment — reduce screen exposure, bright light, and loud noise during recovery.",
+    sleepNote:      "Dark, quiet sleep environment recommended — light and noise amplify headache during sleep.",
   },
   {
     symptomId:      "night-sweats",
@@ -409,9 +432,16 @@ export function applyTodaySymptomsModifier(
   }
   if (severityMap.size === 0) return recommendation;
 
+  const SEVERITY_LABELS: Record<number, string> = {
+    1: "mild",
+    2: "moderate",
+    3: "severe",
+    4: "very severe",
+  };
+
   function makeTodayPoint(symptomId: string, severity: number, implication: string): ExplanationPoint {
     const name  = SYMPTOM_BY_ID[symptomId]?.name ?? symptomId;
-    const label = severity === 3 ? "severe" : severity === 2 ? "moderate" : "mild";
+    const label = SEVERITY_LABELS[severity] ?? "severe";
     return {
       signal:      "Today's symptoms",
       observation: `${name} reported today (${label})`,
