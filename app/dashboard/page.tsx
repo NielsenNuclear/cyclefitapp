@@ -152,7 +152,8 @@ import {
   type AdaptiveModifier,
   type AdaptiveInsight,
 } from "@/lib/adaptive/adaptiveDecisionEngine";
-import { AdaptiveInsightsCard } from "@/components/dashboard/AdaptiveInsightsCard";
+import { AdaptiveInsightsCard }         from "@/components/dashboard/AdaptiveInsightsCard";
+import { RecoveryIntelligenceCard }     from "@/components/dashboard/RecoveryIntelligenceCard";
 import {
   detectSymptomEscalation,
   type SymptomEscalationEntry,
@@ -939,6 +940,15 @@ export default function DashboardPage() {
           cycleHealthReport={cycleHealthReport}
         />
         <AdaptiveInsightsCard insights={adaptiveInsights} />
+        <RecoveryIntelligenceCard
+          recoveryScore={recoveryScore}
+          recoveryTrend={recoveryTrend}
+          recoveryDebt={recoveryDebt}
+          burnoutRisk={burnoutRisk}
+          healthTrend={healthTrend}
+          recoveryPlan={recoveryPlan}
+          symptomEscalations={symptomEscalations}
+        />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
