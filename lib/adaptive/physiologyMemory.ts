@@ -37,9 +37,16 @@ export interface PhysiologyFingerprint {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY    = "axis_physiology_memory";
-const MIN_ENTRIES    = 14;           // minimum observations before fingerprint is meaningful
-const MIN_DAY_OBS   = 2;            // minimum observations at a cycle day to include in rankings
+const MIN_ENTRIES    = 14;
+const MIN_DAY_OBS   = 2;
 const TOP_DAYS_COUNT = 3;
+const RETENTION_DAYS = 365;
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
@@ -60,7 +67,8 @@ function loadEntries(): PhysiologyEntry[] {
 
 function persistEntries(entries: PhysiologyEntry[]): void {
   if (!isClient()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  const pruned = entries.filter(e => e.date >= cutoffDate(RETENTION_DAYS));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
 }
 
 // ─── Public API — storage ────────────────────────────────────────────────────

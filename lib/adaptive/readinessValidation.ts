@@ -80,6 +80,7 @@ function loadValidations(): ReadinessAccuracy[] {
 }
 
 function persistValidations(entries: ReadinessAccuracy[]): void {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(VALIDATION_KEY, JSON.stringify(entries));
   } catch {}

@@ -31,7 +31,14 @@ export interface InterventionOutcome {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "axis_intervention_log";
+const STORAGE_KEY    = "axis_intervention_log";
+const RETENTION_DAYS = 180;
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
 
 // Readiness delta thresholds for scoring
 const SUCCESS_DELTA  =   0;   // ≥ 0 = held/improved → positive signal
@@ -61,7 +68,8 @@ function loadRecords(): InterventionRecord[] {
 
 function persistRecords(records: InterventionRecord[]): void {
   if (!isClient()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  const pruned = records.filter(r => r.date >= cutoffDate(RETENTION_DAYS));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
 }
 
 // ─── Outcome scoring ──────────────────────────────────────────────────────────

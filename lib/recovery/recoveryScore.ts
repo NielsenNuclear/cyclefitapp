@@ -26,10 +26,17 @@ export interface RecoveryScoreInput {
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "axis_recovery_scores";
+const STORAGE_KEY    = "axis_recovery_scores";
+const RETENTION_DAYS = 90;
 
 function isClient(): boolean {
   return typeof window !== "undefined";
+}
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
 }
 
 function loadScores(): RecoveryScore[] {
@@ -45,8 +52,9 @@ function loadScores(): RecoveryScore[] {
 /** Upserts today's recovery score (one entry per calendar day). */
 export function saveRecoveryScore(score: RecoveryScore): void {
   if (!isClient()) return;
-  const others = loadScores().filter(s => s.date !== score.date);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([score, ...others]));
+  const others  = loadScores().filter(s => s.date !== score.date);
+  const pruned  = [score, ...others].filter(s => s.date >= cutoffDate(RETENTION_DAYS));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
 }
 
 /** Returns all stored recovery scores, newest first. */
