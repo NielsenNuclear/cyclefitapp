@@ -106,6 +106,7 @@ import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapaci
 import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
+import { ProgressCard }             from "@/components/dashboard/ProgressCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -751,6 +752,14 @@ export default function DashboardPage() {
               e => e.category === "cautious" || e.category === "recover"
             )
           }
+        />
+        <ProgressCard
+          progressionTargets={progressionTargets}
+          exerciseMastery={exerciseMastery}
+          performanceTrends={performanceTrends}
+          plateauInterventions={plateauInterventions}
+          mesocycle={mesocycle}
+          weeklyPrescription={weeklyPrescription}
         />
         {workout && (
           <WorkoutCard
