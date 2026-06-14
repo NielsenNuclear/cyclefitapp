@@ -80,7 +80,7 @@ import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyRe
 import { deriveEffectiveCycleLength } from "@/lib/cycle/effectiveCycleLength";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
-import { buildSymptomClusters, type SymptomCluster } from "@/lib/cycle/symptomClusters";
+import { buildSymptomClusters } from "@/lib/cycle/symptomClusters";
 import { detectPrimeTrainingWindow, type TrainingWindow } from "@/lib/cycle/trainingWindows";
 import { detectRecoveryWindow, type RecoveryWindow } from "@/lib/cycle/recoveryWindows";
 import { buildPerformanceProfile, type PersonalPerformanceProfile } from "@/lib/cycle/performanceProfile";
@@ -378,7 +378,6 @@ export default function DashboardPage() {
     cycleHealthReport,   setCycleHealthReport,
     ovulationEstimate,   setOvulationEstimate,
     symptomTimeline,     setSymptomTimeline,
-    symptomClusters,     setSymptomClusters,
     primeTrainingWindow, setPrimeTrainingWindow,
     recoveryWindow,      setRecoveryWindow,
     performanceProfile,  setPerformanceProfile,
@@ -617,7 +616,6 @@ export default function DashboardPage() {
     const timelineVal  = buildSymptomTimeline(getSymptomHistory(), periodHistoryVal, effectiveCycleLength);
     setSymptomTimeline(timelineVal);
     const clustersVal  = buildSymptomClusters(timelineVal, effectiveCycleLength);
-    setSymptomClusters(clustersVal);
     const patternConfidencesVal = buildPatternConfidences(
       getSymptomHistory(), periodHistoryVal, effectiveCycleLength,
     );
@@ -868,7 +866,6 @@ export default function DashboardPage() {
     const cl = deriveEffectiveCycleLength(ph, user.cycleLength);
     const updatedTimeline = buildSymptomTimeline(getSymptomHistory(), ph, cl);
     setSymptomTimeline(updatedTimeline);
-    setSymptomClusters(buildSymptomClusters(updatedTimeline, cl));
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const baseAdj = (deloadRec?.needed && progressionProfile)

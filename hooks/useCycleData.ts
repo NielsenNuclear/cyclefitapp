@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { CycleAccuracyReport }       from "@/lib/cycle/cycleAccuracy";
 import type { OvulationEstimate }          from "@/lib/cycle/ovulationEstimator";
 import type { SymptomTimeline }            from "@/lib/cycle/symptomTimeline";
-import type { SymptomCluster }             from "@/lib/cycle/symptomClusters";
 import type { TrainingWindow }             from "@/lib/cycle/trainingWindows";
 import type { RecoveryWindow }             from "@/lib/cycle/recoveryWindows";
 import type { PersonalPerformanceProfile } from "@/lib/cycle/performanceProfile";
@@ -18,7 +17,6 @@ export function useCycleData() {
   const [cycleHealthReport,   setCycleHealthReport]   = useState<CycleHealthReport | null>(null);
   const [ovulationEstimate,   setOvulationEstimate]   = useState<OvulationEstimate | null>(null);
   const [symptomTimeline,     setSymptomTimeline]     = useState<SymptomTimeline | null>(null);
-  const [symptomClusters,     setSymptomClusters]     = useState<SymptomCluster[]>([]);
   const [primeTrainingWindow, setPrimeTrainingWindow] = useState<TrainingWindow | null>(null);
   const [recoveryWindow,      setRecoveryWindow]      = useState<RecoveryWindow | null>(null);
   const [performanceProfile,  setPerformanceProfile]  = useState<PersonalPerformanceProfile | null>(null);
@@ -31,7 +29,6 @@ export function useCycleData() {
     cycleHealthReport,   setCycleHealthReport,
     ovulationEstimate,   setOvulationEstimate,
     symptomTimeline,     setSymptomTimeline,
-    symptomClusters,     setSymptomClusters,
     primeTrainingWindow, setPrimeTrainingWindow,
     recoveryWindow,      setRecoveryWindow,
     performanceProfile,  setPerformanceProfile,
