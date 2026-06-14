@@ -121,6 +121,10 @@ import {
   type RecoveryDebt,
 } from "@/lib/recovery/recoveryDebt";
 import {
+  computeBurnoutRisk,
+  type BurnoutRisk,
+} from "@/lib/recovery/burnoutRisk";
+import {
   recordPhysiologyEntry,
   getPhysiologyHistory,
   buildPhysiologyFingerprint,
@@ -378,6 +382,7 @@ export default function DashboardPage() {
   const [recoveryScore, setRecoveryScore]                 = useState<RecoveryScore | null>(null);
   const [recoveryTrend, setRecoveryTrend]                 = useState<RecoveryTrend | null>(null);
   const [recoveryDebt, setRecoveryDebt]                   = useState<RecoveryDebt | null>(null);
+  const [burnoutRisk, setBurnoutRisk]                     = useState<BurnoutRisk | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -635,7 +640,7 @@ export default function DashboardPage() {
     const todayWorkoutDone =
       rawHistory.find(e => e.id === todayStr)?.status === "completed" ||
       rawHistory.find(e => e.id === todayStr)?.status === "partially_completed";
-    setRecoveryDebt(updateRecoveryDebt({
+    const recoveryDebtVal = updateRecoveryDebt({
       date:             todayStr,
       sleepQuality:     effectiveUser.sleepQuality as "excellent" | "good" | "variable" | "poor",
       stressLevel:      effectiveUser.stressLevel,
@@ -643,6 +648,14 @@ export default function DashboardPage() {
       loadReport:       prelimLoad,
       workoutCompleted: todayWorkoutDone,
       isDeloadWeek:     deloadRecVal.needed,
+    });
+    setRecoveryDebt(recoveryDebtVal);
+    setBurnoutRisk(computeBurnoutRisk({
+      readinessHistory: fullRdxHistory.slice(0, 28),
+      workoutHistory:   rawHistory,
+      symptomHistory:   getSymptomHistory(),
+      recoveryDebt:     recoveryDebtVal,
+      loadReport:       prelimLoad,
     }));
     if (deloadRecVal.needed) {
       logIntervention("deload", deloadRecVal.rationale, todayStr);
