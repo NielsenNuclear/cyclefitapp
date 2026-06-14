@@ -881,7 +881,7 @@ export default function DashboardPage() {
     const adjustment = mergedAdj
       ? applyGoalModifiers(mergedAdj, mapOnboardingGoalToGoalType(user.goals))
       : mergedAdj;
-    const phase         = computePhase(effectiveUser);
+    const phase         = computePhase(effectiveUser, deriveEffectiveCycleLength(getPeriodHistory(), user.cycleLength));
     const newReadiness  = progressionProfile && loadReport
       ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
       : readinessScore;
