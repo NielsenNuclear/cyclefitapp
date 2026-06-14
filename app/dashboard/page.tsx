@@ -67,6 +67,7 @@ import { getExercisePerformanceHistory } from "@/lib/progression/exercisePerform
 import { computeProgressionTargets, type ProgressionTarget } from "@/lib/progression/progressionTargets";
 import { computeExerciseMastery, type ExerciseMasteryEntry } from "@/lib/progression/exerciseMastery";
 import { detectPerformanceTrends, type PerformanceTrend } from "@/lib/analytics/performanceTrends";
+import { generatePlateauInterventions, type PlateauIntervention } from "@/lib/progression/plateauIntervention";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
@@ -320,6 +321,7 @@ export default function DashboardPage() {
   const [progressionTargets, setProgressionTargets]   = useState<ProgressionTarget[]>([]);
   const [exerciseMastery, setExerciseMastery]         = useState<ExerciseMasteryEntry[]>([]);
   const [performanceTrends, setPerformanceTrends]     = useState<PerformanceTrend[]>([]);
+  const [plateauInterventions, setPlateauInterventions] = useState<PlateauIntervention[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -379,7 +381,9 @@ export default function DashboardPage() {
     const goalType       = mapOnboardingGoalToGoalType(user.goals);
     setProgressionTargets(computeProgressionTargets(perfHistoryVal, goalType));
     setExerciseMastery(computeExerciseMastery(perfHistoryVal, savedEnv));
-    setPerformanceTrends(detectPerformanceTrends(perfHistoryVal));
+    const trendsVal = detectPerformanceTrends(perfHistoryVal);
+    setPerformanceTrends(trendsVal);
+    setPlateauInterventions(generatePlateauInterventions(trendsVal, goalType));
     const weeklyVolumesVal = groupHistoryIntoWeeks(rawHistory, 8);
     const landmarksVal     = computeVolumeLandmarks(weeklyVolumesVal, toTrainingGoal(goalType));
     setVolumeLandmarks(landmarksVal);
@@ -634,7 +638,9 @@ export default function DashboardPage() {
     const freshPerfHistory = getExercisePerformanceHistory();
     setProgressionTargets(computeProgressionTargets(freshPerfHistory, goalType));
     setExerciseMastery(computeExerciseMastery(freshPerfHistory, environment));
-    setPerformanceTrends(detectPerformanceTrends(freshPerfHistory));
+    const freshTrends = detectPerformanceTrends(freshPerfHistory);
+    setPerformanceTrends(freshTrends);
+    setPlateauInterventions(generatePlateauInterventions(freshTrends, goalType));
   }
 
   function handleMarkComplete() {
