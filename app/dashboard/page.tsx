@@ -65,6 +65,7 @@ import { getExerciseProgress } from "@/lib/progression/exerciseProgress";
 import { applyExerciseProgressionRules, mergeCoachingAdjustments } from "@/lib/progression/exerciseProgressionRules";
 import { getExercisePerformanceHistory } from "@/lib/progression/exercisePerformanceLog";
 import { computeProgressionTargets, type ProgressionTarget } from "@/lib/progression/progressionTargets";
+import { computeExerciseMastery, type ExerciseMasteryEntry } from "@/lib/progression/exerciseMastery";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
@@ -316,6 +317,7 @@ export default function DashboardPage() {
   const [performanceProfile, setPerformanceProfile]   = useState<PersonalPerformanceProfile | null>(null);
   const [cycleHealthReport, setCycleHealthReport]     = useState<CycleHealthReport | null>(null);
   const [progressionTargets, setProgressionTargets]   = useState<ProgressionTarget[]>([]);
+  const [exerciseMastery, setExerciseMastery]         = useState<ExerciseMasteryEntry[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -374,6 +376,7 @@ export default function DashboardPage() {
     const perfHistoryVal = getExercisePerformanceHistory();
     const goalType       = mapOnboardingGoalToGoalType(user.goals);
     setProgressionTargets(computeProgressionTargets(perfHistoryVal, goalType));
+    setExerciseMastery(computeExerciseMastery(perfHistoryVal, savedEnv));
     const weeklyVolumesVal = groupHistoryIntoWeeks(rawHistory, 8);
     const landmarksVal     = computeVolumeLandmarks(weeklyVolumesVal, toTrainingGoal(goalType));
     setVolumeLandmarks(landmarksVal);
@@ -625,7 +628,9 @@ export default function DashboardPage() {
     setProgressionProfile(prog);
     setCoachingAdjustment(adjustment);
     adjustmentRef.current = adjustment;
-    setProgressionTargets(computeProgressionTargets(getExercisePerformanceHistory(), goalType));
+    const freshPerfHistory = getExercisePerformanceHistory();
+    setProgressionTargets(computeProgressionTargets(freshPerfHistory, goalType));
+    setExerciseMastery(computeExerciseMastery(freshPerfHistory, environment));
   }
 
   function handleMarkComplete() {
@@ -680,6 +685,7 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
+    setExerciseMastery(computeExerciseMastery(getExercisePerformanceHistory(), env));
   }
 
   if (!recommendation) return null;
