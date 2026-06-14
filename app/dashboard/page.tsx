@@ -188,6 +188,16 @@ import {
 } from "@/lib/adaptive/personalizationProgress";
 import { PersonalizationCard }  from "@/components/dashboard/PersonalizationCard";
 import { WhatAxisLearnedCard }  from "@/components/dashboard/WhatAxisLearnedCard";
+import { useNutritionData }              from "@/hooks/useNutritionData";
+import { computeFuelTargets }            from "@/lib/nutrition/fuelTargets";
+import { getSymptomNutritionAdjustments } from "@/lib/nutrition/symptomNutritionMap";
+import { computeWorkoutFueling }         from "@/lib/nutrition/workoutFueling";
+import {
+  logNutritionDay,
+  scoreNutritionDay,
+  getNutritionOutcomes,
+} from "@/lib/nutrition/nutritionLearning";
+import { FuelingCard }                   from "@/components/dashboard/FuelingCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -452,6 +462,13 @@ export default function DashboardPage() {
     exerciseSummaries, setExerciseSummaries,
   } = useWorkoutData();
 
+  const {
+    fuelTargets,          setFuelTargets,
+    workoutFueling,       setWorkoutFueling,
+    nutritionAdjustments, setNutritionAdjustments,
+    nutritionOutcomes,    setNutritionOutcomes,
+  } = useNutritionData();
+
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
     if (!raw) {
@@ -612,6 +629,7 @@ export default function DashboardPage() {
         yesterdayReadiness,
         todayStr,
       );
+      scoreNutritionDay(yesterdayStr, readiness.score, todayStr);
     }
 
     const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, effectiveCycleLength);
@@ -861,6 +879,14 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
+
+    // ── Phase 24: Nutrition Intelligence ─────────────────────────────────────
+    const fuelTargetsVal = computeFuelTargets(phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType);
+    logNutritionDay(fuelTargetsVal.fuelingLevel);
+    setFuelTargets(fuelTargetsVal);
+    setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsVal.fuelingLevel));
+    setNutritionAdjustments(getSymptomNutritionAdjustments(todaySymptomsVal));
+    setNutritionOutcomes(getNutritionOutcomes());
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -928,6 +954,12 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
+    const fuelTargetsCheckin = computeFuelTargets(phase, newReadiness ?? readinessScore, wkt, recoveryCapacity, todaySymptomsVal, goalType);
+    logNutritionDay(fuelTargetsCheckin.fuelingLevel);
+    setFuelTargets(fuelTargetsCheckin);
+    setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsCheckin.fuelingLevel));
+    setNutritionAdjustments(getSymptomNutritionAdjustments(todaySymptomsVal));
+    setNutritionOutcomes(getNutritionOutcomes());
     setIsRecalculating(false);
   }
 
@@ -1005,6 +1037,9 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
+    if (fuelTargets) {
+      setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargets.fuelingLevel));
+    }
     setExerciseMastery(computeExerciseMastery(getExercisePerformanceHistory(), env));
   }
 
@@ -1076,6 +1111,12 @@ export default function DashboardPage() {
               e => e.category === "cautious" || e.category === "recover"
             )
           }
+        />
+        <FuelingCard
+          fuelTargets={fuelTargets}
+          workoutFueling={workoutFueling}
+          nutritionAdjustments={nutritionAdjustments}
+          nutritionOutcomes={nutritionOutcomes}
         />
         <ProgressCard
           progressionTargets={progressionTargets}
