@@ -69,6 +69,7 @@ import { computeExerciseMastery, type ExerciseMasteryEntry } from "@/lib/progres
 import { detectPerformanceTrends, type PerformanceTrend } from "@/lib/analytics/performanceTrends";
 import { generatePlateauInterventions, type PlateauIntervention } from "@/lib/progression/plateauIntervention";
 import { buildMesocycle, type Mesocycle } from "@/lib/planning/mesocycleBuilder";
+import { buildWeeklyPrescription, type WeeklyProgressionPrescription } from "@/lib/planning/goalProgression";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
@@ -324,6 +325,7 @@ export default function DashboardPage() {
   const [performanceTrends, setPerformanceTrends]     = useState<PerformanceTrend[]>([]);
   const [plateauInterventions, setPlateauInterventions] = useState<PlateauIntervention[]>([]);
   const [mesocycle, setMesocycle]                       = useState<Mesocycle | null>(null);
+  const [weeklyPrescription, setWeeklyPrescription]     = useState<WeeklyProgressionPrescription | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -391,7 +393,9 @@ export default function DashboardPage() {
     setVolumeLandmarks(landmarksVal);
     const trainingBlockVal = getOrCreateBlock(goalType);
     setTrainingBlock(trainingBlockVal);
-    setMesocycle(buildMesocycle(goalType, trainingBlockVal.currentWeek));
+    const mesocycleVal = buildMesocycle(goalType, trainingBlockVal.currentWeek);
+    setMesocycle(mesocycleVal);
+    setWeeklyPrescription(buildWeeklyPrescription(mesocycleVal, goalType));
     const profile   = profileRef.current ?? undefined;
     const phase     = computePhase(effectiveUser);
 
