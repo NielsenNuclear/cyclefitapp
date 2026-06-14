@@ -117,6 +117,10 @@ import {
   type RecoveryTrend,
 } from "@/lib/recovery/recoveryTrend";
 import {
+  updateRecoveryDebt,
+  type RecoveryDebt,
+} from "@/lib/recovery/recoveryDebt";
+import {
   recordPhysiologyEntry,
   getPhysiologyHistory,
   buildPhysiologyFingerprint,
@@ -373,6 +377,7 @@ export default function DashboardPage() {
   const [adaptiveInsights, setAdaptiveInsights]           = useState<AdaptiveInsight[]>([]);
   const [recoveryScore, setRecoveryScore]                 = useState<RecoveryScore | null>(null);
   const [recoveryTrend, setRecoveryTrend]                 = useState<RecoveryTrend | null>(null);
+  const [recoveryDebt, setRecoveryDebt]                   = useState<RecoveryDebt | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -627,6 +632,18 @@ export default function DashboardPage() {
       recoveryCapacity:  recoveryCapacityVal,
     });
     setDeloadRec(deloadRecVal);
+    const todayWorkoutDone =
+      rawHistory.find(e => e.id === todayStr)?.status === "completed" ||
+      rawHistory.find(e => e.id === todayStr)?.status === "partially_completed";
+    setRecoveryDebt(updateRecoveryDebt({
+      date:             todayStr,
+      sleepQuality:     effectiveUser.sleepQuality as "excellent" | "good" | "variable" | "poor",
+      stressLevel:      effectiveUser.stressLevel,
+      symptoms:         todaySymptomsVal,
+      loadReport:       prelimLoad,
+      workoutCompleted: todayWorkoutDone,
+      isDeloadWeek:     deloadRecVal.needed,
+    }));
     if (deloadRecVal.needed) {
       logIntervention("deload", deloadRecVal.rationale, todayStr);
     }
