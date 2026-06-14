@@ -636,11 +636,11 @@ export default function DashboardPage() {
     });
     setWeeklyPlan(weeklyPlanVal);
 
-    // Refine AdaptiveProfile weights after ≥14 days (weekly cadence)
+    // Refine AdaptiveProfile weights ≥14 entries, at most once per 7 days
     if (profileRef.current) {
-      const updatedWeights = computeReadinessFeedback(fullRdxHistory, profileRef.current);
+      const updatedWeights = computeReadinessFeedback(fullRdxHistory, profileRef.current, todayStr);
       if (updatedWeights) {
-        const refined = { ...profileRef.current, readinessWeights: updatedWeights };
+        const refined = { ...profileRef.current, readinessWeights: updatedWeights, lastRefinedAt: todayStr };
         profileRef.current = refined;
         localStorage.setItem("axis_adaptive_profile", JSON.stringify(refined));
       }

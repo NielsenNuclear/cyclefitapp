@@ -4,7 +4,7 @@
 //
 // Algorithm:
 //   – Requires ≥14 entries with contributor data (2 full weeks minimum)
-//   – Runs every 7 entries after the threshold (weekly cadence)
+//   – Runs at most once per 7 calendar days (time-based gate via lastRefinedAt)
 //   – "Stuck-low" signal (mean ≤25, stddev ≤10): always at floor, not
 //     differentiating readiness → reduce weight 20%, redistribute to the
 //     highest-variance contributor
@@ -16,7 +16,11 @@ import type { AdaptiveProfile }       from "@/lib/adaptive-profile";
 
 type APWeightKey = keyof AdaptiveProfile["readinessWeights"];
 
-// ─── Stats helpers ────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function daysBetween(a: string, b: string): number {
+  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000);
+}
 
 function avg(arr: number[]): number {
   return arr.reduce((s, v) => s + v, 0) / arr.length;
@@ -47,14 +51,19 @@ function toAPScores(entries: Required<ReadinessHistoryEntry>[]): Record<APWeight
 export function computeReadinessFeedback(
   history: ReadinessHistoryEntry[],
   profile: AdaptiveProfile,
+  todayStr: string,
 ): AdaptiveProfile["readinessWeights"] | null {
   // Only use entries that have contributor data (Phase 13C+)
   const withContrib = history.filter(
     (e): e is Required<ReadinessHistoryEntry> => e.contributors !== undefined
   );
 
-  if (withContrib.length < 14)          return null;   // insufficient data
-  if (withContrib.length % 7 !== 0)     return null;   // not on a weekly boundary
+  if (withContrib.length < 14) return null;  // insufficient data
+
+  // Time-based gate: at most once per 7 calendar days
+  if (profile.lastRefinedAt && daysBetween(profile.lastRefinedAt, todayStr) < 7) {
+    return null;
+  }
 
   const scores = toAPScores(withContrib);
   const keys   = Object.keys(scores) as APWeightKey[];

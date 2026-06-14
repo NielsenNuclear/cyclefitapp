@@ -17,6 +17,7 @@ export interface AdaptiveProfile {
   keySignals: string[];
   phaseStrategy: string;
   estimatedDaysToPersonalization: number;
+  lastRefinedAt?: string;  // ISO date of most recent weight refinement
 }
 
 export function buildAdaptiveProfile(data: OnboardingData): AdaptiveProfile {
