@@ -71,6 +71,7 @@ import { generatePlateauInterventions, type PlateauIntervention } from "@/lib/pr
 import { buildMesocycle, type Mesocycle } from "@/lib/planning/mesocycleBuilder";
 import { buildWeeklyPrescription, type WeeklyProgressionPrescription } from "@/lib/planning/goalProgression";
 import { logPeriod, getPeriodHistory, computeCycleAccuracy, type CycleAccuracyReport } from "@/lib/cycle/cycleAccuracy";
+import { deriveEffectiveCycleLength } from "@/lib/cycle/effectiveCycleLength";
 import { estimateOvulation, type OvulationEstimate } from "@/lib/cycle/ovulationEstimator";
 import { buildSymptomTimeline, type SymptomTimeline } from "@/lib/cycle/symptomTimeline";
 import { buildSymptomClusters, type SymptomCluster } from "@/lib/cycle/symptomClusters";
@@ -188,10 +189,10 @@ function badgeToEnergyCap(badge: ReadinessBadge): number | undefined {
   return undefined;
 }
 
-function computePhase(user: OnboardingData): PhaseData {
+function computePhase(user: OnboardingData, cycleLength?: number): PhaseData {
   return calculatePhase({
     lastPeriodDate:  user.lastPeriodDate,
-    cycleLength:     user.cycleLength,
+    cycleLength:     cycleLength ?? user.cycleLength,
     cycleRegularity: user.cycleRegularity || undefined,
   });
 }
@@ -436,9 +437,12 @@ export default function DashboardPage() {
     if (getPeriodHistory().length === 0 && user.lastPeriodDate) {
       logPeriod(user.lastPeriodDate);
     }
-    const cycleAccuracyVal = computeCycleAccuracy(getPeriodHistory(), user.cycleLength);
+    const periodHistoryVal  = getPeriodHistory();
+    const cycleAccuracyVal  = computeCycleAccuracy(periodHistoryVal, user.cycleLength);
     setCycleAccuracy(cycleAccuracyVal);
     if (cycleAccuracyVal) setCycleHealthReport(buildCycleHealthReport(cycleAccuracyVal));
+    // Adaptive cycle length: weighted average of last 6 observed cycles
+    const effectiveCycleLength = deriveEffectiveCycleLength(periodHistoryVal, user.cycleLength);
 
     const profileRaw = localStorage.getItem("axis_adaptive_profile");
     if (profileRaw) {
@@ -487,11 +491,11 @@ export default function DashboardPage() {
     setMesocycle(mesocycleVal);
     setWeeklyPrescription(buildWeeklyPrescription(mesocycleVal, goalType));
     const profile   = profileRef.current ?? undefined;
-    const phase     = computePhase(effectiveUser);
+    const phase     = computePhase(effectiveUser, effectiveCycleLength);
 
-    const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, user.cycleLength);
+    const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, effectiveCycleLength);
     setLearnedPatterns(patterns);
-    const cycleForecastVal = computeCycleForecast(patterns, phase.cycleDay, user.cycleLength);
+    const cycleForecastVal = computeCycleForecast(patterns, phase.cycleDay, effectiveCycleLength);
     setCycleForecast(cycleForecastVal);
     const coachingMemoryVal = buildCoachingMemory({
       cyclePatterns:     patterns,
@@ -506,7 +510,7 @@ export default function DashboardPage() {
       stressLevel:  effectiveUser.stressLevel,
       symptoms:     todaySymptomsVal,
       loadReport:   prelimLoad,
-      cyclePhase:   toCyclePhaseName(phase.cycleDay, user.cycleLength),
+      cyclePhase:   toCyclePhaseName(phase.cycleDay, effectiveCycleLength),
     });
     setRecoveryScore(recoveryScoreVal);
     setRecoveryTrend(computeRecoveryTrend(getRecoveryScores()));
@@ -530,7 +534,7 @@ export default function DashboardPage() {
     recordPhysiologyEntry({
       date:             todayStr,
       cycleDay:         phase.cycleDay,
-      phase:            toCyclePhaseName(phase.cycleDay, user.cycleLength),
+      phase:            toCyclePhaseName(phase.cycleDay, effectiveCycleLength),
       readiness:        readiness.score,
       energy:           readiness.contributors?.energy ?? null,
       symptoms:         todaySymptomsVal.map(s => s.symptomId),
@@ -575,31 +579,30 @@ export default function DashboardPage() {
       );
     }
 
-    const periodHistoryVal     = getPeriodHistory();
-    const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, user.cycleLength);
+    const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, effectiveCycleLength);
     setOvulationEstimate(ovulationEstimateVal);
-    const primeWindowVal = detectPrimeTrainingWindow(fullRdxHistory, periodHistoryVal, user.cycleLength);
+    const primeWindowVal = detectPrimeTrainingWindow(fullRdxHistory, periodHistoryVal, effectiveCycleLength);
     setPrimeTrainingWindow(primeWindowVal);
-    const recoveryWindowVal = detectRecoveryWindow(fullRdxHistory, periodHistoryVal, user.cycleLength);
+    const recoveryWindowVal = detectRecoveryWindow(fullRdxHistory, periodHistoryVal, effectiveCycleLength);
     setRecoveryWindow(recoveryWindowVal);
-    const timelineVal  = buildSymptomTimeline(getSymptomHistory(), periodHistoryVal, user.cycleLength);
+    const timelineVal  = buildSymptomTimeline(getSymptomHistory(), periodHistoryVal, effectiveCycleLength);
     setSymptomTimeline(timelineVal);
-    const clustersVal  = buildSymptomClusters(timelineVal, user.cycleLength);
+    const clustersVal  = buildSymptomClusters(timelineVal, effectiveCycleLength);
     setSymptomClusters(clustersVal);
     const patternConfidencesVal = buildPatternConfidences(
-      getSymptomHistory(), periodHistoryVal, user.cycleLength,
+      getSymptomHistory(), periodHistoryVal, effectiveCycleLength,
     );
     setPatternConfidences(patternConfidencesVal);
     const symptomEscalationsVal = detectSymptomEscalation({
       symptomHistory: getSymptomHistory(),
       periodHistory:  periodHistoryVal,
-      cycleLength:    user.cycleLength,
+      cycleLength:    effectiveCycleLength,
     });
     setSymptomEscalations(symptomEscalationsVal);
     setPerformanceProfile(buildPerformanceProfile({
       readinessHistory:  fullRdxHistory,
       periodHistory:     periodHistoryVal,
-      cycleLength:       user.cycleLength,
+      cycleLength:       effectiveCycleLength,
       primeWindow:       primeWindowVal,
       recoveryWindow:    recoveryWindowVal,
       ovulationEstimate: ovulationEstimateVal,
@@ -760,7 +763,7 @@ export default function DashboardPage() {
       recoveryCapacity: recoveryCapacityVal,
       learnedPatterns:  patterns,
       currentCycleDay:  phase.cycleDay,
-      cycleLength:      user.cycleLength,
+      cycleLength:      effectiveCycleLength,
       sessionsPerWeek:  user.sessionsPerWeek,
     }));
     setCoachView(buildCoachView({
@@ -790,8 +793,8 @@ export default function DashboardPage() {
       interventionOutcomes: interventionOutcomesVal,
       todayCycleDay:        phase.cycleDay,
       todaySymptoms:        todaySymptomsVal.map(s => s.symptomId),
-      todayPhase:           toCyclePhaseName(phase.cycleDay, user.cycleLength),
-      cycleLength:          user.cycleLength,
+      todayPhase:           toCyclePhaseName(phase.cycleDay, effectiveCycleLength),
+      cycleLength:          effectiveCycleLength,
       recoveryScore:        recoveryScoreVal,
       recoveryTrend:        recoveryTrendNow,
       recoveryDebt:         recoveryDebtVal,
@@ -832,9 +835,11 @@ export default function DashboardPage() {
     }
     const todaySymptomsVal = getSymptomsForDate(data.date);
     setTodaySymptoms(todaySymptomsVal);
-    const updatedTimeline = buildSymptomTimeline(getSymptomHistory(), getPeriodHistory(), user.cycleLength);
+    const ph = getPeriodHistory();
+    const cl = deriveEffectiveCycleLength(ph, user.cycleLength);
+    const updatedTimeline = buildSymptomTimeline(getSymptomHistory(), ph, cl);
     setSymptomTimeline(updatedTimeline);
-    setSymptomClusters(buildSymptomClusters(updatedTimeline, user.cycleLength));
+    setSymptomClusters(buildSymptomClusters(updatedTimeline, cl));
     const effectiveUser = { ...user, sleepQuality: data.sleepQuality, stressLevel: data.stressLevel };
     const profile       = profileRef.current ?? undefined;
     const baseAdj = (deloadRec?.needed && progressionProfile)
