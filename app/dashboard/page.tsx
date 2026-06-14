@@ -161,6 +161,10 @@ import {
   buildHealthTrend,
   type HealthTrend,
 } from "@/lib/recovery/healthTrendAnalysis";
+import {
+  buildRecoveryPlan,
+  type RecoveryPlan,
+} from "@/lib/recovery/recoveryPlanning";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -393,6 +397,7 @@ export default function DashboardPage() {
   const [burnoutRisk, setBurnoutRisk]                     = useState<BurnoutRisk | null>(null);
   const [symptomEscalations, setSymptomEscalations]       = useState<SymptomEscalationEntry[]>([]);
   const [healthTrend, setHealthTrend]                     = useState<HealthTrend | null>(null);
+  const [recoveryPlan, setRecoveryPlan]                   = useState<RecoveryPlan | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -674,10 +679,21 @@ export default function DashboardPage() {
       loadReport:       prelimLoad,
     });
     setBurnoutRisk(burnoutRiskVal);
-    setHealthTrend(buildHealthTrend({
-      recoveryTrend:      computeRecoveryTrend(getRecoveryScores()),
+    const recoveryScoresNow  = getRecoveryScores();
+    const recoveryTrendNow   = computeRecoveryTrend(recoveryScoresNow);
+    const healthTrendVal     = buildHealthTrend({
+      recoveryTrend:      recoveryTrendNow,
       recoveryDebt:       recoveryDebtVal,
       burnoutRisk:        burnoutRiskVal,
+      symptomEscalations: symptomEscalationsVal,
+    });
+    setHealthTrend(healthTrendVal);
+    setRecoveryPlan(buildRecoveryPlan({
+      recoveryScore:      recoveryScoreVal,
+      recoveryTrend:      recoveryTrendNow,
+      recoveryDebt:       recoveryDebtVal,
+      burnoutRisk:        burnoutRiskVal,
+      healthTrend:        healthTrendVal,
       symptomEscalations: symptomEscalationsVal,
     }));
     if (deloadRecVal.needed) {
