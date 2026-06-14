@@ -129,6 +129,13 @@ import {
   getInterventionOutcomes,
   type InterventionOutcome,
 } from "@/lib/adaptive/interventionLearning";
+import {
+  computeAdaptiveModifier,
+  generateAdaptiveInsights,
+  type AdaptiveModifier,
+  type AdaptiveInsight,
+} from "@/lib/adaptive/adaptiveDecisionEngine";
+import { AdaptiveInsightsCard } from "@/components/dashboard/AdaptiveInsightsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -353,6 +360,8 @@ export default function DashboardPage() {
   const [patternConfidences, setPatternConfidences]       = useState<PatternConfidence[]>([]);
   const [personalWeights, setPersonalWeights]             = useState<PersonalWeights | null>(null);
   const [interventionOutcomes, setInterventionOutcomes]   = useState<InterventionOutcome[]>([]);
+  const [adaptiveModifier, setAdaptiveModifier]           = useState<AdaptiveModifier | null>(null);
+  const [adaptiveInsights, setAdaptiveInsights]           = useState<AdaptiveInsight[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -472,9 +481,11 @@ export default function DashboardPage() {
     const fullRdxHistory = getReadinessHistory();
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
-    const physiologyHistoryVal = getPhysiologyHistory();
-    setPhysiologyFingerprint(buildPhysiologyFingerprint(physiologyHistoryVal));
-    setPersonalWeights(buildPersonalWeights(fullRdxHistory, getSymptomHistory()));
+    const physiologyHistoryVal     = getPhysiologyHistory();
+    const physiologyFingerprintVal = buildPhysiologyFingerprint(physiologyHistoryVal);
+    setPhysiologyFingerprint(physiologyFingerprintVal);
+    const personalWeightsVal = buildPersonalWeights(fullRdxHistory, getSymptomHistory());
+    setPersonalWeights(personalWeightsVal);
 
     // Score yesterday's interventions now that today's readiness is known
     const yesterdayReadiness = fullRdxHistory[1]?.score;
@@ -504,9 +515,10 @@ export default function DashboardPage() {
     setSymptomTimeline(timelineVal);
     const clustersVal  = buildSymptomClusters(timelineVal, user.cycleLength);
     setSymptomClusters(clustersVal);
-    setPatternConfidences(
-      buildPatternConfidences(getSymptomHistory(), periodHistoryVal, user.cycleLength),
+    const patternConfidencesVal = buildPatternConfidences(
+      getSymptomHistory(), periodHistoryVal, user.cycleLength,
     );
+    setPatternConfidences(patternConfidencesVal);
     setPerformanceProfile(buildPerformanceProfile({
       readinessHistory:  fullRdxHistory,
       periodHistory:     periodHistoryVal,
@@ -646,7 +658,22 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
-    setInterventionOutcomes(getInterventionOutcomes());
+    const interventionOutcomesVal = getInterventionOutcomes();
+    setInterventionOutcomes(interventionOutcomesVal);
+
+    // Adaptive Decision Engine — synthesise all four layers
+    const adaptiveInput = {
+      fingerprint:          physiologyFingerprintVal,
+      patternConfidences:   patternConfidencesVal,
+      personalWeights:      personalWeightsVal,
+      interventionOutcomes: interventionOutcomesVal,
+      todayCycleDay:        phase.cycleDay,
+      todaySymptoms:        todaySymptomsVal.map(s => s.symptomId),
+      todayPhase:           toCyclePhaseName(phase.cycleDay, user.cycleLength),
+      cycleLength:          user.cycleLength,
+    };
+    setAdaptiveModifier(computeAdaptiveModifier(adaptiveInput));
+    setAdaptiveInsights(generateAdaptiveInsights(adaptiveInput));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -820,6 +847,7 @@ export default function DashboardPage() {
           ovulationEstimate={ovulationEstimate}
           cycleHealthReport={cycleHealthReport}
         />
+        <AdaptiveInsightsCard insights={adaptiveInsights} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
