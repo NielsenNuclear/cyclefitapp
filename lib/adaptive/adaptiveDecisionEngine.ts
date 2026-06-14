@@ -7,6 +7,11 @@ import type { PhysiologyFingerprint } from "./physiologyMemory";
 import type { PatternConfidence }      from "./patternConfidence";
 import type { PersonalWeights }        from "./personalWeighting";
 import type { InterventionOutcome }    from "./interventionLearning";
+import type { RecoveryScore }          from "@/lib/recovery/recoveryScore";
+import type { RecoveryTrend }          from "@/lib/recovery/recoveryTrend";
+import type { RecoveryDebt }           from "@/lib/recovery/recoveryDebt";
+import type { BurnoutRisk }            from "@/lib/recovery/burnoutRisk";
+import type { SymptomEscalationEntry } from "@/lib/recovery/symptomEscalation";
 
 // ─── Shared input ─────────────────────────────────────────────────────────────
 
@@ -19,6 +24,12 @@ export interface AdaptiveEngineInput {
   todaySymptoms:        string[];           // symptomIds present today
   todayPhase:           string | null;      // e.g. "Pre-Menstrual Phase"
   cycleLength:          number;
+  // Phase 21I — recovery intelligence signals (optional; existing callers unaffected)
+  recoveryScore?:       RecoveryScore | null;
+  recoveryTrend?:       RecoveryTrend | null;
+  recoveryDebt?:        RecoveryDebt | null;
+  burnoutRisk?:         BurnoutRisk | null;
+  symptomEscalations?:  SymptomEscalationEntry[];
 }
 
 // ─── Modifier types ───────────────────────────────────────────────────────────
@@ -137,6 +148,24 @@ export function computeAdaptiveModifier(input: AdaptiveEngineInput): AdaptiveMod
     rationale.push("Symptoms are this user's strongest readiness predictor");
   }
 
+  // Layer 5 — recovery intelligence: sustained debt or high strain overrides
+  const bl = input.burnoutRisk?.level;
+  if (bl === "severe") {
+    volume    = Math.min(volume, 0.80);
+    intensity = Math.min(intensity, 0.85);
+    rationale.push("Severe recovery strain — volume and intensity capped");
+  } else if (bl === "high") {
+    volume = Math.min(volume, 0.85);
+    rationale.push("High recovery strain — volume capped");
+  }
+
+  const dc = input.recoveryDebt?.category;
+  const dt = input.recoveryDebt?.trend;
+  if ((dc === "critical") || (dc === "high" && dt === "accumulating")) {
+    volume = Math.min(volume, 0.85);
+    rationale.push("Recovery debt critical or high/accumulating — volume capped");
+  }
+
   return {
     volumeMultiplier:    Math.round(clamp(volume,    0.70, 1.15) * 100) / 100,
     intensityMultiplier: Math.round(clamp(intensity, 0.80, 1.10) * 100) / 100,
@@ -247,6 +276,88 @@ export function generateAdaptiveInsights(input: AdaptiveEngineInput): AdaptiveIn
         category:   "weighting",
       });
     }
+  }
+
+  // ── Recovery trend (Phase 21I) ────────────────────────────────────────────
+  const rt = input.recoveryTrend;
+  if (rt && rt.dataPoints >= 5) {
+    if (rt.status7d === "rapidly_declining") {
+      insights.push({
+        id:         "recovery_trend_rapid",
+        text:       "Your recovery scores have dropped noticeably over the past 7 days. Lighter sessions right now will likely be more productive than pushing through at full intensity.",
+        confidence: 0.80,
+        category:   "recovery",
+      });
+    } else if (rt.status7d === "declining" && rt.status14d === "declining") {
+      insights.push({
+        id:         "recovery_trend_decline",
+        text:       "Recovery scores have been drifting down over the past two weeks. Avoiding progressive load increases until the trend stabilises may help.",
+        confidence: 0.65,
+        category:   "recovery",
+      });
+    }
+  }
+
+  // ── Recovery debt (Phase 21I) ─────────────────────────────────────────────
+  const rd = input.recoveryDebt;
+  if (rd) {
+    const daysEl = rd.daysElevated;
+    if (rd.category === "critical" && daysEl >= 7) {
+      insights.push({
+        id:         "recovery_debt_critical",
+        text:       `Recovery debt has been elevated for ${daysEl} days. Your body is signalling it needs more recovery time than it's currently getting — additional rest days are likely to pay off.`,
+        confidence: 0.88,
+        category:   "recovery",
+      });
+    } else if (rd.category === "high" && rd.trend === "accumulating") {
+      insights.push({
+        id:         "recovery_debt_high",
+        text:       `Recovery debt is high and still building after ${daysEl} day(s). Reducing training load this week can prevent a more significant dip in readiness.`,
+        confidence: 0.75,
+        category:   "recovery",
+      });
+    } else if (rd.category === "elevated" && daysEl >= 5) {
+      insights.push({
+        id:         "recovery_debt_elevated",
+        text:       `Recovery debt has been elevated for ${daysEl} consecutive days. One additional rest or active-recovery day each week tends to help clear this pattern.`,
+        confidence: 0.60,
+        category:   "recovery",
+      });
+    }
+  }
+
+  // ── Burnout / strain indicators (Phase 21I) ───────────────────────────────
+  const bk = input.burnoutRisk;
+  if (bk) {
+    if (bk.level === "severe") {
+      const topFactor = bk.factors.sort((a, b) => b.score - a.score)[0];
+      insights.push({
+        id:         "strain_severe",
+        text:       `Multiple recovery indicators are elevated${topFactor ? ` (${topFactor.detail.toLowerCase()})` : ""}. A recovery-focused week — lower intensity, consistent sleep — is likely to restore training capacity faster than continuing at pace.`,
+        confidence: 0.85,
+        category:   "recovery",
+      });
+    } else if (bk.level === "high") {
+      insights.push({
+        id:         "strain_high",
+        text:       "Several recovery indicators suggest your system is under elevated strain. Scheduling lighter training days before they feel necessary tends to preserve long-term performance.",
+        confidence: 0.70,
+        category:   "recovery",
+      });
+    }
+  }
+
+  // ── Symptom escalation (Phase 21I) ───────────────────────────────────────
+  const escalating = (input.symptomEscalations ?? []).filter(e => e.status === "escalating");
+  if (escalating.length > 0) {
+    const top = escalating[0];
+    const cycleCount = top.cycleMeans.length;
+    insights.push({
+      id:         `escalation_${top.symptomId}`,
+      text:       `${top.symptomName} symptoms have increased in each of your last ${cycleCount} cycles. Tracking intensity during affected phases can help identify whether training load is a contributing factor.`,
+      confidence: 0.68,
+      category:   "symptoms",
+    });
   }
 
   return insights

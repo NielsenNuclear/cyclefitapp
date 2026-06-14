@@ -753,7 +753,7 @@ export default function DashboardPage() {
     const interventionOutcomesVal = getInterventionOutcomes();
     setInterventionOutcomes(interventionOutcomesVal);
 
-    // Adaptive Decision Engine — synthesise all four layers
+    // Adaptive Decision Engine — synthesise all four layers + recovery intelligence
     const adaptiveInput = {
       fingerprint:          physiologyFingerprintVal,
       patternConfidences:   patternConfidencesVal,
@@ -763,6 +763,11 @@ export default function DashboardPage() {
       todaySymptoms:        todaySymptomsVal.map(s => s.symptomId),
       todayPhase:           toCyclePhaseName(phase.cycleDay, user.cycleLength),
       cycleLength:          user.cycleLength,
+      recoveryScore:        recoveryScoreVal,
+      recoveryTrend:        recoveryTrendNow,
+      recoveryDebt:         recoveryDebtVal,
+      burnoutRisk:          burnoutRiskVal,
+      symptomEscalations:   symptomEscalationsVal,
     };
     setAdaptiveModifier(computeAdaptiveModifier(adaptiveInput));
     setAdaptiveInsights(generateAdaptiveInsights(adaptiveInput));
