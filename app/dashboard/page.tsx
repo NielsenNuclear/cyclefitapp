@@ -119,6 +119,10 @@ import {
   buildPatternConfidences,
   type PatternConfidence,
 } from "@/lib/adaptive/patternConfidence";
+import {
+  buildPersonalWeights,
+  type PersonalWeights,
+} from "@/lib/adaptive/personalWeighting";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -341,6 +345,7 @@ export default function DashboardPage() {
   const [weeklyPrescription, setWeeklyPrescription]     = useState<WeeklyProgressionPrescription | null>(null);
   const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
   const [patternConfidences, setPatternConfidences]       = useState<PatternConfidence[]>([]);
+  const [personalWeights, setPersonalWeights]             = useState<PersonalWeights | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -458,6 +463,7 @@ export default function DashboardPage() {
     setReadinessHistory(fullRdxHistory.slice(0, 7));
     const physiologyHistoryVal = getPhysiologyHistory();
     setPhysiologyFingerprint(buildPhysiologyFingerprint(physiologyHistoryVal));
+    setPersonalWeights(buildPersonalWeights(fullRdxHistory, getSymptomHistory()));
 
     const periodHistoryVal     = getPeriodHistory();
     const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, user.cycleLength);
