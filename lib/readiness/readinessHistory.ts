@@ -17,10 +17,17 @@ export type ReadinessTrend = "improving" | "declining" | "stable" | "insufficien
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "axis_readiness_history";
+const STORAGE_KEY    = "axis_readiness_history";
+const RETENTION_DAYS = 365;
 
 function isClient(): boolean {
   return typeof window !== "undefined";
+}
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
 }
 
 function loadHistory(): ReadinessHistoryEntry[] {
@@ -36,7 +43,8 @@ function loadHistory(): ReadinessHistoryEntry[] {
 
 function persistHistory(entries: ReadinessHistoryEntry[]): void {
   if (!isClient()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  const pruned = entries.filter(e => e.date >= cutoffDate(RETENTION_DAYS));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

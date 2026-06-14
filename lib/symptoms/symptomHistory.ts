@@ -10,10 +10,17 @@ export interface SymptomEntry {
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "axis_symptom_history";
+const STORAGE_KEY    = "axis_symptom_history";
+const RETENTION_DAYS = 365;
 
 function isClient(): boolean {
   return typeof window !== "undefined";
+}
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
 }
 
 function loadHistory(): SymptomEntry[] {
@@ -32,10 +39,9 @@ function loadHistory(): SymptomEntry[] {
 function persistHistory(entries: SymptomEntry[]): void {
   if (!isClient()) return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // storage unavailable or quota exceeded — fail silently
-  }
+    const pruned = entries.filter(e => e.date >= cutoffDate(RETENTION_DAYS));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
+  } catch {}
 }
 
 function isValidSeverity(v: unknown): v is 0 | 1 | 2 | 3 {

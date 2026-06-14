@@ -5,7 +5,14 @@ import type { PhaseName } from "@/types/recommendation";
 import type { WorkoutFeedback, RecoveryRating } from "@/lib/workoutExecution/feedback";
 import type { ReadinessAccuracy } from "@/lib/adaptive/readinessValidation";
 
-const LEARNING_KEY = "axis_recovery_learning";
+const LEARNING_KEY   = "axis_recovery_learning";
+const RETENTION_DAYS = 180;
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,8 +66,10 @@ function loadObservations(): RecoveryObservation[] {
 }
 
 function persistObservations(obs: RecoveryObservation[]): void {
+  if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(LEARNING_KEY, JSON.stringify(obs));
+    const pruned = obs.filter(o => o.date >= cutoffDate(RETENTION_DAYS));
+    localStorage.setItem(LEARNING_KEY, JSON.stringify(pruned));
   } catch {}
 }
 

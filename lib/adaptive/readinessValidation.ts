@@ -5,6 +5,13 @@ import type { ReadinessBadge } from "@/types/recommendation";
 import type { WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 
 const VALIDATION_KEY = "axis_readiness_validation";
+const RETENTION_DAYS = 180;
+
+function cutoffDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -82,7 +89,8 @@ function loadValidations(): ReadinessAccuracy[] {
 function persistValidations(entries: ReadinessAccuracy[]): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(VALIDATION_KEY, JSON.stringify(entries));
+    const pruned = entries.filter(e => e.date >= cutoffDate(RETENTION_DAYS));
+    localStorage.setItem(VALIDATION_KEY, JSON.stringify(pruned));
   } catch {}
 }
 
