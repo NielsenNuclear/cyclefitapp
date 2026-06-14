@@ -123,6 +123,12 @@ import {
   buildPersonalWeights,
   type PersonalWeights,
 } from "@/lib/adaptive/personalWeighting";
+import {
+  logIntervention,
+  scoreInterventions,
+  getInterventionOutcomes,
+  type InterventionOutcome,
+} from "@/lib/adaptive/interventionLearning";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -346,6 +352,7 @@ export default function DashboardPage() {
   const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
   const [patternConfidences, setPatternConfidences]       = useState<PatternConfidence[]>([]);
   const [personalWeights, setPersonalWeights]             = useState<PersonalWeights | null>(null);
+  const [interventionOutcomes, setInterventionOutcomes]   = useState<InterventionOutcome[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -407,7 +414,11 @@ export default function DashboardPage() {
     setExerciseMastery(computeExerciseMastery(perfHistoryVal, savedEnv));
     const trendsVal = detectPerformanceTrends(perfHistoryVal);
     setPerformanceTrends(trendsVal);
-    setPlateauInterventions(generatePlateauInterventions(trendsVal, goalType));
+    const plateauInterventionVals = generatePlateauInterventions(trendsVal, goalType);
+    setPlateauInterventions(plateauInterventionVals);
+    for (const inv of plateauInterventionVals) {
+      logIntervention(`plateau_${inv.interventionType}`, inv.suggestion, todayStr);
+    }
     const weeklyVolumesVal = groupHistoryIntoWeeks(rawHistory, 8);
     const landmarksVal     = computeVolumeLandmarks(weeklyVolumesVal, toTrainingGoal(goalType));
     setVolumeLandmarks(landmarksVal);
@@ -464,6 +475,23 @@ export default function DashboardPage() {
     const physiologyHistoryVal = getPhysiologyHistory();
     setPhysiologyFingerprint(buildPhysiologyFingerprint(physiologyHistoryVal));
     setPersonalWeights(buildPersonalWeights(fullRdxHistory, getSymptomHistory()));
+
+    // Score yesterday's interventions now that today's readiness is known
+    const yesterdayReadiness = fullRdxHistory[1]?.score;
+    if (yesterdayReadiness !== undefined) {
+      const yesterdayStr = (() => {
+        const d = new Date(); d.setDate(d.getDate() - 1);
+        return d.toISOString().slice(0, 10);
+      })();
+      const yStatus = rawHistory.find(e => e.id === yesterdayStr)?.status;
+      scoreInterventions(
+        yesterdayStr,
+        readiness.score,
+        yesterdayReadiness,
+        yStatus === "completed" || yStatus === "partially_completed",
+        todayStr,
+      );
+    }
 
     const periodHistoryVal     = getPeriodHistory();
     const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, user.cycleLength);
@@ -565,6 +593,16 @@ export default function DashboardPage() {
       recoveryCapacity:  recoveryCapacityVal,
     });
     setDeloadRec(deloadRecVal);
+    if (deloadRecVal.needed) {
+      logIntervention("deload", deloadRecVal.rationale, todayStr);
+    }
+    if (overloadRecVal.decision !== "maintain") {
+      logIntervention(
+        overloadRecVal.decision === "increase" ? "increase_load" : "reduce_volume",
+        overloadRecVal.suggestion,
+        todayStr,
+      );
+    }
     const capacityProfile = (recoveryCapacityVal.confidence !== "early")
       ? applyCapacityModifier(prog, recoveryCapacityVal)
       : prog;
@@ -608,6 +646,7 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
+    setInterventionOutcomes(getInterventionOutcomes());
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
