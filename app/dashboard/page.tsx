@@ -113,6 +113,10 @@ import {
   type RecoveryScore,
 } from "@/lib/recovery/recoveryScore";
 import {
+  computeRecoveryTrend,
+  type RecoveryTrend,
+} from "@/lib/recovery/recoveryTrend";
+import {
   recordPhysiologyEntry,
   getPhysiologyHistory,
   buildPhysiologyFingerprint,
@@ -368,6 +372,7 @@ export default function DashboardPage() {
   const [adaptiveModifier, setAdaptiveModifier]           = useState<AdaptiveModifier | null>(null);
   const [adaptiveInsights, setAdaptiveInsights]           = useState<AdaptiveInsight[]>([]);
   const [recoveryScore, setRecoveryScore]                 = useState<RecoveryScore | null>(null);
+  const [recoveryTrend, setRecoveryTrend]                 = useState<RecoveryTrend | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -465,6 +470,7 @@ export default function DashboardPage() {
       cyclePhase:   toCyclePhaseName(phase.cycleDay, user.cycleLength),
     });
     setRecoveryScore(recoveryScoreVal);
+    setRecoveryTrend(computeRecoveryTrend(getRecoveryScores()));
 
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
