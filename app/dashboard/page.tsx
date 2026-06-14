@@ -153,6 +153,10 @@ import {
   type AdaptiveInsight,
 } from "@/lib/adaptive/adaptiveDecisionEngine";
 import { AdaptiveInsightsCard } from "@/components/dashboard/AdaptiveInsightsCard";
+import {
+  detectSymptomEscalation,
+  type SymptomEscalationEntry,
+} from "@/lib/recovery/symptomEscalation";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -383,6 +387,7 @@ export default function DashboardPage() {
   const [recoveryTrend, setRecoveryTrend]                 = useState<RecoveryTrend | null>(null);
   const [recoveryDebt, setRecoveryDebt]                   = useState<RecoveryDebt | null>(null);
   const [burnoutRisk, setBurnoutRisk]                     = useState<BurnoutRisk | null>(null);
+  const [symptomEscalations, setSymptomEscalations]       = useState<SymptomEscalationEntry[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -551,6 +556,11 @@ export default function DashboardPage() {
       getSymptomHistory(), periodHistoryVal, user.cycleLength,
     );
     setPatternConfidences(patternConfidencesVal);
+    setSymptomEscalations(detectSymptomEscalation({
+      symptomHistory: getSymptomHistory(),
+      periodHistory:  periodHistoryVal,
+      cycleLength:    user.cycleLength,
+    }));
     setPerformanceProfile(buildPerformanceProfile({
       readinessHistory:  fullRdxHistory,
       periodHistory:     periodHistoryVal,
