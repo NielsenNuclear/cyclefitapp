@@ -115,6 +115,10 @@ import {
 } from "@/lib/adaptive/physiologyMemory";
 import { getWorkoutFeedback }       from "@/lib/workoutExecution/feedback";
 import { toCyclePhaseName }         from "@/lib/cycle/cycleUtils";
+import {
+  buildPatternConfidences,
+  type PatternConfidence,
+} from "@/lib/adaptive/patternConfidence";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -336,6 +340,7 @@ export default function DashboardPage() {
   const [mesocycle, setMesocycle]                       = useState<Mesocycle | null>(null);
   const [weeklyPrescription, setWeeklyPrescription]     = useState<WeeklyProgressionPrescription | null>(null);
   const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
+  const [patternConfidences, setPatternConfidences]       = useState<PatternConfidence[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -465,6 +470,9 @@ export default function DashboardPage() {
     setSymptomTimeline(timelineVal);
     const clustersVal  = buildSymptomClusters(timelineVal, user.cycleLength);
     setSymptomClusters(clustersVal);
+    setPatternConfidences(
+      buildPatternConfidences(getSymptomHistory(), periodHistoryVal, user.cycleLength),
+    );
     setPerformanceProfile(buildPerformanceProfile({
       readinessHistory:  fullRdxHistory,
       periodHistory:     periodHistoryVal,
