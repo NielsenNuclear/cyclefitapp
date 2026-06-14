@@ -11,7 +11,8 @@ import type { RecoveryScore }          from "@/lib/recovery/recoveryScore";
 import type { RecoveryTrend }          from "@/lib/recovery/recoveryTrend";
 import type { RecoveryDebt }           from "@/lib/recovery/recoveryDebt";
 import type { BurnoutRisk }            from "@/lib/recovery/burnoutRisk";
-import type { SymptomEscalationEntry } from "@/lib/recovery/symptomEscalation";
+import type { SymptomEscalationEntry }   from "@/lib/recovery/symptomEscalation";
+import type { RecoveryStrategyOutcome }   from "@/lib/recovery/recoveryLearning";
 
 // ─── Shared input ─────────────────────────────────────────────────────────────
 
@@ -30,6 +31,8 @@ export interface AdaptiveEngineInput {
   recoveryDebt?:        RecoveryDebt | null;
   burnoutRisk?:         BurnoutRisk | null;
   symptomEscalations?:  SymptomEscalationEntry[];
+  // Phase 23D — recovery strategy learning outcomes
+  strategyOutcomes?:    RecoveryStrategyOutcome[];
 }
 
 // ─── Modifier types ───────────────────────────────────────────────────────────
@@ -164,6 +167,22 @@ export function computeAdaptiveModifier(input: AdaptiveEngineInput): AdaptiveMod
   if ((dc === "critical") || (dc === "high" && dt === "accumulating")) {
     volume = Math.min(volume, 0.85);
     rationale.push("Recovery debt critical or high/accumulating — volume capped");
+  }
+
+  // Layer 6 — recovery strategy learning: adjust based on what actually restores this user
+  for (const s of (input.strategyOutcomes ?? [])) {
+    if (s.verdict === "ineffective" && s.strategy === "deload_week") {
+      // Deload weeks haven't improved this user's recovery — raise volume floor
+      if (volume < 0.90) {
+        volume = Math.max(volume, 0.85);
+        rationale.push("Deload weeks have not improved recovery — volume floor raised");
+      }
+    }
+    if (s.verdict === "effective" && s.strategy === "rest_day" && volume < 1.0) {
+      // Rest days reliably help this user — apply a small additional volume reduction
+      volume = Math.max(volume - 0.03, 0.70);
+      rationale.push("Rest days reliably support this user's recovery");
+    }
   }
 
   return {

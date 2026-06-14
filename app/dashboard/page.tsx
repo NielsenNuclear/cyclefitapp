@@ -827,6 +827,7 @@ export default function DashboardPage() {
       recoveryDebt:         recoveryDebtVal,
       burnoutRisk:          burnoutRiskVal,
       symptomEscalations:   symptomEscalationsVal,
+      strategyOutcomes:     getRecoveryStrategyOutcomes(),
     };
     const adaptiveModifierVal = computeAdaptiveModifier(adaptiveInput);
     setAdaptiveModifier(adaptiveModifierVal);
