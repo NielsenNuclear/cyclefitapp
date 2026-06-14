@@ -31,6 +31,9 @@ export interface WorkoutGenerationInput {
   coachingAdjustment?:  CoachingAdjustment;       // optional: from progression engine
   readiness?:           ReadinessScore;            // optional: caps or confirms progression ceiling
   exerciseSummaries?:   ExerciseProgressSummary[]; // optional: drives skip-rate rotation
+  // Adaptive modifier (Phase 22A) — applied as a final pass after all other scaling
+  adaptiveVolumeMultiplier?:    number;   // [0.70–1.15]; defaults to 1.0
+  adaptiveIntensityMultiplier?: number;   // [0.80–1.10]; defaults to 1.0
 }
 
 export interface WorkoutExercise {
@@ -375,14 +378,29 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     return rotatedExercises;
   })();
 
-  const exercises: WorkoutExercise[] = trimmedExercises.map(exercise => {
-    const prescribed = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
+  const prescribed: WorkoutExercise[] = trimmedExercises.map(exercise => {
+    const ex = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
     const replacedName = rotationMap.get(exercise.name);
     if (replacedName) {
-      prescribed.notes = `Rotated in for ${replacedName} — you've been skipping that exercise recently. Same movement pattern and muscle focus.`;
+      ex.notes = `Rotated in for ${replacedName} — you've been skipping that exercise recently. Same movement pattern and muscle focus.`;
     }
-    return prescribed;
+    return ex;
   });
+
+  // Final pass — apply adaptive multipliers (from personal pattern history) on top of all
+  // other scaling. These are small refinements (±15% vol, ±10% intensity) so the minimum
+  // set count floor (1) and RPE bounds [3–10] are the only additional guards needed.
+  const adaptiveVol = input.adaptiveVolumeMultiplier    ?? 1.0;
+  const adaptiveInt = input.adaptiveIntensityMultiplier ?? 1.0;
+  const exercises: WorkoutExercise[] = (adaptiveVol !== 1.0 || adaptiveInt !== 1.0)
+    ? prescribed.map(ex => ({
+        ...ex,
+        sets: Math.max(1, Math.round(ex.sets * adaptiveVol)),
+        rpe:  ex.rpe !== undefined
+          ? Math.round(Math.min(10, Math.max(3, ex.rpe * adaptiveInt)) * 10) / 10
+          : undefined,
+      }))
+    : prescribed;
 
   return {
     workoutName:          buildWorkoutName(workoutDay.dayName, phase.name),

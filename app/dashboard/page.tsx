@@ -213,6 +213,7 @@ function runWorkoutPipeline(
   maxEnergyLevel?:    number,
   capacityLevel?:     CapacityLevel,
   exerciseSummaries?: ExerciseProgressSummary[],
+  adaptiveModifier?:  AdaptiveModifier,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -235,12 +236,14 @@ function runWorkoutPipeline(
     energyLevel,
     trainingState,
     phase,
-    sessionIndex:       phase.cycleDay,
+    sessionIndex:                phase.cycleDay,
     environment,
     goalType,
-    coachingAdjustment: adjustment,
+    coachingAdjustment:          adjustment,
     readiness,
     exerciseSummaries,
+    adaptiveVolumeMultiplier:    adaptiveModifier?.volumeMultiplier,
+    adaptiveIntensityMultiplier: adaptiveModifier?.intensityMultiplier,
   });
 }
 
@@ -770,18 +773,13 @@ export default function DashboardPage() {
       coachingAdjustment: finalAdjustmentVal,
       goalType,
     }));
-    const wkt             = runWorkoutPipeline(effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level, exerciseSummariesVal);
-    setWorkout(wkt);
-    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness, landmarksVal);
-    setHistorySummary(summary);
-    setLoadReport(load);
-    setInsightReport(insights);
-    setTodayStatus(ts);
+    // Hoist intervention outcomes and adaptive modifier BEFORE workout generation
+    // so the modifier is actually applied to set counts and RPE targets.
     const interventionOutcomesVal = getInterventionOutcomes();
     setInterventionOutcomes(interventionOutcomesVal);
     setStrategyOutcomes(getRecoveryStrategyOutcomes());
 
-    // Adaptive Decision Engine — synthesise all four layers + recovery intelligence
+    // Adaptive Decision Engine — synthesise all layers + recovery intelligence
     const adaptiveInput = {
       fingerprint:          physiologyFingerprintVal,
       patternConfidences:   patternConfidencesVal,
@@ -797,8 +795,21 @@ export default function DashboardPage() {
       burnoutRisk:          burnoutRiskVal,
       symptomEscalations:   symptomEscalationsVal,
     };
-    setAdaptiveModifier(computeAdaptiveModifier(adaptiveInput));
+    const adaptiveModifierVal = computeAdaptiveModifier(adaptiveInput);
+    setAdaptiveModifier(adaptiveModifierVal);
     setAdaptiveInsights(generateAdaptiveInsights(adaptiveInput));
+
+    const wkt = runWorkoutPipeline(
+      effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
+      badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
+      exerciseSummariesVal, adaptiveModifierVal,
+    );
+    setWorkout(wkt);
+    const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness, landmarksVal);
+    setHistorySummary(summary);
+    setLoadReport(load);
+    setInsightReport(insights);
+    setTodayStatus(ts);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -858,7 +869,7 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
@@ -935,7 +946,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, undefined, undefined, exerciseSummaries);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, undefined, undefined, exerciseSummaries, adaptiveModifier ?? undefined);
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
