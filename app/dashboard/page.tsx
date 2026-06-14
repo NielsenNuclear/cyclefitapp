@@ -106,6 +106,9 @@ import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapaci
 import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
+import { OvulationEstimateCard }   from "@/components/dashboard/OvulationEstimateCard";
+import { TrainingWindowCard }      from "@/components/dashboard/TrainingWindowCard";
+import { RecoveryWindowCard }      from "@/components/dashboard/RecoveryWindowCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
 import {
   computeRecoveryScore,
@@ -983,6 +986,9 @@ export default function DashboardPage() {
           ovulationEstimate={ovulationEstimate}
           cycleHealthReport={cycleHealthReport}
         />
+        <OvulationEstimateCard estimate={ovulationEstimate} />
+        <TrainingWindowCard    window={primeTrainingWindow} />
+        <RecoveryWindowCard    window={recoveryWindow} />
         <AdaptiveInsightsCard insights={adaptiveInsights} />
         <RecoveryIntelligenceCard
           recoveryScore={recoveryScore}
