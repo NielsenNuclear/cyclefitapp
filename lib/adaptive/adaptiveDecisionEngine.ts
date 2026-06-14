@@ -169,19 +169,39 @@ export function computeAdaptiveModifier(input: AdaptiveEngineInput): AdaptiveMod
     rationale.push("Recovery debt critical or high/accumulating — volume capped");
   }
 
-  // Layer 6 — recovery strategy learning: adjust based on what actually restores this user
+  // Layer 6 — recovery strategy learning: adjust based on what actually restores this user.
+  // Early learning: partial-weight signals fire from the first scored entry so new users
+  // are not locked out of this layer for weeks. earlyWeight ramps 0 → 1 over 3 entries.
   for (const s of (input.strategyOutcomes ?? [])) {
-    if (s.verdict === "ineffective" && s.strategy === "deload_week") {
-      // Deload weeks haven't improved this user's recovery — raise volume floor
+    if (s.sampleSize === 0) continue;
+    const earlyWeight = Math.min(1.0, s.sampleSize / 3);
+
+    if (s.strategy === "deload_week" && s.successRate <= 0.35) {
+      // Deload weeks haven't improved this user's recovery — raise volume floor.
+      // Full floor (0.85) at verdict=ineffective; partial floor during early learning.
       if (volume < 0.90) {
-        volume = Math.max(volume, 0.85);
-        rationale.push("Deload weeks have not improved recovery — volume floor raised");
+        const floor = s.verdict === "ineffective" ? 0.85 : 0.70 + earlyWeight * 0.15;
+        volume = Math.max(volume, floor);
+        rationale.push(
+          s.verdict === "ineffective"
+            ? "Deload weeks have not improved recovery — volume floor raised"
+            : "Deload weeks showing limited recovery benefit (early data)",
+        );
       }
     }
-    if (s.verdict === "effective" && s.strategy === "rest_day" && volume < 1.0) {
-      // Rest days reliably help this user — apply a small additional volume reduction
-      volume = Math.max(volume - 0.03, 0.70);
-      rationale.push("Rest days reliably support this user's recovery");
+
+    if (s.strategy === "rest_day" && s.successRate >= 0.65 && volume < 1.0) {
+      // Rest days reliably help this user — apply a small additional volume reduction.
+      // Full effect at verdict=effective; partial during early learning.
+      const reduction = s.verdict === "effective" ? 0.03 : 0.03 * earlyWeight;
+      if (reduction > 0) {
+        volume = Math.max(volume - reduction, 0.70);
+        rationale.push(
+          s.verdict === "effective"
+            ? "Rest days reliably support this user's recovery"
+            : "Rest days showing recovery benefit (early data)",
+        );
+      }
     }
   }
 

@@ -182,6 +182,12 @@ import {
   getRecoveryStrategyOutcomes,
   type RecoveryStrategyOutcome,
 } from "@/lib/recovery/recoveryLearning";
+import {
+  computePersonalizationProgress,
+  type PersonalizationProgress,
+} from "@/lib/adaptive/personalizationProgress";
+import { PersonalizationCard }  from "@/components/dashboard/PersonalizationCard";
+import { WhatAxisLearnedCard }  from "@/components/dashboard/WhatAxisLearnedCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -428,12 +434,13 @@ export default function DashboardPage() {
   } = useProgressionData();
 
   const {
-    recommendation,       setRecommendation,
-    adaptiveModifier,     setAdaptiveModifier,
-    adaptiveInsights,     setAdaptiveInsights,
-    interventionOutcomes, setInterventionOutcomes,
-    calibrationFactors,   setCalibrationFactors,
-    coachingMemory,       setCoachingMemory,
+    recommendation,          setRecommendation,
+    adaptiveModifier,        setAdaptiveModifier,
+    adaptiveInsights,        setAdaptiveInsights,
+    interventionOutcomes,    setInterventionOutcomes,
+    calibrationFactors,      setCalibrationFactors,
+    coachingMemory,          setCoachingMemory,
+    personalizationProgress, setPersonalizationProgress,
   } = useAdaptiveData();
 
   const {
@@ -833,6 +840,16 @@ export default function DashboardPage() {
     setAdaptiveModifier(adaptiveModifierVal);
     setAdaptiveInsights(generateAdaptiveInsights(adaptiveInput));
 
+    // Personalization progress — synthesises all learning signals into a single readout
+    setPersonalizationProgress(computePersonalizationProgress({
+      periodHistory:      periodHistoryVal,
+      patternConfidences: patternConfidencesVal,
+      readinessHistory:   fullRdxHistory,
+      physiologyHistory:  physiologyHistoryVal,
+      strategyOutcomes:   getRecoveryStrategyOutcomes(),
+      calibrationFactors: calibrationFactorsVal,
+    }));
+
     const wkt = runWorkoutPipeline(
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
@@ -1022,6 +1039,14 @@ export default function DashboardPage() {
         <TrainingWindowCard    window={primeTrainingWindow} />
         <RecoveryWindowCard    window={recoveryWindow} />
         <AdaptiveInsightsCard insights={adaptiveInsights} />
+        <PersonalizationCard progress={personalizationProgress} />
+        <WhatAxisLearnedCard
+          fingerprint={physiologyFingerprint}
+          patternConfidences={patternConfidences}
+          recoveryCapacity={recoveryCapacity}
+          personalWeights={personalWeights}
+          personalizationProgress={personalizationProgress}
+        />
         <RecoveryIntelligenceCard
           recoveryScore={recoveryScore}
           recoveryTrend={recoveryTrend}
