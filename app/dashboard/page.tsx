@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useCycleData }       from "@/hooks/useCycleData";
+import { useReadinessData }   from "@/hooks/useReadinessData";
+import { useRecoveryData }    from "@/hooks/useRecoveryData";
+import { useProgressionData } from "@/hooks/useProgressionData";
+import { useAdaptiveData }    from "@/hooks/useAdaptiveData";
+import { useWorkoutData }     from "@/hooks/useWorkoutData";
 
 import type { OnboardingData } from "@/lib/onboarding-types";
 import type { AdaptiveProfile } from "@/lib/adaptive-profile";
@@ -355,67 +361,90 @@ const ENV_STORAGE_KEY = "axis_training_env";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [recommendation, setRecommendation]       = useState<DailyRecommendation | null>(null);
-  const [workout, setWorkout]                     = useState<GeneratedWorkout | null>(null);
-  const [historySummary, setHistorySummary]       = useState<WorkoutHistorySummary | null>(null);
-  const [loadReport, setLoadReport]               = useState<TrainingLoadReport | null>(null);
-  const [insightReport, setInsightReport]         = useState<InsightReport | null>(null);
-  const [todayStatus, setTodayStatus]             = useState<WorkoutCompletionStatus>("pending");
-  const [checkinComplete, setCheckinComplete]     = useState(false);
-  const [isRecalculating, setIsRecalculating]     = useState(false);
-  const [environment, setEnvironment]             = useState<TrainingEnvironment>("gym");
-  const [progressionProfile, setProgressionProfile] = useState<ProgressionProfile | null>(null);
-  const [coachingAdjustment, setCoachingAdjustment] = useState<CoachingAdjustment | null>(null);
-  const [readinessScore, setReadinessScore]         = useState<ReadinessScore | null>(null);
-  const [readinessTrend, setReadinessTrend]         = useState<ReadinessTrend>("insufficient_data");
-  const [readinessHistory, setReadinessHistory]     = useState<ReadinessHistoryEntry[]>([]);
-  const [todaySymptoms, setTodaySymptoms]           = useState<SymptomEntry[]>([]);
-  const [learnedPatterns, setLearnedPatterns]       = useState<LearnedPattern[]>([]);
-  const [cycleForecast, setCycleForecast]           = useState<CycleForecast>({ symptomEvents: [], readinessDays: [] });
-  const [showFeedback, setShowFeedback]             = useState<boolean>(false);
-  const [accuracyReport, setAccuracyReport]         = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
-  const [exerciseSummaries, setExerciseSummaries]   = useState<ExerciseProgressSummary[]>([]);
-  const [coachingMemory, setCoachingMemory]         = useState<CoachingMemoryItem[]>([]);
-  const [weeklyPlan, setWeeklyPlan]                 = useState<WeeklyPlan | null>(null);
-  const [trainingBlock, setTrainingBlock]           = useState<TrainingBlock | null>(null);
-  const [overloadRec, setOverloadRec]               = useState<OverloadRecommendation | null>(null);
-  const [deloadRec, setDeloadRec]                   = useState<DeloadRecommendation | null>(null);
-  const [recoveryCapacity, setRecoveryCapacity]     = useState<RecoveryCapacity | null>(null);
-  const [periodizedCalendar, setPeriodizedCalendar] = useState<PeriodizedCalendar | null>(null);
-  const [coachView, setCoachView]                   = useState<CoachView | null>(null);
-  const [calibrationFactors, setCalibrationFactors] = useState<CalibrationFactors | null>(null);
-  const [volumeLandmarks, setVolumeLandmarks]       = useState<VolumeLandmarkReport | null>(null);
-  const [cycleAccuracy, setCycleAccuracy]           = useState<CycleAccuracyReport | null>(null);
-  const [ovulationEstimate, setOvulationEstimate]   = useState<OvulationEstimate | null>(null);
-  const [symptomTimeline, setSymptomTimeline]       = useState<SymptomTimeline | null>(null);
-  const [symptomClusters, setSymptomClusters]       = useState<SymptomCluster[]>([]);
-  const [primeTrainingWindow, setPrimeTrainingWindow] = useState<TrainingWindow | null>(null);
-  const [recoveryWindow, setRecoveryWindow]           = useState<RecoveryWindow | null>(null);
-  const [performanceProfile, setPerformanceProfile]   = useState<PersonalPerformanceProfile | null>(null);
-  const [cycleHealthReport, setCycleHealthReport]     = useState<CycleHealthReport | null>(null);
-  const [progressionTargets, setProgressionTargets]   = useState<ProgressionTarget[]>([]);
-  const [exerciseMastery, setExerciseMastery]         = useState<ExerciseMasteryEntry[]>([]);
-  const [performanceTrends, setPerformanceTrends]     = useState<PerformanceTrend[]>([]);
-  const [plateauInterventions, setPlateauInterventions] = useState<PlateauIntervention[]>([]);
-  const [mesocycle, setMesocycle]                       = useState<Mesocycle | null>(null);
-  const [weeklyPrescription, setWeeklyPrescription]     = useState<WeeklyProgressionPrescription | null>(null);
-  const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
-  const [patternConfidences, setPatternConfidences]       = useState<PatternConfidence[]>([]);
-  const [personalWeights, setPersonalWeights]             = useState<PersonalWeights | null>(null);
-  const [interventionOutcomes, setInterventionOutcomes]   = useState<InterventionOutcome[]>([]);
-  const [adaptiveModifier, setAdaptiveModifier]           = useState<AdaptiveModifier | null>(null);
-  const [adaptiveInsights, setAdaptiveInsights]           = useState<AdaptiveInsight[]>([]);
-  const [recoveryScore, setRecoveryScore]                 = useState<RecoveryScore | null>(null);
-  const [recoveryTrend, setRecoveryTrend]                 = useState<RecoveryTrend | null>(null);
-  const [recoveryDebt, setRecoveryDebt]                   = useState<RecoveryDebt | null>(null);
-  const [burnoutRisk, setBurnoutRisk]                     = useState<BurnoutRisk | null>(null);
-  const [symptomEscalations, setSymptomEscalations]       = useState<SymptomEscalationEntry[]>([]);
-  const [healthTrend, setHealthTrend]                     = useState<HealthTrend | null>(null);
-  const [recoveryPlan, setRecoveryPlan]                   = useState<RecoveryPlan | null>(null);
-  const [strategyOutcomes, setStrategyOutcomes]           = useState<RecoveryStrategyOutcome[]>([]);
-  const onboardingRef  = useRef<OnboardingData | null>(null);
-  const profileRef     = useRef<AdaptiveProfile | null>(null);
-  const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
+
+  // ── UI state ─────────────────────────────────────────────────────────────────
+  const [checkinComplete, setCheckinComplete] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
+
+  // ── Mutable refs (not reactive) ───────────────────────────────────────────────
+  const onboardingRef = useRef<OnboardingData | null>(null);
+  const profileRef    = useRef<AdaptiveProfile | null>(null);
+  const adjustmentRef = useRef<CoachingAdjustment | null>(null);
+
+  // ── Domain state hooks ────────────────────────────────────────────────────────
+  const {
+    cycleAccuracy,       setCycleAccuracy,
+    cycleHealthReport,   setCycleHealthReport,
+    ovulationEstimate,   setOvulationEstimate,
+    symptomTimeline,     setSymptomTimeline,
+    symptomClusters,     setSymptomClusters,
+    primeTrainingWindow, setPrimeTrainingWindow,
+    recoveryWindow,      setRecoveryWindow,
+    performanceProfile,  setPerformanceProfile,
+    learnedPatterns,     setLearnedPatterns,
+    cycleForecast,       setCycleForecast,
+    patternConfidences,  setPatternConfidences,
+  } = useCycleData();
+
+  const {
+    readinessScore,        setReadinessScore,
+    readinessTrend,        setReadinessTrend,
+    readinessHistory,      setReadinessHistory,
+    todaySymptoms,         setTodaySymptoms,
+    showFeedback,          setShowFeedback,
+    accuracyReport,        setAccuracyReport,
+    physiologyFingerprint, setPhysiologyFingerprint,
+    personalWeights,       setPersonalWeights,
+  } = useReadinessData();
+
+  const {
+    recoveryScore,      setRecoveryScore,
+    recoveryTrend,      setRecoveryTrend,
+    recoveryDebt,       setRecoveryDebt,
+    burnoutRisk,        setBurnoutRisk,
+    recoveryCapacity,   setRecoveryCapacity,
+    healthTrend,        setHealthTrend,
+    recoveryPlan,       setRecoveryPlan,
+    strategyOutcomes,   setStrategyOutcomes,
+    symptomEscalations, setSymptomEscalations,
+  } = useRecoveryData();
+
+  const {
+    progressionProfile,   setProgressionProfile,
+    coachingAdjustment,   setCoachingAdjustment,
+    progressionTargets,   setProgressionTargets,
+    exerciseMastery,      setExerciseMastery,
+    performanceTrends,    setPerformanceTrends,
+    plateauInterventions, setPlateauInterventions,
+    weeklyPlan,           setWeeklyPlan,
+    trainingBlock,        setTrainingBlock,
+    overloadRec,          setOverloadRec,
+    deloadRec,            setDeloadRec,
+    volumeLandmarks,      setVolumeLandmarks,
+    mesocycle,            setMesocycle,
+    weeklyPrescription,   setWeeklyPrescription,
+    periodizedCalendar,   setPeriodizedCalendar,
+    coachView,            setCoachView,
+  } = useProgressionData();
+
+  const {
+    recommendation,       setRecommendation,
+    adaptiveModifier,     setAdaptiveModifier,
+    adaptiveInsights,     setAdaptiveInsights,
+    interventionOutcomes, setInterventionOutcomes,
+    calibrationFactors,   setCalibrationFactors,
+    coachingMemory,       setCoachingMemory,
+  } = useAdaptiveData();
+
+  const {
+    workout,           setWorkout,
+    historySummary,    setHistorySummary,
+    loadReport,        setLoadReport,
+    insightReport,     setInsightReport,
+    todayStatus,       setTodayStatus,
+    exerciseSummaries, setExerciseSummaries,
+  } = useWorkoutData();
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
