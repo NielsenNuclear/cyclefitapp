@@ -20,6 +20,12 @@ interface ActualData {
   completedSets: number;
   completedReps: string;
   actualRPE:     number;
+  weight?:       number;   // kg; absent = bodyweight
+}
+
+function parseReps(repsStr: string): number {
+  const n = parseInt(repsStr, 10);
+  return isNaN(n) ? 0 : n;
 }
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
@@ -165,6 +171,22 @@ function ActiveExerciseRow({
           />
         </div>
 
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">kg</span>
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            placeholder="—"
+            value={actual.weight ?? ""}
+            onChange={e => {
+              const v = e.target.value === "" ? undefined : Math.max(0, Number(e.target.value));
+              onChange({ ...actual, weight: v });
+            }}
+            className={`w-14 ${inputCls}`}
+          />
+        </div>
+
         {ex.rpe !== undefined && (
           <div className="flex flex-col items-center gap-0.5">
             <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">RPE</span>
@@ -282,15 +304,21 @@ export function WorkoutCard({
 
   function buildLog(status: "completed" | "partial"): LoggedWorkout {
     const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
-    const exercises: LoggedExercise[] = workout.exercises.map((ex, i) => ({
-      exerciseName:   ex.name,
-      prescribedSets: ex.sets,
-      completedSets:  actuals[i]?.completedSets ?? ex.sets,
-      prescribedReps: ex.reps,
-      completedReps:  actuals[i]?.completedReps ?? ex.reps,
-      prescribedRPE:  ex.rpe ?? 0,
-      actualRPE:      actuals[i]?.actualRPE ?? (ex.rpe ?? 0),
-    }));
+    const exercises: LoggedExercise[] = workout.exercises.map((ex, i) => {
+      const a = actuals[i];
+      const repsStr = a?.completedReps ?? ex.reps;
+      return {
+        exerciseName:   ex.name,
+        prescribedSets: ex.sets,
+        completedSets:  a?.completedSets ?? ex.sets,
+        prescribedReps: ex.reps,
+        completedReps:  repsStr,
+        prescribedRPE:  ex.rpe ?? 0,
+        actualRPE:      a?.actualRPE ?? (ex.rpe ?? 0),
+        weight:         a?.weight,
+        actualReps:     parseReps(repsStr) || undefined,
+      };
+    });
     return { id: today, date: today, workoutName: workout.workoutName, completionStatus: status, exercises, durationMinutes, overallDifficulty };
   }
 

@@ -15,6 +15,8 @@ export interface LoggedExercise {
   completedReps:  string;
   prescribedRPE:  number;  // 0 = not applicable (mobility)
   actualRPE:      number;  // 0 = not applicable
+  weight?:        number;  // kg — 0 or absent = bodyweight
+  actualReps?:    number;  // numeric rep count (first number from completedReps string)
 }
 
 export interface LoggedWorkout {
