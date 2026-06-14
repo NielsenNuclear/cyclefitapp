@@ -107,6 +107,14 @@ import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCale
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
+import {
+  recordPhysiologyEntry,
+  getPhysiologyHistory,
+  buildPhysiologyFingerprint,
+  type PhysiologyFingerprint,
+} from "@/lib/adaptive/physiologyMemory";
+import { getWorkoutFeedback }       from "@/lib/workoutExecution/feedback";
+import { toCyclePhaseName }         from "@/lib/cycle/cycleUtils";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -327,6 +335,7 @@ export default function DashboardPage() {
   const [plateauInterventions, setPlateauInterventions] = useState<PlateauIntervention[]>([]);
   const [mesocycle, setMesocycle]                       = useState<Mesocycle | null>(null);
   const [weeklyPrescription, setWeeklyPrescription]     = useState<WeeklyProgressionPrescription | null>(null);
+  const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -417,9 +426,34 @@ export default function DashboardPage() {
     });
     setReadinessScore(readiness);
     saveReadiness(readiness.score, readiness.category, readiness.contributors);
+
+    // Record today's physiology snapshot for adaptive memory
+    const todayWorkoutStatus = rawHistory.find(e => e.id === todayStr)?.status ?? "pending";
+    const todayFeedback      = getWorkoutFeedback(todayStr);
+    const recoveryStateVal   =
+      readiness.category === "optimal" || readiness.category === "ready"
+        ? ("optimal" as const)
+        : readiness.category === "moderate"
+          ? ("adequate" as const)
+          : ("compromised" as const);
+    recordPhysiologyEntry({
+      date:             todayStr,
+      cycleDay:         phase.cycleDay,
+      phase:            toCyclePhaseName(phase.cycleDay, user.cycleLength),
+      readiness:        readiness.score,
+      energy:           readiness.contributors?.energy ?? null,
+      symptoms:         todaySymptomsVal.map(s => s.symptomId),
+      workoutCompleted: todayWorkoutStatus === "completed" || todayWorkoutStatus === "partially_completed",
+      workoutQuality:   todayFeedback?.sessionRPE ?? null,
+      recoveryState:    recoveryStateVal,
+    });
+
     const fullRdxHistory = getReadinessHistory();
     setReadinessTrend(getReadinessTrend());
     setReadinessHistory(fullRdxHistory.slice(0, 7));
+    const physiologyHistoryVal = getPhysiologyHistory();
+    setPhysiologyFingerprint(buildPhysiologyFingerprint(physiologyHistoryVal));
+
     const periodHistoryVal     = getPeriodHistory();
     const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, user.cycleLength);
     setOvulationEstimate(ovulationEstimateVal);
