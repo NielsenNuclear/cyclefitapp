@@ -166,6 +166,12 @@ import {
   buildRecoveryPlan,
   type RecoveryPlan,
 } from "@/lib/recovery/recoveryPlanning";
+import {
+  logRecoveryStrategy,
+  scoreRecoveryStrategies,
+  getRecoveryStrategyOutcomes,
+  type RecoveryStrategyOutcome,
+} from "@/lib/recovery/recoveryLearning";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -399,6 +405,7 @@ export default function DashboardPage() {
   const [symptomEscalations, setSymptomEscalations]       = useState<SymptomEscalationEntry[]>([]);
   const [healthTrend, setHealthTrend]                     = useState<HealthTrend | null>(null);
   const [recoveryPlan, setRecoveryPlan]                   = useState<RecoveryPlan | null>(null);
+  const [strategyOutcomes, setStrategyOutcomes]           = useState<RecoveryStrategyOutcome[]>([]);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -535,7 +542,7 @@ export default function DashboardPage() {
     const personalWeightsVal = buildPersonalWeights(fullRdxHistory, getSymptomHistory());
     setPersonalWeights(personalWeightsVal);
 
-    // Score yesterday's interventions now that today's readiness is known
+    // Score yesterday's interventions + recovery strategies now that today's data is known
     const yesterdayReadiness = fullRdxHistory[1]?.score;
     if (yesterdayReadiness !== undefined) {
       const yesterdayStr = (() => {
@@ -548,6 +555,16 @@ export default function DashboardPage() {
         readiness.score,
         yesterdayReadiness,
         yStatus === "completed" || yStatus === "partially_completed",
+        todayStr,
+      );
+      const allScores = getRecoveryScores().sort((a, b) => a.date.localeCompare(b.date));
+      const yesterdayRecovery = allScores.find(s => s.date === yesterdayStr)?.score ?? recoveryScoreVal.score;
+      scoreRecoveryStrategies(
+        yesterdayStr,
+        recoveryScoreVal.score,
+        yesterdayRecovery,
+        readiness.score,
+        yesterdayReadiness,
         todayStr,
       );
     }
@@ -699,6 +716,16 @@ export default function DashboardPage() {
     }));
     if (deloadRecVal.needed) {
       logIntervention("deload", deloadRecVal.rationale, todayStr);
+      logRecoveryStrategy("deload_week", todayStr);
+    }
+    if (effectiveUser.sleepQuality === "excellent") {
+      logRecoveryStrategy("sleep_focus", todayStr);
+    }
+    if (effectiveUser.stressLevel <= 3) {
+      logRecoveryStrategy("stress_reduction", todayStr);
+    }
+    if (!todayWorkoutDone && !deloadRecVal.needed) {
+      logRecoveryStrategy("rest_day", todayStr);
     }
     if (overloadRecVal.decision !== "maintain") {
       logIntervention(
@@ -752,6 +779,7 @@ export default function DashboardPage() {
     setTodayStatus(ts);
     const interventionOutcomesVal = getInterventionOutcomes();
     setInterventionOutcomes(interventionOutcomesVal);
+    setStrategyOutcomes(getRecoveryStrategyOutcomes());
 
     // Adaptive Decision Engine — synthesise all four layers + recovery intelligence
     const adaptiveInput = {
@@ -953,6 +981,7 @@ export default function DashboardPage() {
           healthTrend={healthTrend}
           recoveryPlan={recoveryPlan}
           symptomEscalations={symptomEscalations}
+          strategyOutcomes={strategyOutcomes}
         />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <CoachViewCard view={coachView} />

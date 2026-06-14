@@ -14,6 +14,8 @@ import type {
   BurnoutLevel,
   RecoveryTrendStatus,
 } from "@/lib/recovery/recoveryTypes";
+import type { RecoveryStrategyOutcome } from "@/lib/recovery/recoveryLearning";
+import { strategyLabel }                from "@/lib/recovery/recoveryLearning";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,7 @@ interface RecoveryIntelligenceCardProps {
   healthTrend:        HealthTrend | null;
   recoveryPlan:       RecoveryPlan | null;
   symptomEscalations: SymptomEscalationEntry[];
+  strategyOutcomes?:  RecoveryStrategyOutcome[];
 }
 
 // ─── Colour maps ──────────────────────────────────────────────────────────────
@@ -313,6 +316,38 @@ function DebtAndStrainSection({
   );
 }
 
+function StrategySection({ outcomes }: { outcomes: RecoveryStrategyOutcome[] }) {
+  const notable = outcomes.filter(o => o.verdict !== "uncertain");
+  if (notable.length === 0) return null;
+
+  return (
+    <div>
+      <SectionLabel>What works for you</SectionLabel>
+      <div className="space-y-1.5">
+        {notable.map(o => (
+          <div key={o.strategy} className="flex items-center justify-between">
+            <span className="text-[11px] text-gray-700">{strategyLabel(o.strategy)}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 tabular-nums">
+                {Math.round(o.successRate * 100)}% · {o.sampleSize}×
+              </span>
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  o.verdict === "effective"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {o.verdict === "effective" ? "Helps" : "Unclear"}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main card ────────────────────────────────────────────────────────────────
 
 export function RecoveryIntelligenceCard({
@@ -323,6 +358,7 @@ export function RecoveryIntelligenceCard({
   healthTrend,
   recoveryPlan,
   symptomEscalations,
+  strategyOutcomes = [],
 }: RecoveryIntelligenceCardProps) {
   if (!recoveryScore) return null;
 
@@ -376,6 +412,14 @@ export function RecoveryIntelligenceCard({
           <>
             <Divider />
             <DebtAndStrainSection debt={recoveryDebt} burnout={burnoutRisk} />
+          </>
+        )}
+
+        {/* Strategy learning */}
+        {strategyOutcomes.length > 0 && (
+          <>
+            <Divider />
+            <StrategySection outcomes={strategyOutcomes} />
           </>
         )}
       </div>
