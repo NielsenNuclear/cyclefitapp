@@ -157,6 +157,10 @@ import {
   detectSymptomEscalation,
   type SymptomEscalationEntry,
 } from "@/lib/recovery/symptomEscalation";
+import {
+  buildHealthTrend,
+  type HealthTrend,
+} from "@/lib/recovery/healthTrendAnalysis";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -388,6 +392,7 @@ export default function DashboardPage() {
   const [recoveryDebt, setRecoveryDebt]                   = useState<RecoveryDebt | null>(null);
   const [burnoutRisk, setBurnoutRisk]                     = useState<BurnoutRisk | null>(null);
   const [symptomEscalations, setSymptomEscalations]       = useState<SymptomEscalationEntry[]>([]);
+  const [healthTrend, setHealthTrend]                     = useState<HealthTrend | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -556,11 +561,12 @@ export default function DashboardPage() {
       getSymptomHistory(), periodHistoryVal, user.cycleLength,
     );
     setPatternConfidences(patternConfidencesVal);
-    setSymptomEscalations(detectSymptomEscalation({
+    const symptomEscalationsVal = detectSymptomEscalation({
       symptomHistory: getSymptomHistory(),
       periodHistory:  periodHistoryVal,
       cycleLength:    user.cycleLength,
-    }));
+    });
+    setSymptomEscalations(symptomEscalationsVal);
     setPerformanceProfile(buildPerformanceProfile({
       readinessHistory:  fullRdxHistory,
       periodHistory:     periodHistoryVal,
@@ -660,12 +666,19 @@ export default function DashboardPage() {
       isDeloadWeek:     deloadRecVal.needed,
     });
     setRecoveryDebt(recoveryDebtVal);
-    setBurnoutRisk(computeBurnoutRisk({
+    const burnoutRiskVal = computeBurnoutRisk({
       readinessHistory: fullRdxHistory.slice(0, 28),
       workoutHistory:   rawHistory,
       symptomHistory:   getSymptomHistory(),
       recoveryDebt:     recoveryDebtVal,
       loadReport:       prelimLoad,
+    });
+    setBurnoutRisk(burnoutRiskVal);
+    setHealthTrend(buildHealthTrend({
+      recoveryTrend:      computeRecoveryTrend(getRecoveryScores()),
+      recoveryDebt:       recoveryDebtVal,
+      burnoutRisk:        burnoutRiskVal,
+      symptomEscalations: symptomEscalationsVal,
     }));
     if (deloadRecVal.needed) {
       logIntervention("deload", deloadRecVal.rationale, todayStr);
