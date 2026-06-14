@@ -108,6 +108,11 @@ import { CoachViewCard }             from "@/components/dashboard/CoachViewCard"
 import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
 import {
+  computeRecoveryScore,
+  getRecoveryScores,
+  type RecoveryScore,
+} from "@/lib/recovery/recoveryScore";
+import {
   recordPhysiologyEntry,
   getPhysiologyHistory,
   buildPhysiologyFingerprint,
@@ -362,6 +367,7 @@ export default function DashboardPage() {
   const [interventionOutcomes, setInterventionOutcomes]   = useState<InterventionOutcome[]>([]);
   const [adaptiveModifier, setAdaptiveModifier]           = useState<AdaptiveModifier | null>(null);
   const [adaptiveInsights, setAdaptiveInsights]           = useState<AdaptiveInsight[]>([]);
+  const [recoveryScore, setRecoveryScore]                 = useState<RecoveryScore | null>(null);
   const onboardingRef  = useRef<OnboardingData | null>(null);
   const profileRef     = useRef<AdaptiveProfile | null>(null);
   const adjustmentRef  = useRef<CoachingAdjustment | null>(null);
@@ -450,6 +456,16 @@ export default function DashboardPage() {
       accuracyReport:    getAccuracyReport(),
     });
     setCoachingMemory(coachingMemoryVal);
+    const recoveryScoreVal = computeRecoveryScore({
+      date:         todayStr,
+      sleepQuality: effectiveUser.sleepQuality as "excellent" | "good" | "variable" | "poor",
+      stressLevel:  effectiveUser.stressLevel,
+      symptoms:     todaySymptomsVal,
+      loadReport:   prelimLoad,
+      cyclePhase:   toCyclePhaseName(phase.cycleDay, user.cycleLength),
+    });
+    setRecoveryScore(recoveryScoreVal);
+
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
       progressionProfile: prog, adaptiveProfile: profile,
