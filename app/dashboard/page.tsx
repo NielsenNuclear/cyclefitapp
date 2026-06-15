@@ -198,6 +198,18 @@ import {
   getNutritionOutcomes,
 } from "@/lib/nutrition/nutritionLearning";
 import { FuelingCard }                   from "@/components/dashboard/FuelingCard";
+import { useRecoveryOptimizationData }  from "@/hooks/useRecoveryOptimizationData";
+import { usePerformanceData }           from "@/hooks/usePerformanceData";
+import { logRecoveryResponse, scoreRecoveryResponses } from "@/lib/recovery/recoveryResponse";
+import { computeRecoveryEffectiveness } from "@/lib/recovery/recoveryEffectiveness";
+import { computeRecoveryForecast }      from "@/lib/recovery/recoveryForecast";
+import { computePerformancePotential }  from "@/lib/performance/performancePotential";
+import { computeRiskPrediction }        from "@/lib/performance/riskPrediction";
+import { computeReadinessForecast }     from "@/lib/performance/readinessForecast";
+import { computeStrategyPrediction }    from "@/lib/performance/strategyPrediction";
+import { detectOpportunity }            from "@/lib/performance/opportunityDetection";
+import { RecoveryOptimizationCard }     from "@/components/dashboard/RecoveryOptimizationCard";
+import { PerformanceForecastCard }      from "@/components/dashboard/PerformanceForecastCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -469,6 +481,19 @@ export default function DashboardPage() {
     nutritionOutcomes,    setNutritionOutcomes,
   } = useNutritionData();
 
+  const {
+    recoveryEffectiveness, setRecoveryEffectiveness,
+    recoveryForecast,      setRecoveryForecast,
+  } = useRecoveryOptimizationData();
+
+  const {
+    performancePotential,   setPerformancePotential,
+    trainingRisk,           setTrainingRisk,
+    readinessForecast,      setReadinessForecast,
+    strategyPrediction,     setStrategyPrediction,
+    performanceOpportunity, setPerformanceOpportunity,
+  } = usePerformanceData();
+
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
     if (!raw) {
@@ -630,6 +655,7 @@ export default function DashboardPage() {
         todayStr,
       );
       scoreNutritionDay(yesterdayStr, readiness.score, todayStr);
+      scoreRecoveryResponses(yesterdayStr, readiness.score, todayStr);
     }
 
     const ovulationEstimateVal = estimateOvulation(periodHistoryVal, fullRdxHistory, effectiveCycleLength);
@@ -681,6 +707,7 @@ export default function DashboardPage() {
       recentFeedback:   getAllFeedback().filter(f => f.date >= thirtyDaysAgoStr),
       recentSymptoms:   getSymptomHistory().filter(s => s.date >= thirtyDaysAgoStr),
       recoveryPatterns: getRecoveryResponsePatterns(),
+      today:            todayStr,
     });
     setRecoveryCapacity(recoveryCapacityVal);
     const weeklyPlanVal = computeWeeklyPlan({
@@ -795,6 +822,13 @@ export default function DashboardPage() {
         todayStr,
       );
     }
+    // Phase 25A: log inferred recovery modalities alongside broad strategies
+    if (effectiveUser.sleepQuality === "excellent") {
+      logRecoveryResponse("sleep", readiness.score, todayStr);
+    }
+    if (!todayWorkoutDone && !deloadRecVal.needed) {
+      logRecoveryResponse("complete_rest", readiness.score, todayStr);
+    }
     const capacityProfile = (recoveryCapacityVal.confidence !== "early")
       ? applyCapacityModifier(prog, recoveryCapacityVal)
       : prog;
@@ -887,6 +921,29 @@ export default function DashboardPage() {
     setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsVal.fuelingLevel));
     setNutritionAdjustments(getSymptomNutritionAdjustments(todaySymptomsVal));
     setNutritionOutcomes(getNutritionOutcomes());
+
+    // ── Phase 25: Recovery Optimization ──────────────────────────────────────
+    setRecoveryEffectiveness(computeRecoveryEffectiveness(getRecoveryStrategyOutcomes()));
+    setRecoveryForecast(computeRecoveryForecast(recoveryDebtVal, burnoutRiskVal, recoveryTrendNow));
+
+    // ── Phase 26: Performance Prediction ─────────────────────────────────────
+    const meanSymSev = todaySymptomsVal.length > 0
+      ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
+      : 0;
+    setPerformancePotential(computePerformancePotential(
+      readiness.score, phase.name, recoveryDebtVal.debtScore, burnoutRiskVal.score, recoveryCapacityVal.level,
+    ));
+    setTrainingRisk(computeRiskPrediction(
+      recoveryDebtVal, burnoutRiskVal, recoveryTrendNow, symptomEscalationsVal, phase.name, cycleForecastVal.symptomEvents,
+    ));
+    const readinessForecastVal = computeReadinessForecast(
+      readiness.score, recoveryTrendNow.slope7d, cycleForecastVal.readinessDays, recoveryDebtVal.trend, fullRdxHistory.length,
+    );
+    setReadinessForecast(readinessForecastVal);
+    setStrategyPrediction(computeStrategyPrediction(readiness.score, phase.name, recoveryDebtVal.debtScore, meanSymSev));
+    setPerformanceOpportunity(detectOpportunity(
+      readinessForecastVal, cycleForecastVal.readinessDays, phase.name, recoveryDebtVal.category, primeWindowVal, phase.cycleDay,
+    ));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -960,6 +1017,31 @@ export default function DashboardPage() {
     setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsCheckin.fuelingLevel));
     setNutritionAdjustments(getSymptomNutritionAdjustments(todaySymptomsVal));
     setNutritionOutcomes(getNutritionOutcomes());
+    // Phase 25+26 recompute after check-in (symptoms and readiness changed)
+    setRecoveryEffectiveness(computeRecoveryEffectiveness(getRecoveryStrategyOutcomes()));
+    const activeReadiness = newReadiness ?? readinessScore;
+    if (activeReadiness && recoveryDebt && burnoutRisk && recoveryTrend) {
+      setRecoveryForecast(computeRecoveryForecast(recoveryDebt, burnoutRisk, recoveryTrend));
+      const checkinMeanSev = todaySymptomsVal.length > 0
+        ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
+        : 0;
+      setPerformancePotential(computePerformancePotential(
+        activeReadiness.score, phase.name, recoveryDebt.debtScore, burnoutRisk.score, recoveryCapacity?.level ?? "moderate",
+      ));
+      if (symptomEscalations) {
+        setTrainingRisk(computeRiskPrediction(
+          recoveryDebt, burnoutRisk, recoveryTrend, symptomEscalations, phase.name, cycleForecast.symptomEvents,
+        ));
+      }
+      const rdxForecastCheckin = computeReadinessForecast(
+        activeReadiness.score, recoveryTrend.slope7d, cycleForecast.readinessDays, recoveryDebt.trend, getReadinessHistory().length,
+      );
+      setReadinessForecast(rdxForecastCheckin);
+      setStrategyPrediction(computeStrategyPrediction(activeReadiness.score, phase.name, recoveryDebt.debtScore, checkinMeanSev));
+      setPerformanceOpportunity(detectOpportunity(
+        rdxForecastCheckin, cycleForecast.readinessDays, phase.name, recoveryDebt.category, primeTrainingWindow, phase.cycleDay,
+      ));
+    }
     setIsRecalculating(false);
   }
 
@@ -1092,7 +1174,22 @@ export default function DashboardPage() {
           symptomEscalations={symptomEscalations}
           strategyOutcomes={strategyOutcomes}
         />
+        <RecoveryOptimizationCard
+          effectiveness={recoveryEffectiveness}
+          forecast={recoveryForecast}
+          capacity={recoveryCapacity}
+          debt={recoveryDebt}
+        />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+        <PerformanceForecastCard
+          potential={performancePotential}
+          trainingRisk={trainingRisk}
+          readinessForecast={readinessForecast}
+          strategyPrediction={strategyPrediction}
+          opportunity={performanceOpportunity}
+          primeWindow={primeTrainingWindow}
+          currentCycleDay={recommendation.phase.cycleDay}
+        />
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
         <TrainingBlockCard block={trainingBlock} />
