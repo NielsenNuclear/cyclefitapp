@@ -7,6 +7,7 @@ import type { SplitType }                                  from "./workoutSplits
 import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
 import { isCompatibleWith, findSubstitute, getExerciseSubstitutions } from "./exerciseSubstitutions";
+import { isEquipmentCompatible, findEquipmentCompatibleSubstitute } from "@/lib/equipment/equipmentCompatibility";
 import type { GoalType }                                   from "./goalBasedSelection";
 import { GOAL_PROFILES }                                   from "./goalBasedSelection";
 import type { CoachingAdjustment, ComplexityModifier }     from "@/lib/progression/progressionRules";
@@ -34,6 +35,8 @@ export interface WorkoutGenerationInput {
   // Adaptive modifier (Phase 22A) — applied as a final pass after all other scaling
   adaptiveVolumeMultiplier?:    number;   // [0.70–1.15]; defaults to 1.0
   adaptiveIntensityMultiplier?: number;   // [0.80–1.10]; defaults to 1.0
+  // Phase 27F — equipment-based filtering (overrides environment filter when non-empty)
+  userEquipment?: string[];
 }
 
 export interface WorkoutExercise {
@@ -325,6 +328,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     coachingAdjustment,
     readiness,
     exerciseSummaries,
+    userEquipment,
   } = input;
 
   // Merge progression and readiness into a single effective adjustment
@@ -339,7 +343,14 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     goalType,
   });
 
-  const resolvedExercises: Exercise[] = environment
+  const resolvedExercises: Exercise[] = (userEquipment && userEquipment.length > 0)
+    ? workoutDay.exercises.map(ex => {
+        if (isEquipmentCompatible(ex, userEquipment)) return ex;
+        const sub = findEquipmentCompatibleSubstitute(ex, userEquipment, difficulty);
+        if (sub) return sub;
+        return ex;
+      })
+    : environment
     ? workoutDay.exercises.map(ex => {
         if (isCompatibleWith(ex, environment)) return ex;
         const sub = findSubstitute(ex, environment, difficulty);

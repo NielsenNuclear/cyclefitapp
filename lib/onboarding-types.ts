@@ -40,6 +40,9 @@ export interface OnboardingData {
   // Step 10: Performance priorities
   performancePriorities: string[];
   primaryGoalDeadline: string;
+
+  // Step 11: Equipment inventory
+  equipment: string[];
 }
 
 export const EMPTY_ONBOARDING: OnboardingData = {
@@ -63,6 +66,7 @@ export const EMPTY_ONBOARDING: OnboardingData = {
   symptomSeverity: "",
   performancePriorities: [],
   primaryGoalDeadline: "",
+  equipment: [],
 };
 
 export function canAdvance(step: number, data: OnboardingData): boolean {
@@ -81,6 +85,7 @@ export function canAdvance(step: number, data: OnboardingData): boolean {
     }
     case 9:  return data.symptoms.length > 0;
     case 10: return data.performancePriorities.length > 0;
+    case 11: return true; // equipment selection is optional
     default: return true;
   }
 }
@@ -103,4 +108,5 @@ export const STEPS: StepConfig[] = [
   { id: 8,  title: "Cycle information.",             subtitle: "Cycle phase is one signal among several — not the centre of your profile.", category: "Physiology" },
   { id: 9,  title: "Symptoms that affect training.", subtitle: "Only what's relevant to performance. This is not a health form.", category: "Symptoms" },
   { id: 10, title: "What matters most to you?",      subtitle: "Your top priorities shape how the adaptive engine weights its decisions.", category: "Priorities" },
+  { id: 11, title: "What equipment do you have?",   subtitle: "Axis filters and substitutes exercises to match your setup. You can change this anytime.", category: "Equipment" },
 ];

@@ -16,6 +16,7 @@ import {
   Step8Cycle,
 } from "@/components/onboarding/Steps6to10";
 import { SymptomPreferencesPanel } from "@/components/profile/SymptomPreferencesPanel";
+import { Step11Equipment } from "@/components/onboarding/EquipmentStep";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -154,6 +155,17 @@ export default function ProfilePage() {
         <section>
           <SectionHeader title="Energy patterns" />
           <Step7Energy data={data} onChange={patch} />
+        </section>
+
+        <div className="border-t border-[#EAE7DE]" />
+
+        {/* Equipment inventory */}
+        <section>
+          <SectionHeader
+            title="Equipment"
+            subtitle="Axis filters and substitutes exercises to match your setup."
+          />
+          <Step11Equipment data={data} onChange={patch} />
         </section>
 
         <div className="border-t border-[#EAE7DE]" />

@@ -210,6 +210,10 @@ import { computeStrategyPrediction }    from "@/lib/performance/strategyPredicti
 import { detectOpportunity }            from "@/lib/performance/opportunityDetection";
 import { RecoveryOptimizationCard }     from "@/components/dashboard/RecoveryOptimizationCard";
 import { PerformanceForecastCard }      from "@/components/dashboard/PerformanceForecastCard";
+import { EquipmentInsightsCard }        from "@/components/dashboard/EquipmentInsightsCard";
+import { useEquipmentData }             from "@/hooks/useEquipmentData";
+import { getUserEquipment }             from "@/lib/equipment/equipmentProfile";
+import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -252,6 +256,7 @@ function runWorkoutPipeline(
   capacityLevel?:     CapacityLevel,
   exerciseSummaries?: ExerciseProgressSummary[],
   adaptiveModifier?:  AdaptiveModifier,
+  userEquipment?:     string[],
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -282,6 +287,7 @@ function runWorkoutPipeline(
     exerciseSummaries,
     adaptiveVolumeMultiplier:    adaptiveModifier?.volumeMultiplier,
     adaptiveIntensityMultiplier: adaptiveModifier?.intensityMultiplier,
+    userEquipment,
   });
 }
 
@@ -493,6 +499,8 @@ export default function DashboardPage() {
     strategyPrediction,     setStrategyPrediction,
     performanceOpportunity, setPerformanceOpportunity,
   } = usePerformanceData();
+
+  const { equipmentProfile, setEquipmentProfile } = useEquipmentData();
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -902,10 +910,14 @@ export default function DashboardPage() {
       calibrationFactors: calibrationFactorsVal,
     }));
 
+    // ── Phase 27: Equipment ──────────────────────────────────────────────────
+    const userEquipmentVal = getUserEquipment();
+    setEquipmentProfile(computeEquipmentProfile(userEquipmentVal));
+
     const wkt = runWorkoutPipeline(
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
-      exerciseSummariesVal, adaptiveModifierVal,
+      exerciseSummariesVal, adaptiveModifierVal, userEquipmentVal,
     );
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness, landmarksVal);
@@ -1004,7 +1016,7 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, getUserEquipment());
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
@@ -1112,7 +1124,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, getUserEquipment());
     setWorkout(wkt);
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
@@ -1190,6 +1202,7 @@ export default function DashboardPage() {
           primeWindow={primeTrainingWindow}
           currentCycleDay={recommendation.phase.cycleDay}
         />
+        {equipmentProfile && <EquipmentInsightsCard profile={equipmentProfile} />}
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
         <TrainingBlockCard block={trainingBlock} />
