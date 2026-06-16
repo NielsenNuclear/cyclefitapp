@@ -62,6 +62,11 @@ export interface Exercise {
   // compatibility is gated on owning every listed item by exact name,
   // bypassing the free-text equipment parser used for built-in exercises.
   customEquipmentRequired?: string[];
+  // Coaching content — optional; populated in exerciseCoaching.ts for key exercises.
+  // When absent the biomechanicalNote serves as the fallback coaching text.
+  instructions?:   string[];
+  coachingCues?:   string[];
+  commonMistakes?: string[];
 }
 
 // ─── UPPER PUSH — Chest / Shoulders / Triceps (28 exercises) ─────────────────

@@ -98,27 +98,102 @@ function EnvironmentSelector({
   );
 }
 
-// ─── Idle exercise row (prescription display) ─────────────────────────────────
+// ─── Idle exercise row (prescription display + expandable detail drawer) ────────
+
+function MuscleBadge({ label, primary }: { label: string; primary: boolean }) {
+  return (
+    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${
+      primary
+        ? "bg-[#F0EEF8] text-[#534AB7]"
+        : "bg-[#F5F3EE] text-[#6B6860] border border-[#E0DDD4]"
+    }`}>
+      {label}
+    </span>
+  );
+}
 
 function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div className="py-3 border-b border-[#F0EDE4] last:border-0">
-      <div className="flex items-start justify-between gap-2 mb-1.5">
-        <span className="text-[13px] font-medium text-[#1C1B18] leading-snug">{ex.name}</span>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <StatPill>{ex.sets} × {ex.reps}</StatPill>
-          {ex.rpe !== undefined && <RpePill rpe={ex.rpe} />}
+      {/* Clickable header */}
+      <button
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        className="w-full text-left"
+      >
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[9px] text-[#9B9690] flex-shrink-0 mt-0.5">
+              {expanded ? "▼" : "▶"}
+            </span>
+            <span className="text-[13px] font-medium text-[#1C1B18] leading-snug">{ex.name}</span>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <StatPill>{ex.sets} × {ex.reps}</StatPill>
+            {ex.rpe !== undefined && <RpePill rpe={ex.rpe} />}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] text-[#9B9690] font-medium uppercase tracking-wider">Rest</span>
-        <span className="text-[10px] text-[#5C5850]">{ex.rest}</span>
-        <span className="text-[#D8D4CC]">·</span>
-        <span className="text-[10px] text-[#9B9690]">{ex.exercise.equipment}</span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-[#9B9690] font-medium uppercase tracking-wider">Rest</span>
+          <span className="text-[10px] text-[#5C5850]">{ex.rest}</span>
+          <span className="text-[#D8D4CC]">·</span>
+          <span className="text-[10px] text-[#9B9690]">{ex.exercise.equipment}</span>
+        </div>
+      </button>
+
       {ex.notes && (
         <div className="mt-1.5 px-2.5 py-1.5 bg-[#FDF6EC] rounded-lg border border-[#E8C98A]">
           <p className="text-[10px] text-[#633806] leading-relaxed">{ex.notes}</p>
+        </div>
+      )}
+
+      {/* Detail drawer */}
+      {expanded && (
+        <div className="mt-3 pt-3 border-t border-[#F0EDE4] space-y-3">
+          {/* Muscles */}
+          <div>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Primary</div>
+            <div className="flex flex-wrap gap-1">
+              {ex.exercise.primaryMuscles.map(m => <MuscleBadge key={m} label={m} primary />)}
+            </div>
+          </div>
+          {ex.exercise.secondaryMuscles.length > 0 && (
+            <div>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Secondary</div>
+              <div className="flex flex-wrap gap-1">
+                {ex.exercise.secondaryMuscles.map(m => <MuscleBadge key={m} label={m} primary={false} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Meta */}
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+            <div>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690]">Pattern  </span>
+              <span className="text-[10px] text-[#5C5850]">{ex.exercise.movementPattern}</span>
+            </div>
+            <span className="text-[#D8D4CC]">·</span>
+            <div>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690]">Difficulty  </span>
+              <span className="text-[10px] text-[#5C5850]">{ex.exercise.difficulty}</span>
+            </div>
+          </div>
+
+          {/* Coach's note */}
+          <div className="px-2.5 py-2 bg-[#F5F3EE] rounded-lg">
+            <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1">Coach's note</div>
+            <p className="text-[10px] text-[#5C5850] leading-relaxed">{ex.exercise.biomechanicalNote}</p>
+          </div>
+
+          {/* Why today */}
+          {ex.rationale && (
+            <div className="px-2.5 py-2 bg-[#F3F2FD] rounded-lg border border-[#C9C5EE]">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#6B5ECC] mb-1">Why today</div>
+              <p className="text-[10px] text-[#3C3489] leading-relaxed">{ex.rationale}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
