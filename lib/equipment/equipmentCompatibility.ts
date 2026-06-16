@@ -41,9 +41,11 @@ export function deriveCompatibilityGroups(equipment: string): string[][] {
     groups.push(["t_bar_machine", "landmine"]); return groups;
   }
 
-  // Generic "Machine" with no further detail (machine-based exercises)
+  // Generic "Machine" with no further detail — plate-loaded pressing/pulling machines only.
+  // cable_machine is intentionally excluded: it has its own branch above and is not
+  // a substitute for a plate-loaded machine (e.g. hack squat, chest press machine).
   if (e === "machine") {
-    groups.push(["chest_press_machine", "pec_deck", "shoulder_press_machine", "machine_row", "cable_machine"]);
+    groups.push(["chest_press_machine", "pec_deck", "shoulder_press_machine", "machine_row"]);
     return groups;
   }
 
@@ -160,6 +162,9 @@ export function deriveCompatibilityGroups(equipment: string): string[][] {
   if (e.includes("sandbag"))        { groups.push(["sandbag"]);         return groups; }
   if (e.includes("heel wedge"))     { groups.push(["heel_wedge"]);      return groups; }
 
+  if (process.env.NODE_ENV === "development" && equipment.trim()) {
+    console.warn(`[equipmentCompatibility] Unrecognized equipment string: "${equipment}" — treating as always compatible`);
+  }
   return groups;
 }
 

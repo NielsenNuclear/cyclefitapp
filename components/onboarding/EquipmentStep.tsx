@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { OnboardingData } from "@/lib/onboarding-types";
 import {
-  EQUIPMENT_CATALOG, EQUIPMENT_PRESET_LABELS, EQUIPMENT_PRESETS,
+  EQUIPMENT_CATALOG, EQUIPMENT_PRESET_LABELS, EQUIPMENT_PRESETS, detectActivePreset,
   type EquipmentGroup, type EquipmentPreset,
 } from "@/lib/equipment/equipmentCatalog";
 
@@ -40,6 +40,7 @@ const PRESET_DESCRIPTIONS: Record<EquipmentPreset, string> = {
 export function Step11Equipment({ data, onChange }: StepProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<EquipmentGroup>>(new Set());
   const owned = new Set(data.equipment ?? []);
+  const activePreset = detectActivePreset(data.equipment ?? []);
 
   function applyPreset(preset: EquipmentPreset) {
     onChange({ equipment: [...EQUIPMENT_PRESETS[preset]] });
@@ -76,7 +77,11 @@ export function Step11Equipment({ data, onChange }: StepProps) {
             <button
               key={preset}
               onClick={() => applyPreset(preset)}
-              className="text-left p-3.5 rounded-xl border border-[#DDD9CF] bg-white hover:border-[#534AB7] hover:bg-[#F5F4FF] transition-all duration-150"
+              className={`text-left p-3.5 rounded-xl border transition-all duration-150 ${
+                activePreset === preset
+                  ? "border-[#534AB7] bg-[#F5F4FF]"
+                  : "border-[#DDD9CF] bg-white hover:border-[#534AB7] hover:bg-[#F5F4FF]"
+              }`}
             >
               <div className="text-[13px] font-semibold text-[#1C1B18] leading-tight mb-1">
                 {EQUIPMENT_PRESET_LABELS[preset]}

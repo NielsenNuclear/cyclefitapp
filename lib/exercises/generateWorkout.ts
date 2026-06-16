@@ -7,7 +7,7 @@ import type { SplitType }                                  from "./workoutSplits
 import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
 import { isCompatibleWith, findSubstitute, getExerciseSubstitutions } from "./exerciseSubstitutions";
-import { isEquipmentCompatible, findEquipmentCompatibleSubstitute } from "@/lib/equipment/equipmentCompatibility";
+import { isEquipmentCompatible, effectiveDifficulty, findEquipmentCompatibleSubstitute, deriveCompatibilityGroups } from "@/lib/equipment/equipmentCompatibility";
 import type { GoalType }                                   from "./goalBasedSelection";
 import { GOAL_PROFILES }                                   from "./goalBasedSelection";
 import type { CoachingAdjustment, ComplexityModifier }     from "@/lib/progression/progressionRules";
@@ -65,6 +65,8 @@ export interface GeneratedWorkout {
   estimatedDurationMin: number;
   workoutRationale:     string;
   phaseNote?:           string;
+  // Exercises that required equipment the user doesn't own (for learning layer logging)
+  equipmentFallbacks?:  Array<{ exerciseName: string; missingEquip: string[] }>;
 }
 
 // ─── Adaptation tables ────────────────────────────────────────────────────────
@@ -343,10 +345,19 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     goalType,
   });
 
+  const equipmentFallbacks: Array<{ exerciseName: string; missingEquip: string[] }> = [];
   const resolvedExercises: Exercise[] = (userEquipment && userEquipment.length > 0)
     ? workoutDay.exercises.map(ex => {
         if (isEquipmentCompatible(ex, userEquipment)) return ex;
-        const sub = findEquipmentCompatibleSubstitute(ex, userEquipment, difficulty);
+        // Identify which equipment groups the user is missing for this exercise
+        const groups = deriveCompatibilityGroups(ex.equipment);
+        const ownedSet = new Set(userEquipment);
+        const missingEquip = groups
+          .filter(g => g.length > 0 && !g.some(id => ownedSet.has(id)))
+          .map(g => g[0]);
+        equipmentFallbacks.push({ exerciseName: ex.name, missingEquip });
+        // Use effective difficulty so a barbell exercise done with DBs targets the right tier
+        const sub = findEquipmentCompatibleSubstitute(ex, userEquipment, effectiveDifficulty(ex, userEquipment));
         if (sub) return sub;
         return ex;
       })
@@ -428,5 +439,6 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     estimatedDurationMin: workoutDay.estimatedDurationMin,
     workoutRationale:     buildWorkoutRationale(workoutDay.dayName, energyLevel, trainingState, phase.name),
     phaseNote:            PHASE_NOTES[phase.name],
+    equipmentFallbacks:   equipmentFallbacks.length > 0 ? equipmentFallbacks : undefined,
   };
 }

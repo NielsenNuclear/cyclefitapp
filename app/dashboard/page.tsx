@@ -214,6 +214,7 @@ import { EquipmentInsightsCard }        from "@/components/dashboard/EquipmentIn
 import { useEquipmentData }             from "@/hooks/useEquipmentData";
 import { getUserEquipment }             from "@/lib/equipment/equipmentProfile";
 import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
+import { logEquipmentSkip }             from "@/lib/equipment/equipmentLearning";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -402,9 +403,10 @@ export default function DashboardPage() {
   const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
 
   // ── Mutable refs (not reactive) ───────────────────────────────────────────────
-  const onboardingRef = useRef<OnboardingData | null>(null);
-  const profileRef    = useRef<AdaptiveProfile | null>(null);
-  const adjustmentRef = useRef<CoachingAdjustment | null>(null);
+  const onboardingRef    = useRef<OnboardingData | null>(null);
+  const profileRef       = useRef<AdaptiveProfile | null>(null);
+  const adjustmentRef    = useRef<CoachingAdjustment | null>(null);
+  const userEquipmentRef = useRef<string[]>([]);
 
   // ── Domain state hooks ────────────────────────────────────────────────────────
   const {
@@ -912,6 +914,7 @@ export default function DashboardPage() {
 
     // ── Phase 27: Equipment ──────────────────────────────────────────────────
     const userEquipmentVal = getUserEquipment();
+    userEquipmentRef.current = userEquipmentVal;
     setEquipmentProfile(computeEquipmentProfile(userEquipmentVal));
 
     const wkt = runWorkoutPipeline(
@@ -920,6 +923,11 @@ export default function DashboardPage() {
       exerciseSummariesVal, adaptiveModifierVal, userEquipmentVal,
     );
     setWorkout(wkt);
+    if (wkt.equipmentFallbacks) {
+      for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
+        logEquipmentSkip(exerciseName, missingEquip);
+      }
+    }
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, rec.phase, goalType, prog, readiness, landmarksVal);
     setHistorySummary(summary);
     setLoadReport(load);
@@ -1016,8 +1024,13 @@ export default function DashboardPage() {
     );
     setRecommendation(personalizedRec);
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, getUserEquipment());
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current);
     setWorkout(wkt);
+    if (wkt.equipmentFallbacks) {
+      for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
+        logEquipmentSkip(exerciseName, missingEquip);
+      }
+    }
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
@@ -1124,8 +1137,13 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, getUserEquipment());
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current);
     setWorkout(wkt);
+    if (wkt.equipmentFallbacks) {
+      for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
+        logEquipmentSkip(exerciseName, missingEquip);
+      }
+    }
     const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, recommendation.phase, goalType, progressionProfile ?? undefined, readinessScore ?? undefined, volumeLandmarks ?? undefined);
     setHistorySummary(summary);
     setLoadReport(load);
