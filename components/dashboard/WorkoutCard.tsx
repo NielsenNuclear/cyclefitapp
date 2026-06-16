@@ -5,6 +5,7 @@ import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generate
 import type { Exercise } from "@/lib/exercises/exerciseLibrary";
 import { getCoachingData } from "@/lib/exercises/exerciseCoaching";
 import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
+import { getExerciseHistory } from "@/lib/history/exerciseHistory";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import type { LoggedExercise, LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
@@ -209,6 +210,8 @@ function ExerciseRow({
             </div>
           )}
 
+          <HistorySection exerciseName={ex.name} />
+
           {/* Alternatives */}
           <div>
             <button
@@ -284,6 +287,64 @@ function AlternativesSection({
           </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── History sub-section (28D) ───────────────────────────────────────────────
+
+const TREND_ICON: Record<string, string> = {
+  improving: "↑",
+  stable:    "→",
+  declining: "↓",
+};
+
+const TREND_COLOR: Record<string, string> = {
+  improving: "text-[#085041]",
+  stable:    "text-[#9B9690]",
+  declining: "text-[#B25E1B]",
+};
+
+function HistorySection({ exerciseName }: { exerciseName: string }) {
+  const history = getExerciseHistory(exerciseName);
+  if (history.completionCount === 0) return null;
+
+  const { completionCount, bestSet, lastPerformed, trend } = history;
+
+  const daysAgo = lastPerformed
+    ? Math.floor((Date.now() - new Date(lastPerformed).getTime()) / 86_400_000)
+    : null;
+
+  return (
+    <div className="px-2.5 py-2 bg-[#FAFAF7] rounded-lg border border-[#E5E2DA]">
+      <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">Your history</div>
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <div className="text-[10px] text-[#9B9690]">Completed</div>
+          <div className="text-[13px] font-semibold text-[#1C1B18]">{completionCount}×</div>
+        </div>
+        {bestSet && bestSet.reps > 0 && (
+          <div>
+            <div className="text-[10px] text-[#9B9690]">Best set</div>
+            <div className="text-[13px] font-semibold text-[#1C1B18]">
+              {bestSet.weight > 0 ? `${bestSet.weight}kg × ${bestSet.reps}` : `${bestSet.reps} reps`}
+            </div>
+          </div>
+        )}
+        {daysAgo !== null && (
+          <div>
+            <div className="text-[10px] text-[#9B9690]">Last done</div>
+            <div className="text-[13px] font-semibold text-[#1C1B18]">
+              {daysAgo === 0 ? "today" : daysAgo === 1 ? "yesterday" : `${daysAgo}d ago`}
+            </div>
+          </div>
+        )}
+      </div>
+      {trend && (
+        <div className={`mt-2 text-[10px] font-semibold ${TREND_COLOR[trend.direction]}`}>
+          {TREND_ICON[trend.direction]} {trend.direction.charAt(0).toUpperCase() + trend.direction.slice(1)}
+        </div>
+      )}
     </div>
   );
 }
