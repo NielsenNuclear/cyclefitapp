@@ -17,6 +17,7 @@ import {
 } from "@/components/onboarding/Steps6to10";
 import { SymptomPreferencesPanel } from "@/components/profile/SymptomPreferencesPanel";
 import { Step11Equipment } from "@/components/onboarding/EquipmentStep";
+import { CustomEquipmentManager } from "@/components/profile/CustomEquipmentManager";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -166,6 +167,13 @@ export default function ProfilePage() {
             subtitle="Axis filters and substitutes exercises to match your setup."
           />
           <Step11Equipment data={data} onChange={patch} />
+
+          <div className="mt-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-[#8A8880] mb-3">
+              Custom equipment
+            </div>
+            <CustomEquipmentManager />
+          </div>
         </section>
 
         <div className="border-t border-[#EAE7DE]" />
