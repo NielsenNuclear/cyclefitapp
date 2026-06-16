@@ -3,6 +3,8 @@
 // Lets every user model their real-world gym, not just the presets Axis ships with.
 // Pure logic — no React, no side effects.
 
+import { removeAllMappingsForEquipment } from "@/lib/equipment/customExerciseMappings";
+
 const STORAGE_KEY = "axis_custom_equipment";
 const MAX_ENTRIES  = 100;
 
@@ -110,4 +112,5 @@ export function updateCustomEquipment(
 export function deleteCustomEquipment(id: string): void {
   const existing = getCustomEquipment();
   saveCustomEquipment(existing.filter(e => e.id !== id));
+  removeAllMappingsForEquipment(id);
 }

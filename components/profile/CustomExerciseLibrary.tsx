@@ -191,14 +191,14 @@ function ExerciseRow({
           <button
             type="button"
             onClick={onDelete}
-            className="text-[11px] font-semibold text-white bg-[#C0390B] hover:bg-[#A22F08] rounded-full px-3 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-white bg-[#C0390B] hover:bg-[#A22F08] rounded-full px-3 py-2 transition-colors"
           >
             Confirm
           </button>
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#5C5850] px-2 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#5C5850] px-2 py-2 transition-colors"
           >
             Cancel
           </button>
@@ -208,14 +208,14 @@ function ExerciseRow({
           <button
             type="button"
             onClick={onEdit}
-            className="text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] px-2.5 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] px-2.5 py-2 transition-colors"
           >
             Edit
           </button>
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#C0390B] px-2.5 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#C0390B] px-2.5 py-2 transition-colors"
           >
             Delete
           </button>

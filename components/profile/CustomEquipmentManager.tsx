@@ -30,6 +30,7 @@ interface FormState {
   name:     string;
   category: CustomEquipmentCategory;
   notes:    string;
+  active?:  boolean; // only present in edit mode; new items always start active
 }
 
 const EMPTY_FORM: FormState = { name: "", category: "free_weight", notes: "" };
@@ -96,6 +97,26 @@ function EquipmentForm({
         />
       </div>
 
+      {/* Active toggle — only shown when editing existing equipment */}
+      {form.active !== undefined && (
+        <div className="flex items-center justify-between py-1">
+          <span className="text-[12px] text-[#5C5850]">Available for workout generation</span>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, active: !form.active })}
+            className={`relative w-10 h-6 rounded-full transition-colors ${
+              form.active ? "bg-[#534AB7]" : "bg-[#C5C1B7]"
+            }`}
+            aria-checked={form.active}
+            role="switch"
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+              form.active ? "translate-x-5" : "translate-x-0.5"
+            }`} />
+          </button>
+        </div>
+      )}
+
       {error && <p className="text-[12px] text-[#C0390B]">{error}</p>}
 
       <div className="flex gap-2 pt-1">
@@ -145,14 +166,14 @@ function EquipmentRow({
           <button
             type="button"
             onClick={onDelete}
-            className="text-[11px] font-semibold text-white bg-[#C0390B] hover:bg-[#A22F08] rounded-full px-3 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-white bg-[#C0390B] hover:bg-[#A22F08] rounded-full px-3 py-2 transition-colors"
           >
             Confirm
           </button>
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#5C5850] px-2 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#5C5850] px-2 py-2 transition-colors"
           >
             Cancel
           </button>
@@ -162,14 +183,14 @@ function EquipmentRow({
           <button
             type="button"
             onClick={onEdit}
-            className="text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] px-2.5 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] px-2.5 py-2 transition-colors"
           >
             Edit
           </button>
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#C0390B] px-2.5 py-1.5 transition-colors"
+            className="text-[11px] font-semibold text-[#9B9690] hover:text-[#C0390B] px-2.5 py-2 transition-colors"
           >
             Delete
           </button>
@@ -225,6 +246,7 @@ export function CustomEquipmentManager() {
       name:     form.name,
       category: form.category,
       notes:    form.notes,
+      active:   form.active ?? true,
     });
     if (!result.ok) return result.error;
     setItems(getCustomEquipment());
@@ -294,7 +316,7 @@ export function CustomEquipmentManager() {
                     editingItem?.id === item.id ? (
                       <div key={item.id} className="py-2.5">
                         <EquipmentForm
-                          initial={{ name: item.name, category: item.category, notes: item.notes ?? "" }}
+                          initial={{ name: item.name, category: item.category, notes: item.notes ?? "", active: item.active }}
                           onSave={form => handleEdit(item.id, form)}
                           onCancel={() => setEditingId(null)}
                         />

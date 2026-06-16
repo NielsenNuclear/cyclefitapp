@@ -65,13 +65,20 @@ export function logEquipmentUsage(exercises: Exercise[], ownedIds: string[]): vo
     }
   }
 
-  const entry: EquipmentUsageEntry = {
-    date:          new Date().toISOString().slice(0, 10),
-    usedEquipment: [...used],
-  };
-
+  const today   = new Date().toISOString().slice(0, 10);
   const history = getEquipmentUsageHistory();
-  const updated = [entry, ...history].slice(0, MAX_ENTRIES);
+
+  // Merge into existing entry for today rather than appending a duplicate.
+  const existingIdx = history.findIndex(e => e.date === today);
+  let updated: EquipmentUsageEntry[];
+  if (existingIdx !== -1) {
+    const merged = new Set([...history[existingIdx].usedEquipment, ...used]);
+    updated = history.map((e, i) =>
+      i === existingIdx ? { ...e, usedEquipment: [...merged] } : e
+    );
+  } else {
+    updated = [{ date: today, usedEquipment: [...used] }, ...history].slice(0, MAX_ENTRIES);
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 }
 
@@ -89,6 +96,7 @@ function displayName(id: string): string {
 
 export function analyzeEquipmentUsage(ownedIds: string[]): EquipmentUsageAnalytics {
   const history  = getEquipmentUsageHistory();
+  if (history.length < 3) return { mostUsed: [], underused: [], unused: [], recommendations: [] };
   const today    = new Date().toISOString().slice(0, 10);
   const sixWeeksAgo = (() => {
     const d = new Date();

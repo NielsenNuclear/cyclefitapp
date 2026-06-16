@@ -76,3 +76,8 @@ export function removeMapping(id: string): void {
 export function getMappingsForEquipment(equipmentId: string): CustomExerciseMapping[] {
   return getMappings().filter(m => m.equipmentId === equipmentId);
 }
+
+export function removeAllMappingsForEquipment(equipmentId: string): void {
+  const existing = getMappings();
+  saveMappings(existing.filter(m => m.equipmentId !== equipmentId));
+}
