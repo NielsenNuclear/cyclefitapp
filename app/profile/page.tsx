@@ -18,6 +18,7 @@ import {
 import { SymptomPreferencesPanel } from "@/components/profile/SymptomPreferencesPanel";
 import { Step11Equipment } from "@/components/onboarding/EquipmentStep";
 import { CustomEquipmentManager } from "@/components/profile/CustomEquipmentManager";
+import { CustomExerciseLibrary } from "@/components/profile/CustomExerciseLibrary";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -173,6 +174,13 @@ export default function ProfilePage() {
               Custom equipment
             </div>
             <CustomEquipmentManager />
+          </div>
+
+          <div className="mt-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-[#8A8880] mb-3">
+              Custom exercise library
+            </div>
+            <CustomExerciseLibrary />
           </div>
         </section>
 
