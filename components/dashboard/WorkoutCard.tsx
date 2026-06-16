@@ -7,6 +7,13 @@ import { getCoachingData } from "@/lib/exercises/exerciseCoaching";
 import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
 import { getExerciseHistory } from "@/lib/history/exerciseHistory";
 import { isFavorite, toggleFavorite } from "@/lib/exercises/exerciseFavorites";
+import {
+  isRestricted,
+  addRestriction,
+  removeRestriction,
+  type RestrictionReason,
+  RESTRICTION_LABELS,
+} from "@/lib/exercises/exerciseRestrictions";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import type { LoggedExercise, LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
@@ -131,6 +138,7 @@ function ExerciseRow({
   const [expanded, setExpanded]               = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [starred, setStarred]                 = useState(() => isFavorite(ex.name));
+  const [blocked, setBlocked]                 = useState(() => isRestricted(ex.name));
 
   return (
     <div className="py-3 border-b border-[#F0EDE4] last:border-0">
@@ -169,17 +177,25 @@ function ExerciseRow({
       {/* Detail drawer */}
       {expanded && (
         <div className="mt-3 pt-3 border-t border-[#F0EDE4] space-y-3">
-          {/* Favorite toggle */}
-          <button
-            type="button"
-            onClick={() => setStarred(toggleFavorite(ex.name))}
-            className={`flex items-center gap-1.5 text-[11px] font-semibold transition-colors ${
-              starred ? "text-[#B25E1B]" : "text-[#9B9690] hover:text-[#5C5850]"
-            }`}
-          >
-            <span>{starred ? "★" : "☆"}</span>
-            <span>{starred ? "Favourited" : "Add to favourites"}</span>
-          </button>
+          {/* Favourite + restrict toggles */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setStarred(toggleFavorite(ex.name))}
+              className={`flex items-center gap-1.5 text-[11px] font-semibold transition-colors ${
+                starred ? "text-[#B25E1B]" : "text-[#9B9690] hover:text-[#5C5850]"
+              }`}
+            >
+              <span>{starred ? "★" : "☆"}</span>
+              <span>{starred ? "Favourited" : "Favourite"}</span>
+            </button>
+
+            <RestrictionToggle
+              exerciseName={ex.name}
+              blocked={blocked}
+              onToggle={setBlocked}
+            />
+          </div>
 
           {/* Muscles */}
           <div>
@@ -302,6 +318,74 @@ function AlternativesSection({
         </div>
       ))}
     </div>
+  );
+}
+
+// ─── Restriction toggle (28F) ────────────────────────────────────────────────
+
+const REASON_OPTIONS: RestrictionReason[] = ["pain", "dislike", "equipment_issue", "other"];
+
+function RestrictionToggle({
+  exerciseName,
+  blocked,
+  onToggle,
+}: {
+  exerciseName: string;
+  blocked:      boolean;
+  onToggle:     (blocked: boolean) => void;
+}) {
+  const [picking, setPicking] = useState(false);
+
+  if (blocked) {
+    return (
+      <button
+        type="button"
+        onClick={() => { removeRestriction(exerciseName); onToggle(false); }}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-[#C0390B] transition-colors"
+      >
+        <span>⊘</span>
+        <span>Blocked — tap to unblock</span>
+      </button>
+    );
+  }
+
+  if (picking) {
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {REASON_OPTIONS.map(r => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => {
+              addRestriction(exerciseName, r);
+              onToggle(true);
+              setPicking(false);
+            }}
+            className="text-[10px] font-semibold text-[#C0390B] bg-[#FDE8E8] hover:bg-[#FACACA] px-2 py-1 rounded-full transition-colors"
+          >
+            {RESTRICTION_LABELS[r]}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setPicking(false)}
+          className="text-[10px] text-[#9B9690] hover:text-[#5C5850] px-2 py-1 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setPicking(true)}
+      className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9B9690] hover:text-[#C0390B] transition-colors"
+    >
+      <span>⊘</span>
+      <span>Block exercise</span>
+    </button>
   );
 }
 

@@ -10,6 +10,7 @@ import { getMergedExercisePool } from "./customExercises";
 import type { GoalType } from "./goalBasedSelection";
 import { pickByGoal } from "./goalBasedSelection";
 import { getFavoritedExerciseNames } from "./exerciseFavorites";
+import { getRestrictedExerciseNames } from "./exerciseRestrictions";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -237,7 +238,10 @@ function buildPool(
   energyLevel: number,
   muscleFocus?: string[],
 ): Exercise[] {
-  let pool = getMergedExercisePool().filter(e => e.category === category);
+  const restricted = new Set(getRestrictedExerciseNames());
+  let pool = getMergedExercisePool()
+    .filter(e => e.category === category)
+    .filter(e => !restricted.has(e.name));
 
   if (muscleFocus && muscleFocus.length > 0) {
     const focused = pool.filter(e =>
