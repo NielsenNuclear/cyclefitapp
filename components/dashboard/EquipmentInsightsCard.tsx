@@ -1,9 +1,11 @@
 "use client";
 
 import type { EquipmentCapabilityProfile } from "@/lib/equipment/equipmentProfile";
+import type { EquipmentUsageAnalytics } from "@/lib/equipment/equipmentUsage";
 
 interface Props {
-  profile: EquipmentCapabilityProfile;
+  profile:        EquipmentCapabilityProfile;
+  usageAnalytics?: EquipmentUsageAnalytics;
 }
 
 function PotentialBar({ label, score, color }: { label: string; score: number; color: string }) {
@@ -23,7 +25,7 @@ function PotentialBar({ label, score, color }: { label: string; score: number; c
   );
 }
 
-export function EquipmentInsightsCard({ profile }: Props) {
+export function EquipmentInsightsCard({ profile, usageAnalytics }: Props) {
   const {
     capabilityScore,
     unlockedCount,
@@ -86,6 +88,39 @@ export function EquipmentInsightsCard({ profile }: Props) {
                   +{unlocksCount}
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Usage analytics */}
+      {usageAnalytics && usageAnalytics.mostUsed.length > 0 && (
+        <div className="px-5 py-4 border-t border-[#F0EDE7]">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-[#8A8880] mb-3">
+            Equipment Usage
+          </div>
+          <div className="space-y-2">
+            {usageAnalytics.mostUsed.slice(0, 3).map(item => (
+              <div key={item.equipmentName} className="flex items-center justify-between">
+                <span className="text-[12px] text-[#3C3B38]">{item.equipmentName}</span>
+                <span className="text-[11px] font-semibold text-[#534AB7]">
+                  {item.usageCount}×
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Unused / underused recommendations */}
+      {usageAnalytics && usageAnalytics.recommendations.length > 0 && (
+        <div className="px-5 py-4 bg-[#FAFAF7] border-t border-[#F0EDE7]">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-[#8A8880] mb-2">
+            Equipment Insights
+          </div>
+          <div className="space-y-1.5">
+            {usageAnalytics.recommendations.map((rec, i) => (
+              <p key={i} className="text-[12px] text-[#5C5850] leading-relaxed">{rec}</p>
             ))}
           </div>
         </div>

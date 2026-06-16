@@ -215,6 +215,7 @@ import { useEquipmentData }             from "@/hooks/useEquipmentData";
 import { buildEquipmentInventory }      from "@/lib/equipment/equipmentInventory";
 import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
 import { logEquipmentSkip }             from "@/lib/equipment/equipmentLearning";
+import { logEquipmentUsage, analyzeEquipmentUsage } from "@/lib/equipment/equipmentUsage";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -502,7 +503,10 @@ export default function DashboardPage() {
     performanceOpportunity, setPerformanceOpportunity,
   } = usePerformanceData();
 
-  const { equipmentProfile, setEquipmentProfile } = useEquipmentData();
+  const {
+    equipmentProfile,        setEquipmentProfile,
+    equipmentUsageAnalytics, setEquipmentUsageAnalytics,
+  } = useEquipmentData();
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -916,6 +920,7 @@ export default function DashboardPage() {
     const equipmentInventoryVal = buildEquipmentInventory();
     userEquipmentRef.current = equipmentInventoryVal.allEquipmentNames;
     setEquipmentProfile(computeEquipmentProfile(equipmentInventoryVal.allEquipmentNames));
+    setEquipmentUsageAnalytics(analyzeEquipmentUsage(equipmentInventoryVal.allEquipmentNames));
 
     const wkt = runWorkoutPipeline(
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
@@ -1094,11 +1099,15 @@ export default function DashboardPage() {
 
   function handleMarkComplete() {
     markWorkoutCompleted(new Date().toISOString().slice(0, 10));
+    if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
+    setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
     refreshAfterMark();
   }
 
   function handleMarkPartial() {
     markWorkoutPartiallyCompleted(new Date().toISOString().slice(0, 10));
+    if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
+    setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
     refreshAfterMark();
   }
 
@@ -1220,7 +1229,7 @@ export default function DashboardPage() {
           primeWindow={primeTrainingWindow}
           currentCycleDay={recommendation.phase.cycleDay}
         />
-        {equipmentProfile && <EquipmentInsightsCard profile={equipmentProfile} />}
+        {equipmentProfile && <EquipmentInsightsCard profile={equipmentProfile} usageAnalytics={equipmentUsageAnalytics ?? undefined} />}
         <CoachViewCard view={coachView} />
         <WeeklyPlanCard plan={weeklyPlan} />
         <TrainingBlockCard block={trainingBlock} />
