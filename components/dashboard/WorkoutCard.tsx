@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generateWorkout";
+import type { Exercise } from "@/lib/exercises/exerciseLibrary";
 import { getCoachingData } from "@/lib/exercises/exerciseCoaching";
+import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import type { LoggedExercise, LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
@@ -113,8 +115,19 @@ function MuscleBadge({ label, primary }: { label: string; primary: boolean }) {
   );
 }
 
-function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
-  const [expanded, setExpanded] = useState(false);
+function ExerciseRow({
+  ex,
+  exerciseIdx,
+  environment,
+  onSwap,
+}: {
+  ex:          WorkoutExercise;
+  exerciseIdx: number;
+  environment: TrainingEnvironment;
+  onSwap:      (idx: number, newExercise: Exercise) => void;
+}) {
+  const [expanded, setExpanded]               = useState(false);
+  const [showAlternatives, setShowAlternatives] = useState(false);
 
   return (
     <div className="py-3 border-b border-[#F0EDE4] last:border-0">
@@ -196,9 +209,81 @@ function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
             </div>
           )}
 
+          {/* Alternatives */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowAlternatives(a => !a)}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
+            >
+              <span>{showAlternatives ? "▼" : "▶"}</span>
+              <span>Alternatives</span>
+            </button>
+            {showAlternatives && (
+              <AlternativesSection
+                ex={ex}
+                exerciseIdx={exerciseIdx}
+                environment={environment}
+                onSwap={onSwap}
+              />
+            )}
+          </div>
+
           <CoachingSection exerciseName={ex.name} />
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Alternatives sub-section (28C) ──────────────────────────────────────────
+
+function AlternativesSection({
+  ex,
+  exerciseIdx,
+  environment,
+  onSwap,
+}: {
+  ex:          WorkoutExercise;
+  exerciseIdx: number;
+  environment: TrainingEnvironment;
+  onSwap:      (idx: number, newExercise: Exercise) => void;
+}) {
+  const alternatives = getExerciseSubstitutions({
+    exercise:    ex.exercise,
+    environment,
+  }).slice(0, 5);
+
+  if (alternatives.length === 0) {
+    return (
+      <p className="mt-2 text-[10px] text-[#9B9690]">
+        No alternatives available for your current environment.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      {alternatives.map(alt => (
+        <div
+          key={alt.name}
+          className="flex items-center justify-between gap-2 px-2.5 py-2 bg-[#FAFAF7] rounded-lg border border-[#E5E2DA]"
+        >
+          <div className="min-w-0">
+            <div className="text-[12px] font-medium text-[#1C1B18] truncate">{alt.name}</div>
+            <div className="text-[10px] text-[#9B9690]">
+              {alt.equipment} · {alt.difficulty}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onSwap(exerciseIdx, alt)}
+            className="flex-shrink-0 text-[10px] font-semibold text-[#534AB7] bg-[#F0EEF8] hover:bg-[#E3E0F8] px-2.5 py-1 rounded-full transition-colors"
+          >
+            Swap
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -384,6 +469,15 @@ export function WorkoutCard({
 }: WorkoutCardProps) {
   const today = new Date().toISOString().slice(0, 10);
 
+  // Mutable exercise list — supports in-session swaps (28C)
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(workout.exercises);
+
+  function handleSwap(idx: number, newExercise: Exercise) {
+    setExercises(prev => prev.map((ex, i) =>
+      i === idx ? { ...ex, name: newExercise.name, exercise: newExercise } : ex
+    ));
+  }
+
   // Restore in-progress state from localStorage on mount
   const [mode, setMode] = useState<WorkoutMode>(() => {
     if (typeof window === "undefined" || completionStatus !== "pending") return "idle";
@@ -450,7 +544,7 @@ export function WorkoutCard({
 
   function buildLog(status: "completed" | "partial"): LoggedWorkout {
     const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
-    const exercises: LoggedExercise[] = workout.exercises.map((ex, i) => {
+    const loggedExercises: LoggedExercise[] = exercises.map((ex, i) => {
       const a = actuals[i];
       const repsStr = a?.completedReps ?? ex.reps;
       return {
@@ -465,7 +559,7 @@ export function WorkoutCard({
         actualReps:     parseReps(repsStr) || undefined,
       };
     });
-    return { id: today, date: today, workoutName: workout.workoutName, completionStatus: status, exercises, durationMinutes, overallDifficulty };
+    return { id: today, date: today, workoutName: workout.workoutName, completionStatus: status, exercises: loggedExercises, durationMinutes, overallDifficulty };
   }
 
   function handleFinish(status: "completed" | "partial") {
@@ -597,12 +691,12 @@ export function WorkoutCard({
 
       {/* Exercise list — idle: prescription view; active: logging rows */}
       <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-1">
-        {mode === "active" ? "Log your sets" : `Exercises · ${workout.totalExercises} movements`}
+        {mode === "active" ? "Log your sets" : `Exercises · ${exercises.length} movements`}
       </div>
 
       <div>
         {mode === "active"
-          ? workout.exercises.map((ex, i) => (
+          ? exercises.map((ex, i) => (
               <ActiveExerciseRow
                 key={i}
                 ex={ex}
@@ -610,8 +704,14 @@ export function WorkoutCard({
                 onChange={data => setActuals(prev => ({ ...prev, [i]: data }))}
               />
             ))
-          : workout.exercises.map((ex, i) => (
-              <ExerciseRow key={i} ex={ex} />
+          : exercises.map((ex, i) => (
+              <ExerciseRow
+                key={i}
+                ex={ex}
+                exerciseIdx={i}
+                environment={environment}
+                onSwap={handleSwap}
+              />
             ))
         }
       </div>
