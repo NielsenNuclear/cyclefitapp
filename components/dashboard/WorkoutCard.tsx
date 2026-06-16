@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generateWorkout";
+import { getCoachingData } from "@/lib/exercises/exerciseCoaching";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import type { LoggedExercise, LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
@@ -192,6 +193,76 @@ function ExerciseRow({ ex }: { ex: WorkoutExercise }) {
             <div className="px-2.5 py-2 bg-[#F3F2FD] rounded-lg border border-[#C9C5EE]">
               <div className="text-[9px] font-bold uppercase tracking-widest text-[#6B5ECC] mb-1">Why today</div>
               <p className="text-[10px] text-[#3C3489] leading-relaxed">{ex.rationale}</p>
+            </div>
+          )}
+
+          <CoachingSection exerciseName={ex.name} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Coaching sub-section (28B) ───────────────────────────────────────────────
+
+function CoachingSection({ exerciseName }: { exerciseName: string }) {
+  const coaching = getCoachingData(exerciseName);
+  if (!coaching) return null;
+
+  return (
+    <div className="space-y-3">
+      {/* Instructions */}
+      <div>
+        <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">How to perform</div>
+        <ol className="space-y-1.5">
+          {coaching.instructions.map((step, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[10px] font-bold text-[#534AB7] flex-shrink-0 w-4">{i + 1}.</span>
+              <span className="text-[10px] text-[#5C5850] leading-relaxed">{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Coaching cues */}
+      <div>
+        <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">Coaching cues</div>
+        <div className="space-y-1">
+          {coaching.coachingCues.map((cue, i) => (
+            <div key={i} className="flex items-start gap-1.5">
+              <span className="text-[10px] text-[#085041] flex-shrink-0 mt-0.5">✓</span>
+              <span className="text-[10px] text-[#5C5850] leading-relaxed">{cue}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Common mistakes */}
+      <div>
+        <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">Common mistakes</div>
+        <div className="space-y-1">
+          {coaching.commonMistakes.map((mistake, i) => (
+            <div key={i} className="flex items-start gap-1.5">
+              <span className="text-[10px] text-[#B25E1B] flex-shrink-0 mt-0.5">⚠</span>
+              <span className="text-[10px] text-[#5C5850] leading-relaxed">{mistake}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tips */}
+      {(coaching.beginnerTip || coaching.advancedTip) && (
+        <div className="space-y-1.5">
+          {coaching.beginnerTip && (
+            <div className="px-2.5 py-2 bg-[#E1F5EE] rounded-lg">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#085041]">Beginner tip  </span>
+              <span className="text-[10px] text-[#085041] leading-relaxed">{coaching.beginnerTip}</span>
+            </div>
+          )}
+          {coaching.advancedTip && (
+            <div className="px-2.5 py-2 bg-[#FDF6EC] rounded-lg border border-[#E8C98A]">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#633806]">Advanced tip  </span>
+              <span className="text-[10px] text-[#633806] leading-relaxed">{coaching.advancedTip}</span>
             </div>
           )}
         </div>
