@@ -6,6 +6,7 @@ import type { Exercise } from "@/lib/exercises/exerciseLibrary";
 import { getCoachingData } from "@/lib/exercises/exerciseCoaching";
 import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
 import { getExerciseHistory } from "@/lib/history/exerciseHistory";
+import { isFavorite, toggleFavorite } from "@/lib/exercises/exerciseFavorites";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { WorkoutCompletionStatus } from "@/lib/history/workoutHistory";
 import type { LoggedExercise, LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
@@ -129,6 +130,7 @@ function ExerciseRow({
 }) {
   const [expanded, setExpanded]               = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
+  const [starred, setStarred]                 = useState(() => isFavorite(ex.name));
 
   return (
     <div className="py-3 border-b border-[#F0EDE4] last:border-0">
@@ -167,6 +169,18 @@ function ExerciseRow({
       {/* Detail drawer */}
       {expanded && (
         <div className="mt-3 pt-3 border-t border-[#F0EDE4] space-y-3">
+          {/* Favorite toggle */}
+          <button
+            type="button"
+            onClick={() => setStarred(toggleFavorite(ex.name))}
+            className={`flex items-center gap-1.5 text-[11px] font-semibold transition-colors ${
+              starred ? "text-[#B25E1B]" : "text-[#9B9690] hover:text-[#5C5850]"
+            }`}
+          >
+            <span>{starred ? "★" : "☆"}</span>
+            <span>{starred ? "Favourited" : "Add to favourites"}</span>
+          </button>
+
           {/* Muscles */}
           <div>
             <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Primary</div>

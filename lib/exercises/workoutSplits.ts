@@ -9,6 +9,7 @@ import type { Exercise, MuscleCategory, DifficultyLevel } from "./exerciseLibrar
 import { getMergedExercisePool } from "./customExercises";
 import type { GoalType } from "./goalBasedSelection";
 import { pickByGoal } from "./goalBasedSelection";
+import { getFavoritedExerciseNames } from "./exerciseFavorites";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -252,9 +253,15 @@ function buildPool(
     baseDifficulty;
 
   const tiered = pool.filter(e => e.difficulty === effectiveDifficulty);
+  const resolved = tiered.length >= 2 ? tiered : pool;
 
-  // If the exact tier yields fewer than 2, fall back to full pool
-  return tiered.length >= 2 ? tiered : pool;
+  // Favorites bias — front-load starred exercises so pickFromPool selects them first
+  const favorites = new Set(getFavoritedExerciseNames());
+  if (favorites.size === 0) return resolved;
+  return [
+    ...resolved.filter(e => favorites.has(e.name)),
+    ...resolved.filter(e => !favorites.has(e.name)),
+  ];
 }
 
 function pickFromPool(
