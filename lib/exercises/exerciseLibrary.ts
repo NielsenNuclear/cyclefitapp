@@ -57,6 +57,11 @@ export interface Exercise {
   category: MuscleCategory;
   equipmentCategory?: EquipmentCategory;
   trainingEnvironment?: TrainingEnvironment[];
+  // Set only on exercises synthesized from a user's custom exercise library
+  // (see lib/exercises/customExercises.ts). When present, equipment
+  // compatibility is gated on owning every listed item by exact name,
+  // bypassing the free-text equipment parser used for built-in exercises.
+  customEquipmentRequired?: string[];
 }
 
 // ─── UPPER PUSH — Chest / Shoulders / Triceps (28 exercises) ─────────────────

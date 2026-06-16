@@ -8,7 +8,7 @@ import type {
   TrainingEnvironment,
   DifficultyLevel,
 } from "./exerciseLibrary";
-import { allExercises } from "./exerciseLibrary";
+import { getMergedExercisePool } from "./customExercises";
 
 // ─── Equipment derivation ─────────────────────────────────────────────────────
 // Derives structured metadata from the free-text `equipment` string without
@@ -104,7 +104,7 @@ export function getExerciseSubstitutions({
   const tiers: DifficultyLevel[] = ["Beginner", "Intermediate", "Advanced"];
   const targetIdx = tiers.indexOf(targetDifficulty);
 
-  const candidates = allExercises.filter(candidate => {
+  const candidates = getMergedExercisePool().filter(candidate => {
     if (candidate.name === exercise.name) return false;
 
     // Must match movement pattern exactly to preserve the movement stimulus

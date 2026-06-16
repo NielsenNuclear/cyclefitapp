@@ -6,7 +6,7 @@
 // Supports: Upper/Lower | Push/Pull/Legs | Full Body | Bro Split
 
 import type { Exercise, MuscleCategory, DifficultyLevel } from "./exerciseLibrary";
-import { exercisesByCategory } from "./exerciseLibrary";
+import { getMergedExercisePool } from "./customExercises";
 import type { GoalType } from "./goalBasedSelection";
 import { pickByGoal } from "./goalBasedSelection";
 
@@ -236,7 +236,7 @@ function buildPool(
   energyLevel: number,
   muscleFocus?: string[],
 ): Exercise[] {
-  let pool = exercisesByCategory[category];
+  let pool = getMergedExercisePool().filter(e => e.category === category);
 
   if (muscleFocus && muscleFocus.length > 0) {
     const focused = pool.filter(e =>

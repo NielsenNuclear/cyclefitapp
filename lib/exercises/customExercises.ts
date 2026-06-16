@@ -3,7 +3,8 @@
 // Pendulum Squat, Belt Squat, JM Press, Hatfield Squat, Sissy Squat).
 // Pure logic — no React, no side effects.
 
-import type { DifficultyLevel } from "@/lib/exercises/exerciseLibrary";
+import type { Exercise, DifficultyLevel, MovementPattern, MuscleCategory } from "@/lib/exercises/exerciseLibrary";
+import { allExercises } from "@/lib/exercises/exerciseLibrary";
 
 const STORAGE_KEY = "axis_custom_exercises";
 const MAX_ENTRIES  = 100;
@@ -113,4 +114,61 @@ export function updateCustomExercise(
 export function deleteCustomExercise(id: string): void {
   const existing = getCustomExercises();
   saveCustomExercises(existing.filter(e => e.id !== id));
+}
+
+// ─── Generator integration ────────────────────────────────────────────────────
+// Custom exercises don't carry movementPattern/category — the built-in
+// library's organizing fields — so we infer them from primaryMuscles using
+// the same muscle groupings the built-in library uses, letting custom
+// exercises slot into the same scoring/substitution/selection machinery.
+
+const MUSCLE_TO_CATEGORY: Record<string, MuscleCategory> = {
+  "pectoralis major": "Upper Push", "anterior deltoid": "Upper Push",
+  "lateral deltoid": "Upper Push", "deltoid": "Upper Push", "triceps": "Upper Push",
+  "triceps brachii": "Upper Push",
+  "latissimus dorsi": "Upper Pull", "biceps": "Upper Pull", "biceps brachii": "Upper Pull",
+  "rhomboids": "Upper Pull", "trapezius": "Upper Pull", "posterior deltoid": "Upper Pull",
+  "rear deltoid": "Upper Pull", "forearms": "Upper Pull",
+  "quadriceps": "Lower Quad", "quads": "Lower Quad", "hip flexors": "Lower Quad",
+  "hamstrings": "Lower Posterior", "glutes": "Lower Posterior", "gluteus maximus": "Lower Posterior",
+  "calves": "Lower Posterior", "tibialis anterior": "Lower Posterior", "adductors": "Lower Posterior",
+  "rectus abdominis": "Core", "obliques": "Core", "abdominals": "Core", "core": "Core",
+  "erector spinae": "Core", "transverse abdominis": "Core",
+};
+
+const CATEGORY_TO_PATTERN: Record<MuscleCategory, MovementPattern> = {
+  "Upper Push":      "Horizontal Push",
+  "Upper Pull":      "Horizontal Pull",
+  "Lower Quad":      "Squat",
+  "Lower Posterior": "Hinge",
+  "Core":            "Anti-Rotation",
+  "Full Body":       "Explosive",
+  "Mobility":        "Mobility",
+};
+
+function inferCategory(primaryMuscles: string[]): MuscleCategory {
+  for (const muscle of primaryMuscles) {
+    const match = MUSCLE_TO_CATEGORY[muscle.trim().toLowerCase()];
+    if (match) return match;
+  }
+  return "Full Body";
+}
+
+export function toExercise(custom: CustomExercise): Exercise {
+  const category = inferCategory(custom.primaryMuscles);
+  return {
+    name:              custom.name,
+    primaryMuscles:    custom.primaryMuscles,
+    secondaryMuscles:  custom.secondaryMuscles,
+    movementPattern:   CATEGORY_TO_PATTERN[category],
+    difficulty:        custom.difficulty,
+    equipment:         custom.equipmentRequired.join(", ") || "Bodyweight",
+    biomechanicalNote: custom.notes ?? "User-defined exercise.",
+    category,
+    customEquipmentRequired: custom.equipmentRequired,
+  };
+}
+
+export function getMergedExercisePool(): Exercise[] {
+  return [...allExercises, ...getCustomExercises().map(toExercise)];
 }

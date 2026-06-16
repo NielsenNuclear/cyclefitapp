@@ -4,7 +4,7 @@
 // Pure logic — no React, no side effects.
 
 import type { Exercise, DifficultyLevel } from "@/lib/exercises/exerciseLibrary";
-import { allExercises } from "@/lib/exercises/exerciseLibrary";
+import { getMergedExercisePool } from "@/lib/exercises/customExercises";
 import { getCustomEquipment } from "@/lib/equipment/customEquipment";
 import { getMappingsForEquipment } from "@/lib/equipment/customExerciseMappings";
 
@@ -173,6 +173,14 @@ export function deriveCompatibilityGroups(equipment: string): string[][] {
 // ─── Compatibility check ──────────────────────────────────────────────────────
 
 export function isEquipmentCompatible(exercise: Exercise, ownedIds: string[]): boolean {
+  // Custom exercises declare their required gear explicitly (by exact name)
+  // rather than through the free-text parser used for built-in exercises.
+  if (exercise.customEquipmentRequired) {
+    if (exercise.customEquipmentRequired.length === 0) return true;
+    const ownedSet = new Set(ownedIds.map(id => id.toLowerCase()));
+    return exercise.customEquipmentRequired.every(req => ownedSet.has(req.toLowerCase()));
+  }
+
   if (ownedIds.length === 0) return true;
   const groups = deriveCompatibilityGroups(exercise.equipment);
   const ownedSet = new Set(ownedIds);
@@ -210,7 +218,7 @@ export function effectiveDifficulty(exercise: Exercise, ownedIds: string[]): Dif
 // (e.g. a "Pendulum Squat Machine" mapped to Hack Squat performs the same
 // pattern, just branded as the gear the user actually has).
 
-function findCustomMappingSubstitute(exercise: Exercise, ownedIds: string[]): Exercise | null {
+function findCustomMappingSubstitute(exercise: Exercise, ownedIds: string[], pool: Exercise[]): Exercise | null {
   const ownedSet = new Set(ownedIds);
   const ownedCustom = getCustomEquipment().filter(e => e.active && ownedSet.has(e.name));
   if (ownedCustom.length === 0) return null;
@@ -218,7 +226,7 @@ function findCustomMappingSubstitute(exercise: Exercise, ownedIds: string[]): Ex
   let best: { exercise: Exercise; equipmentName: string; isPrimary: boolean } | null = null;
   for (const equipment of ownedCustom) {
     for (const mapping of getMappingsForEquipment(equipment.id)) {
-      const matched = allExercises.find(e => e.name === mapping.exerciseName);
+      const matched = pool.find(e => e.name === mapping.exerciseName);
       if (!matched || matched.movementPattern !== exercise.movementPattern) continue;
       const isPrimary = mapping.effectiveness === "primary";
       if (!best || (isPrimary && !best.isPrimary)) {
@@ -253,12 +261,13 @@ export function findEquipmentCompatibleSubstitute(
   const targetIdx = tiers.indexOf(targetDifficulty);
   const byDifficultyGap = (a: Exercise, b: Exercise) =>
     Math.abs(tiers.indexOf(a.difficulty) - targetIdx) - Math.abs(tiers.indexOf(b.difficulty) - targetIdx);
+  const pool = getMergedExercisePool();
 
   // Tier 1 — exact equipment match
   if (isEquipmentCompatible(exercise, ownedIds)) return exercise;
 
   // Tier 2 — built-in substitution
-  const builtInCandidates = allExercises.filter(candidate => {
+  const builtInCandidates = pool.filter(candidate => {
     if (candidate.name === exercise.name) return false;
     if (candidate.movementPattern !== exercise.movementPattern) return false;
     const muscleMatch = candidate.primaryMuscles.some(m => exercise.primaryMuscles.includes(m));
@@ -271,11 +280,11 @@ export function findEquipmentCompatibleSubstitute(
   }
 
   // Tier 3 — custom mapping substitution
-  const customMatch = findCustomMappingSubstitute(exercise, ownedIds);
+  const customMatch = findCustomMappingSubstitute(exercise, ownedIds, pool);
   if (customMatch) return customMatch;
 
   // Tier 4 — movement-pattern fallback (muscle/difficulty constraints relaxed)
-  const patternCandidates = allExercises.filter(candidate =>
+  const patternCandidates = pool.filter(candidate =>
     candidate.name !== exercise.name &&
     candidate.movementPattern === exercise.movementPattern &&
     isEquipmentCompatible(candidate, ownedIds)
@@ -285,7 +294,7 @@ export function findEquipmentCompatibleSubstitute(
   }
 
   // Tier 5 — bodyweight fallback
-  const bodyweightCandidates = allExercises.filter(candidate =>
+  const bodyweightCandidates = pool.filter(candidate =>
     candidate.name !== exercise.name &&
     candidate.equipment.toLowerCase().startsWith("bodyweight") &&
     candidate.primaryMuscles.some(m => exercise.primaryMuscles.includes(m))
@@ -306,7 +315,7 @@ export function countExercisesUnlocked(
 ): number {
   const withItem = [...ownedIds, candidateId];
   let unlocked = 0;
-  for (const ex of allExercises) {
+  for (const ex of getMergedExercisePool()) {
     if (!isEquipmentCompatible(ex, ownedIds) && isEquipmentCompatible(ex, withItem)) {
       unlocked++;
     }
