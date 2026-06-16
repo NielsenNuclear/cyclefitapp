@@ -212,7 +212,7 @@ import { RecoveryOptimizationCard }     from "@/components/dashboard/RecoveryOpt
 import { PerformanceForecastCard }      from "@/components/dashboard/PerformanceForecastCard";
 import { EquipmentInsightsCard }        from "@/components/dashboard/EquipmentInsightsCard";
 import { useEquipmentData }             from "@/hooks/useEquipmentData";
-import { getUserEquipment }             from "@/lib/equipment/equipmentProfile";
+import { buildEquipmentInventory }      from "@/lib/equipment/equipmentInventory";
 import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
 import { logEquipmentSkip }             from "@/lib/equipment/equipmentLearning";
 
@@ -912,15 +912,15 @@ export default function DashboardPage() {
       calibrationFactors: calibrationFactorsVal,
     }));
 
-    // ── Phase 27: Equipment ──────────────────────────────────────────────────
-    const userEquipmentVal = getUserEquipment();
-    userEquipmentRef.current = userEquipmentVal;
-    setEquipmentProfile(computeEquipmentProfile(userEquipmentVal));
+    // ── Phase 27 / 27.5: Equipment ───────────────────────────────────────────
+    const equipmentInventoryVal = buildEquipmentInventory();
+    userEquipmentRef.current = equipmentInventoryVal.allEquipmentNames;
+    setEquipmentProfile(computeEquipmentProfile(equipmentInventoryVal.allEquipmentNames));
 
     const wkt = runWorkoutPipeline(
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
-      exerciseSummariesVal, adaptiveModifierVal, userEquipmentVal,
+      exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
