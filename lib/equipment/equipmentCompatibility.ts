@@ -5,6 +5,8 @@
 
 import type { Exercise, DifficultyLevel } from "@/lib/exercises/exerciseLibrary";
 import { allExercises } from "@/lib/exercises/exerciseLibrary";
+import { getCustomEquipment } from "@/lib/equipment/customEquipment";
+import { getMappingsForEquipment } from "@/lib/equipment/customExerciseMappings";
 
 // ─── Compatibility group derivation ──────────────────────────────────────────
 // Returns a list of OR-groups. Exercise is compatible when the user owns at
@@ -201,9 +203,45 @@ export function effectiveDifficulty(exercise: Exercise, ownedIds: string[]): Dif
   return base;
 }
 
+// ─── Custom mapping substitution ─────────────────────────────────────────────
+// If the user owns a custom equipment item explicitly mapped (see
+// customExerciseMappings.ts) to a built-in exercise sharing the target's
+// movement pattern, surface that exercise under the custom equipment's name
+// (e.g. a "Pendulum Squat Machine" mapped to Hack Squat performs the same
+// pattern, just branded as the gear the user actually has).
+
+function findCustomMappingSubstitute(exercise: Exercise, ownedIds: string[]): Exercise | null {
+  const ownedSet = new Set(ownedIds);
+  const ownedCustom = getCustomEquipment().filter(e => e.active && ownedSet.has(e.name));
+  if (ownedCustom.length === 0) return null;
+
+  let best: { exercise: Exercise; equipmentName: string; isPrimary: boolean } | null = null;
+  for (const equipment of ownedCustom) {
+    for (const mapping of getMappingsForEquipment(equipment.id)) {
+      const matched = allExercises.find(e => e.name === mapping.exerciseName);
+      if (!matched || matched.movementPattern !== exercise.movementPattern) continue;
+      const isPrimary = mapping.effectiveness === "primary";
+      if (!best || (isPrimary && !best.isPrimary)) {
+        best = { exercise: matched, equipmentName: equipment.name, isPrimary };
+      }
+    }
+  }
+  if (!best) return null;
+
+  return { ...best.exercise, name: best.equipmentName, equipment: best.equipmentName };
+}
+
 // ─── Equipment-aware substitution ────────────────────────────────────────────
 // Finds the best substitute exercise that the user can actually perform with
-// their equipment. Falls back to same-difficulty tier, then adjacent tier.
+// their equipment, walking a priority cascade:
+//   1. Exact match    — the exercise is already performable as-is.
+//   2. Built-in        — same movement pattern + muscle overlap, compatible
+//                         with owned equipment, within one difficulty tier.
+//   3. Custom mapping  — an owned custom equipment item is explicitly mapped
+//                         to an exercise sharing the same movement pattern.
+//   4. Movement fallback — same movement pattern, equipment-compatible, with
+//                           muscle/difficulty constraints relaxed.
+//   5. Bodyweight       — last resort, guarantees a usable substitute.
 
 export function findEquipmentCompatibleSubstitute(
   exercise:  Exercise,
@@ -213,27 +251,50 @@ export function findEquipmentCompatibleSubstitute(
   const targetDifficulty = difficulty ?? exercise.difficulty;
   const tiers: DifficultyLevel[] = ["Beginner", "Intermediate", "Advanced"];
   const targetIdx = tiers.indexOf(targetDifficulty);
+  const byDifficultyGap = (a: Exercise, b: Exercise) =>
+    Math.abs(tiers.indexOf(a.difficulty) - targetIdx) - Math.abs(tiers.indexOf(b.difficulty) - targetIdx);
 
-  const candidates = allExercises.filter(candidate => {
+  // Tier 1 — exact equipment match
+  if (isEquipmentCompatible(exercise, ownedIds)) return exercise;
+
+  // Tier 2 — built-in substitution
+  const builtInCandidates = allExercises.filter(candidate => {
     if (candidate.name === exercise.name) return false;
     if (candidate.movementPattern !== exercise.movementPattern) return false;
-    const muscleMatch = candidate.primaryMuscles.some(m =>
-      exercise.primaryMuscles.includes(m)
-    );
+    const muscleMatch = candidate.primaryMuscles.some(m => exercise.primaryMuscles.includes(m));
     if (!muscleMatch) return false;
     if (!isEquipmentCompatible(candidate, ownedIds)) return false;
-    const candidateIdx = tiers.indexOf(candidate.difficulty);
-    if (Math.abs(targetIdx - candidateIdx) > 1) return false;
-    return true;
+    return Math.abs(targetIdx - tiers.indexOf(candidate.difficulty)) <= 1;
   });
+  if (builtInCandidates.length > 0) {
+    return [...builtInCandidates].sort(byDifficultyGap)[0];
+  }
 
-  candidates.sort((a, b) => {
-    const aGap = Math.abs(tiers.indexOf(a.difficulty) - targetIdx);
-    const bGap = Math.abs(tiers.indexOf(b.difficulty) - targetIdx);
-    return aGap - bGap;
-  });
+  // Tier 3 — custom mapping substitution
+  const customMatch = findCustomMappingSubstitute(exercise, ownedIds);
+  if (customMatch) return customMatch;
 
-  return candidates[0] ?? null;
+  // Tier 4 — movement-pattern fallback (muscle/difficulty constraints relaxed)
+  const patternCandidates = allExercises.filter(candidate =>
+    candidate.name !== exercise.name &&
+    candidate.movementPattern === exercise.movementPattern &&
+    isEquipmentCompatible(candidate, ownedIds)
+  );
+  if (patternCandidates.length > 0) {
+    return [...patternCandidates].sort(byDifficultyGap)[0];
+  }
+
+  // Tier 5 — bodyweight fallback
+  const bodyweightCandidates = allExercises.filter(candidate =>
+    candidate.name !== exercise.name &&
+    candidate.equipment.toLowerCase().startsWith("bodyweight") &&
+    candidate.primaryMuscles.some(m => exercise.primaryMuscles.includes(m))
+  );
+  if (bodyweightCandidates.length > 0) {
+    return [...bodyweightCandidates].sort(byDifficultyGap)[0];
+  }
+
+  return null;
 }
 
 // ─── Unlock count helper ──────────────────────────────────────────────────────
