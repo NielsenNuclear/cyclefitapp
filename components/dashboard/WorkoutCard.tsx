@@ -28,11 +28,23 @@ import {
 
 type WorkoutMode = "idle" | "active" | "done";
 
-interface ActualData {
-  completedSets: number;
-  completedReps: string;
-  actualRPE:     number;
-  weight?:       number;   // kg; absent = bodyweight
+// Per-set logging model (28H) — replaces the old single-row ActualData approach
+interface SetRecord {
+  targetReps: string;   // prescribed (display only)
+  completed:  boolean;
+  actualReps: string;   // editable by user
+  weight?:    number;   // kg
+  rpe?:       number;   // only shown when exercise has a prescribed RPE
+}
+
+function defaultSets(ex: WorkoutExercise): SetRecord[] {
+  return Array.from({ length: ex.sets }, () => ({
+    targetReps: ex.reps,
+    completed:  false,
+    actualReps: ex.reps,
+    weight:     undefined,
+    rpe:        ex.rpe ?? undefined,
+  }));
 }
 
 function parseReps(repsStr: string): number {
@@ -515,81 +527,108 @@ function CoachingSection({ exerciseName }: { exerciseName: string }) {
   );
 }
 
-// ─── Active exercise row (logging inputs) ─────────────────────────────────────
+// ─── Active exercise row — per-set checkboxes (28H) ──────────────────────────
 
 function ActiveExerciseRow({
   ex,
-  actual,
+  sets,
   onChange,
 }: {
   ex:       WorkoutExercise;
-  actual:   ActualData;
-  onChange: (data: ActualData) => void;
+  sets:     SetRecord[];
+  onChange: (sets: SetRecord[]) => void;
 }) {
   const inputCls =
-    "text-center text-[12px] font-medium text-[#1C1B18] bg-[#F5F3EE] border border-[#E0DDD4] rounded-lg px-1 py-1.5 focus:outline-none focus:border-[#534AB7] focus:bg-white transition-colors";
+    "text-center text-[11px] font-medium text-[#1C1B18] bg-[#F5F3EE] border border-[#E0DDD4] rounded-lg px-1 py-1.5 focus:outline-none focus:border-[#534AB7] focus:bg-white transition-colors w-full";
+
+  function updateSet(i: number, patch: Partial<SetRecord>) {
+    onChange(sets.map((s, idx) => idx === i ? { ...s, ...patch } : s));
+  }
+
+  const doneCount = sets.filter(s => s.completed).length;
 
   return (
     <div className="py-3 border-b border-[#F0EDE4] last:border-0">
-      <div className="text-[12px] font-medium text-[#1C1B18] mb-1">{ex.name}</div>
-      <div className="text-[10px] text-[#9B9690] mb-2">
-        Prescribed: {ex.sets} × {ex.reps}{ex.rpe !== undefined ? ` · RPE ${ex.rpe}` : ""}
+      {/* Exercise header */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[12px] font-semibold text-[#1C1B18]">{ex.name}</div>
+        <div className="text-[10px] text-[#9B9690]">{doneCount}/{ex.sets} sets</div>
       </div>
 
-      <div className="flex items-end gap-2">
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">Sets</span>
-          <input
-            type="number"
-            min="0"
-            max="20"
-            value={actual.completedSets}
-            onChange={e => onChange({ ...actual, completedSets: Math.max(0, Number(e.target.value)) })}
-            className={`w-12 ${inputCls}`}
-          />
-        </div>
-
-        <span className="text-[#9B9690] mb-1.5">×</span>
-
-        <div className="flex flex-col items-center gap-0.5 flex-1">
-          <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">Reps</span>
-          <input
-            type="text"
-            value={actual.completedReps}
-            onChange={e => onChange({ ...actual, completedReps: e.target.value })}
-            className={`w-full ${inputCls}`}
-          />
-        </div>
-
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">kg</span>
-          <input
-            type="number"
-            min="0"
-            step="0.5"
-            placeholder="—"
-            value={actual.weight ?? ""}
-            onChange={e => {
-              const v = e.target.value === "" ? undefined : Math.max(0, Number(e.target.value));
-              onChange({ ...actual, weight: v });
-            }}
-            className={`w-14 ${inputCls}`}
-          />
-        </div>
-
+      {/* Column headers */}
+      <div className="grid grid-cols-[1.5rem_2rem_1fr_3rem_2.5rem] gap-1.5 mb-1 px-0.5">
+        <span />
+        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">Set</span>
+        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">Reps</span>
+        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">kg</span>
         {ex.rpe !== undefined && (
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[9px] text-[#9B9690] uppercase tracking-wider">RPE</span>
+          <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">RPE</span>
+        )}
+      </div>
+
+      {/* Per-set rows */}
+      <div className="space-y-1.5">
+        {sets.map((set, i) => (
+          <div
+            key={i}
+            className={`grid grid-cols-[1.5rem_2rem_1fr_3rem_2.5rem] gap-1.5 items-center px-0.5 transition-opacity ${
+              set.completed ? "opacity-60" : ""
+            }`}
+          >
+            {/* Checkbox */}
+            <button
+              type="button"
+              onClick={() => updateSet(i, { completed: !set.completed })}
+              className={`w-5 h-5 rounded border flex items-center justify-center text-[10px] font-bold transition-colors ${
+                set.completed
+                  ? "bg-[#534AB7] border-[#534AB7] text-white"
+                  : "border-[#C5C1B7] text-transparent hover:border-[#534AB7]"
+              }`}
+            >
+              ✓
+            </button>
+
+            {/* Set number */}
+            <span className="text-[10px] font-semibold text-[#9B9690] text-center">{i + 1}</span>
+
+            {/* Reps */}
+            <input
+              type="text"
+              value={set.actualReps}
+              onChange={e => updateSet(i, { actualReps: e.target.value })}
+              className={inputCls}
+              placeholder={set.targetReps}
+            />
+
+            {/* Weight */}
             <input
               type="number"
-              min="1"
-              max="10"
-              value={actual.actualRPE || ""}
-              onChange={e => onChange({ ...actual, actualRPE: Math.min(10, Math.max(1, Number(e.target.value))) })}
-              className={`w-12 ${inputCls}`}
+              min="0"
+              step="0.5"
+              value={set.weight ?? ""}
+              onChange={e => updateSet(i, {
+                weight: e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)),
+              })}
+              placeholder="—"
+              className={inputCls}
             />
+
+            {/* RPE (only if exercise has RPE target) */}
+            {ex.rpe !== undefined && (
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={set.rpe ?? ""}
+                onChange={e => updateSet(i, {
+                  rpe: e.target.value === "" ? undefined : Math.min(10, Math.max(1, Number(e.target.value))),
+                })}
+                placeholder="—"
+                className={inputCls}
+              />
+            )}
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
@@ -656,14 +695,8 @@ export function WorkoutCard({
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  const [actuals, setActuals] = useState<Record<number, ActualData>>(() =>
-    Object.fromEntries(
-      workout.exercises.map((ex, i) => [i, {
-        completedSets: ex.sets,
-        completedReps: ex.reps,
-        actualRPE:     ex.rpe ?? 0,
-      }])
-    )
+  const [actuals, setActuals] = useState<Record<number, SetRecord[]>>(() =>
+    Object.fromEntries(workout.exercises.map((ex, i) => [i, defaultSets(ex)]))
   );
 
   const [overallDifficulty, setOverallDifficulty] = useState(5);
@@ -704,17 +737,23 @@ export function WorkoutCard({
   function buildLog(status: "completed" | "partial"): LoggedWorkout {
     const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
     const loggedExercises: LoggedExercise[] = exercises.map((ex, i) => {
-      const a = actuals[i];
-      const repsStr = a?.completedReps ?? ex.reps;
+      const sets     = actuals[i] ?? defaultSets(ex);
+      const done     = sets.filter(s => s.completed);
+      const repsArr  = done.map(s => s.actualReps || s.targetReps);
+      const repsStr  = repsArr[0] ?? ex.reps;
+      const avgWt    = done.length > 0
+        ? done.reduce((sum, s) => sum + (s.weight ?? 0), 0) / done.length
+        : undefined;
+      const lastRpe  = [...done].reverse().find(s => s.rpe !== undefined)?.rpe ?? (ex.rpe ?? 0);
       return {
         exerciseName:   ex.name,
         prescribedSets: ex.sets,
-        completedSets:  a?.completedSets ?? ex.sets,
+        completedSets:  done.length,
         prescribedReps: ex.reps,
-        completedReps:  repsStr,
+        completedReps:  repsArr.join(", ") || ex.reps,
         prescribedRPE:  ex.rpe ?? 0,
-        actualRPE:      a?.actualRPE ?? (ex.rpe ?? 0),
-        weight:         a?.weight,
+        actualRPE:      lastRpe,
+        weight:         avgWt && avgWt > 0 ? avgWt : undefined,
         actualReps:     parseReps(repsStr) || undefined,
       };
     });
@@ -859,8 +898,8 @@ export function WorkoutCard({
               <ActiveExerciseRow
                 key={i}
                 ex={ex}
-                actual={actuals[i] ?? { completedSets: ex.sets, completedReps: ex.reps, actualRPE: ex.rpe ?? 0 }}
-                onChange={data => setActuals(prev => ({ ...prev, [i]: data }))}
+                sets={actuals[i] ?? defaultSets(ex)}
+                onChange={sets => setActuals(prev => ({ ...prev, [i]: sets }))}
               />
             ))
           : exercises.map((ex, i) => (
