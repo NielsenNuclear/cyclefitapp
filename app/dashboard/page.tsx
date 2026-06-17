@@ -222,6 +222,10 @@ import { saveFatigueEntry, getFatigueHistory, sleepQualityToScore } from "@/lib/
 import type { SleepQuality as FatigueSleepQuality } from "@/lib/recovery/fatigueHistory";
 import { predictFatigue, type FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
 import { FatigueInsightsCard } from "@/components/dashboard/FatigueInsightsCard";
+import { generateDailyGuidance, type DailyGuidance } from "@/lib/coaching/dailyGuidance";
+import { computeWeeklyReview, type WeeklyReview }    from "@/lib/coaching/weeklyReview";
+import { computeMonthlyReview, type MonthlyReview }  from "@/lib/coaching/monthlyReview";
+import { AdaptiveCoachCard }                         from "@/components/dashboard/AdaptiveCoachCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -516,6 +520,9 @@ export default function DashboardPage() {
   } = useEquipmentData();
 
   const [fatiguePrediction, setFatiguePrediction] = useState<FatiguePrediction | undefined>(undefined);
+  const [dailyGuidance,    setDailyGuidance]    = useState<DailyGuidance | undefined>(undefined);
+  const [weeklyReview,     setWeeklyReview]     = useState<WeeklyReview  | undefined>(undefined);
+  const [monthlyReview,    setMonthlyReview]    = useState<MonthlyReview | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -832,6 +839,28 @@ export default function DashboardPage() {
     );
     setFatiguePrediction(fatiguePredictionVal);
 
+    // ── Phase 32: Adaptive Coach ──────────────────────────────────────────────
+    setDailyGuidance(generateDailyGuidance({
+      readiness:      readiness,
+      debt:           recoveryDebtVal,
+      burnout:        burnoutRiskVal,
+      fatigue:        fatiguePredictionVal,
+      recommendation: personalizedRec,
+    }));
+    const goalTypeCoach = mapOnboardingGoalToGoalType(user.goals ?? []);
+    setWeeklyReview(computeWeeklyReview({
+      history:         rawHistory.map(h => ({ id: h.id, status: h.status })),
+      targetSessions:  user.sessionsPerWeek,
+      goalType:        goalTypeCoach,
+      weeklyVolume:    prelimLoad.weeklyVolume,
+      prevWeekVolume:  0,   // populated on next render from prior week data
+    }));
+    setMonthlyReview(computeMonthlyReview({
+      history:        rawHistory.map(h => ({ id: h.id, status: h.status })),
+      targetSessions: user.sessionsPerWeek,
+      goalType:       goalTypeCoach,
+    }));
+
     const healthTrendVal     = buildHealthTrend({
       recoveryTrend:      recoveryTrendNow,
       recoveryDebt:       recoveryDebtVal,
@@ -1081,6 +1110,14 @@ export default function DashboardPage() {
       todaySymptomsVal,
     );
     setRecommendation(personalizedRec);
+    // Refresh coaching guidance with new check-in data
+    setDailyGuidance(generateDailyGuidance({
+      readiness:      newReadiness ?? readinessScore,
+      debt:           recoveryDebt,
+      burnout:        burnoutRisk,
+      fatigue:        checkinFatiguePrediction,
+      recommendation: personalizedRec,
+    }));
     const goalType = mapOnboardingGoalToGoalType(user.goals);
     const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current);
     setWorkout(wkt);
@@ -1274,6 +1311,11 @@ export default function DashboardPage() {
         />
         <FatigueInsightsCard prediction={fatiguePrediction} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+        <AdaptiveCoachCard
+          daily={dailyGuidance}
+          weekly={weeklyReview}
+          monthly={monthlyReview}
+        />
         <PerformanceForecastCard
           potential={performancePotential}
           trainingRisk={trainingRisk}
