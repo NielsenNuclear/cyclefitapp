@@ -4,6 +4,7 @@
 
 import type { Exercise, MovementPattern, DifficultyLevel, EquipmentCategory } from "./exerciseLibrary";
 import { deriveEquipmentCategory } from "./exerciseSubstitutions";
+import { getFavoritedExerciseNames } from "./exerciseFavorites";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -200,16 +201,18 @@ function difficultyFitScore(exerciseDiff: DifficultyLevel, target: DifficultyLev
 }
 
 export function scoreExercise(
-  exercise:   Exercise,
-  goalType:   GoalType,
-  targetDiff: DifficultyLevel,
+  exercise:    Exercise,
+  goalType:    GoalType,
+  targetDiff:  DifficultyLevel,
+  isFavourite: boolean = false,
 ): number {
   const strategy    = GOAL_STRATEGIES[goalType];
   const movScore    = strategy.movementScores[exercise.movementPattern] ?? 1.0;
   const equipCat    = deriveEquipmentCategory(exercise.equipment);
   const equipScore  = strategy.equipmentScores[equipCat] ?? 1.0;
   const diffScore   = difficultyFitScore(exercise.difficulty, targetDiff);
-  return movScore + equipScore + diffScore;
+  const favBonus    = isFavourite ? 0.5 : 0; // enough to pull a favourite into the selection window
+  return movScore + equipScore + diffScore + favBonus;
 }
 
 // ─── Goal-aware pool selection ────────────────────────────────────────────────
@@ -227,9 +230,10 @@ export function pickByGoal(
   if (pool.length <= count) return pool;
 
   // Score and stable-sort (tie-break by original index for determinism)
+  const favourites = new Set(getFavoritedExerciseNames());
   const scored = pool.map((ex, idx) => ({
     ex,
-    score: scoreExercise(ex, goalType, targetDiff),
+    score: scoreExercise(ex, goalType, targetDiff, favourites.has(ex.name)),
     idx,
   }));
   scored.sort((a, b) => b.score - a.score || a.idx - b.idx);

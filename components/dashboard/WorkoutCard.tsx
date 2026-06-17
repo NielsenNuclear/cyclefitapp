@@ -37,12 +37,12 @@ interface SetRecord {
   rpe?:       number;   // only shown when exercise has a prescribed RPE
 }
 
-function defaultSets(ex: WorkoutExercise): SetRecord[] {
+function defaultSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
   return Array.from({ length: ex.sets }, () => ({
     targetReps: ex.reps,
     completed:  false,
     actualReps: ex.reps,
-    weight:     undefined,
+    weight:     lastWeight,
     rpe:        ex.rpe ?? undefined,
   }));
 }
@@ -50,6 +50,14 @@ function defaultSets(ex: WorkoutExercise): SetRecord[] {
 function parseReps(repsStr: string): number {
   const n = parseInt(repsStr, 10);
   return isNaN(n) ? 0 : n;
+}
+
+function parseRestSeconds(rest: string): number {
+  const min = rest.match(/(\d+)\s*min/);
+  const sec = rest.match(/(\d+)\s*sec/);
+  if (min) return parseInt(min[1], 10) * 60;
+  if (sec) return parseInt(sec[1], 10);
+  return 60;
 }
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
@@ -527,6 +535,59 @@ function CoachingSection({ exerciseName }: { exerciseName: string }) {
   );
 }
 
+// ─── Rest timer (28J M-2) ────────────────────────────────────────────────────
+
+function RestTimer({
+  totalSeconds,
+  onDismiss,
+}: {
+  totalSeconds: number;
+  onDismiss:    () => void;
+}) {
+  const [remaining, setRemaining] = useState(totalSeconds);
+
+  useEffect(() => {
+    if (remaining <= 0) { onDismiss(); return; }
+    const id = setTimeout(() => setRemaining(r => r - 1), 1000);
+    return () => clearTimeout(id);
+  }, [remaining, onDismiss]);
+
+  const pct  = Math.max(0, remaining / totalSeconds);
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const display = mins > 0
+    ? `${mins}:${String(secs).padStart(2, "0")}`
+    : `${secs}s`;
+
+  return (
+    <div className="mt-2 flex items-center gap-3 px-2.5 py-2 bg-[#F3F2FD] rounded-lg border border-[#C9C5EE]">
+      <div className="relative w-8 h-8 flex-shrink-0">
+        <svg viewBox="0 0 32 32" className="w-full h-full -rotate-90">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="#E0DDD4" strokeWidth="3" />
+          <circle
+            cx="16" cy="16" r="13" fill="none"
+            stroke="#534AB7" strokeWidth="3"
+            strokeDasharray={`${2 * Math.PI * 13}`}
+            strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct)}`}
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+      <div className="flex-1">
+        <div className="text-[9px] font-bold uppercase tracking-widest text-[#6B5ECC]">Rest</div>
+        <div className="text-[14px] font-bold text-[#3C3489] leading-none">{display}</div>
+      </div>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="text-[10px] font-semibold text-[#9B9690] hover:text-[#534AB7] transition-colors px-2 py-1"
+      >
+        Skip
+      </button>
+    </div>
+  );
+}
+
 // ─── Active exercise row — per-set checkboxes (28H) ──────────────────────────
 
 function ActiveExerciseRow({
@@ -541,8 +602,18 @@ function ActiveExerciseRow({
   const inputCls =
     "text-center text-[11px] font-medium text-[#1C1B18] bg-[#F5F3EE] border border-[#E0DDD4] rounded-lg px-1 py-1.5 focus:outline-none focus:border-[#534AB7] focus:bg-white transition-colors w-full";
 
+  const [restingAfterSet, setRestingAfterSet] = useState<number | null>(null);
+  const restDuration = parseRestSeconds(ex.rest);
+
   function updateSet(i: number, patch: Partial<SetRecord>) {
-    onChange(sets.map((s, idx) => idx === i ? { ...s, ...patch } : s));
+    const next = sets.map((s, idx) => idx === i ? { ...s, ...patch } : s);
+    onChange(next);
+    // Start rest timer when a set is newly checked off (not unchecked)
+    if (patch.completed === true && !sets[i].completed) {
+      const isLastSet = i === sets.length - 1 && next.every(s => s.completed);
+      if (!isLastSet) setRestingAfterSet(i);
+    }
+    if (patch.completed === false) setRestingAfterSet(null);
   }
 
   const doneCount = sets.filter(s => s.completed).length;
@@ -630,6 +701,15 @@ function ActiveExerciseRow({
           </div>
         ))}
       </div>
+
+      {/* Rest timer — appears after checking a set, hides when all sets done */}
+      {restingAfterSet !== null && (
+        <RestTimer
+          key={restingAfterSet}
+          totalSeconds={restDuration}
+          onDismiss={() => setRestingAfterSet(null)}
+        />
+      )}
     </div>
   );
 }
@@ -696,7 +776,15 @@ export function WorkoutCard({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const [actuals, setActuals] = useState<Record<number, SetRecord[]>>(() =>
-    Object.fromEntries(workout.exercises.map((ex, i) => [i, defaultSets(ex)]))
+    Object.fromEntries(
+      workout.exercises.map((ex, i) => {
+        const history   = getExerciseHistory(ex.name);
+        const lastWeight = (history.bestSet && history.bestSet.weight > 0)
+          ? history.bestSet.weight
+          : undefined;
+        return [i, defaultSets(ex, lastWeight)];
+      })
+    )
   );
 
   const [overallDifficulty, setOverallDifficulty] = useState(5);

@@ -85,10 +85,17 @@ export default function ExercisesPage() {
 
   const allExercises = useMemo(() => getMergedExercisePool(), []);
 
-  const [search,     setSearch]     = useState("");
-  const [category,   setCategory]   = useState<MuscleCategory | null>(null);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null);
-  const [pattern,    setPattern]    = useState<MovementPattern | null>(null);
+  const [search,       setSearch]       = useState("");
+  const [category,     setCategory]     = useState<MuscleCategory | null>(null);
+  const [difficulty,   setDifficulty]   = useState<DifficultyLevel | null>(null);
+  const [pattern,      setPattern]      = useState<MovementPattern | null>(null);
+  const [displayCount, setDisplayCount] = useState(30);
+
+  // Reset pagination whenever any filter changes
+  function updateSearch(v: string)                     { setSearch(v);     setDisplayCount(30); }
+  function updateCategory(v: MuscleCategory | null)    { setCategory(v);   setDisplayCount(30); }
+  function updateDifficulty(v: DifficultyLevel | null) { setDifficulty(v); setDisplayCount(30); }
+  function updatePattern(v: MovementPattern | null)    { setPattern(v);    setDisplayCount(30); }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -134,7 +141,7 @@ export default function ExercisesPage() {
           <input
             type="text"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => updateSearch(e.target.value)}
             placeholder="Search by name or muscle…"
             className="w-full px-4 py-3 text-[13px] rounded-xl border border-[#DDD9CF] bg-white text-[#1C1B18] focus:outline-none focus:border-[#534AB7] shadow-sm"
           />
@@ -146,19 +153,19 @@ export default function ExercisesPage() {
             label="Muscle group"
             options={CATEGORIES}
             value={category}
-            onChange={setCategory}
+            onChange={updateCategory}
           />
           <FilterRow<DifficultyLevel>
             label="Difficulty"
             options={DIFFICULTIES}
             value={difficulty}
-            onChange={setDifficulty}
+            onChange={updateDifficulty}
           />
           <FilterRow<MovementPattern>
             label="Movement pattern"
             options={PATTERNS}
             value={pattern}
-            onChange={setPattern}
+            onChange={updatePattern}
           />
         </div>
 
@@ -166,7 +173,7 @@ export default function ExercisesPage() {
         {hasActiveFilter && (
           <button
             type="button"
-            onClick={() => { setSearch(""); setCategory(null); setDifficulty(null); setPattern(null); }}
+            onClick={() => { setSearch(""); setCategory(null); setDifficulty(null); setPattern(null); setDisplayCount(30); }}
             className="mb-3 text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
           >
             Clear all filters
@@ -179,18 +186,29 @@ export default function ExercisesPage() {
             <div className="text-[14px] text-[#9B9690]">No exercises match your filters.</div>
             <button
               type="button"
-              onClick={() => { setSearch(""); setCategory(null); setDifficulty(null); setPattern(null); }}
+              onClick={() => { setSearch(""); setCategory(null); setDifficulty(null); setPattern(null); setDisplayCount(30); }}
               className="mt-3 text-[12px] font-semibold text-[#534AB7]"
             >
               Clear filters
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
-            {filtered.map(ex => (
-              <ExerciseLibraryCard key={ex.name} exercise={ex} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-2">
+              {filtered.slice(0, displayCount).map(ex => (
+                <ExerciseLibraryCard key={ex.name} exercise={ex} />
+              ))}
+            </div>
+            {filtered.length > displayCount && (
+              <button
+                type="button"
+                onClick={() => setDisplayCount(c => c + 30)}
+                className="mt-4 w-full py-3 text-[12px] font-semibold text-[#534AB7] border border-[#534AB7] rounded-xl hover:bg-[#F0EEF8] transition-colors"
+              >
+                Load more ({filtered.length - displayCount} remaining)
+              </button>
+            )}
+          </>
         )}
       </main>
     </div>
