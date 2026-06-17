@@ -23,6 +23,10 @@ import {
   getActiveWorkout,
   clearActiveWorkout,
 } from "@/lib/workoutExecution/workoutLogging";
+import {
+  saveExercisePerformances,
+  type ExercisePerformance,
+} from "@/lib/progression/exerciseHistory";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -822,6 +826,64 @@ export function WorkoutCard({
     setMode("active");
   }
 
+  // Build ExercisePerformance[] from actuals — called on full session finish.
+  // Falls back to planned values for exercises where no sets were checked.
+  function buildExercisePerformances(
+    exerciseList: WorkoutExercise[],
+    actualsMap:   Record<number, SetRecord[]>,
+    date:         string,
+    completed:    boolean,
+  ): ExercisePerformance[] {
+    return exerciseList.map((ex, i) => {
+      const sets = actualsMap[i] ?? defaultSets(ex);
+      const done = sets.filter(s => s.completed);
+
+      if (done.length === 0) {
+        // Exercise not performed — store planned values with completed=false
+        return {
+          exerciseId:   ex.name,
+          exerciseName: ex.name,
+          date,
+          weight:       0,
+          reps:         parseReps(ex.reps),
+          sets:         ex.sets,
+          completed:    false,
+        } satisfies ExercisePerformance;
+      }
+
+      const avgWeight = done.reduce((s, d) => s + (d.weight ?? 0), 0) / done.length;
+      const avgReps   = done.reduce((s, d) => s + parseReps(d.actualReps || d.targetReps), 0) / done.length;
+      const lastRpe   = [...done].reverse().find(d => d.rpe !== undefined)?.rpe;
+
+      return {
+        exerciseId:   ex.name,
+        exerciseName: ex.name,
+        date,
+        weight:       Math.round(avgWeight * 10) / 10,
+        reps:         Math.round(avgReps),
+        sets:         done.length,
+        rpe:          lastRpe,
+        completed,
+      } satisfies ExercisePerformance;
+    });
+  }
+
+  // Fallback for quick-mark (no set-level data): store planned values as completed.
+  function buildPlannedPerformances(
+    exerciseList: WorkoutExercise[],
+    date:         string,
+  ): ExercisePerformance[] {
+    return exerciseList.map(ex => ({
+      exerciseId:   ex.name,
+      exerciseName: ex.name,
+      date,
+      weight:       0,
+      reps:         parseReps(ex.reps),
+      sets:         ex.sets,
+      completed:    true,
+    } satisfies ExercisePerformance));
+  }
+
   function buildLog(status: "completed" | "partial"): LoggedWorkout {
     const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
     const loggedExercises: LoggedExercise[] = exercises.map((ex, i) => {
@@ -851,12 +913,28 @@ export function WorkoutCard({
   function handleFinish(status: "completed" | "partial") {
     const dur = Math.max(1, Math.round(elapsedSeconds / 60));
     setFinishedDuration(dur);
-    const log = buildLog(status);
+    const log  = buildLog(status);
+    const perfs = buildExercisePerformances(exercises, actuals, today, status === "completed");
     saveLoggedWorkout(log);
+    saveExercisePerformances(perfs);
     clearActiveWorkout();
     if (status === "completed") onMarkComplete(); else onMarkPartial();
     onWorkoutLogged?.(log);
     setMode("done");
+  }
+
+  // Quick-mark wrappers — save planned values since no set-level data exists
+  function handleQuickMarkComplete() {
+    saveExercisePerformances(buildPlannedPerformances(exercises, today));
+    onMarkComplete();
+  }
+
+  function handleQuickMarkPartial() {
+    // Partial quick-mark: save planned values but mark completed=false
+    saveExercisePerformances(
+      buildPlannedPerformances(exercises, today).map(p => ({ ...p, completed: false }))
+    );
+    onMarkPartial();
   }
 
   // ── Completion section (shown at bottom) ─────────────────────────────────────
@@ -903,9 +981,9 @@ export function WorkoutCard({
           </button>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-[#9B9690]">Quick mark:</span>
-            <button onClick={onMarkComplete} className="text-[10px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Done</button>
-            <button onClick={onMarkPartial}  className="text-[10px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Partial</button>
-            <button onClick={onMarkSkip}     className="text-[10px] font-semibold text-[#9B9690] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Skip</button>
+            <button onClick={handleQuickMarkComplete} className="text-[10px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Done</button>
+            <button onClick={handleQuickMarkPartial}  className="text-[10px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Partial</button>
+            <button onClick={onMarkSkip}              className="text-[10px] font-semibold text-[#9B9690] hover:text-[#1C1B18] transition-colors px-1.5 py-0.5 rounded border border-[#E0DDD4] bg-[#F5F3EE]">Skip</button>
           </div>
         </div>
       );

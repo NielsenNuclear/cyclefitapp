@@ -117,6 +117,7 @@ import { OvulationEstimateCard }   from "@/components/dashboard/OvulationEstimat
 import { TrainingWindowCard }      from "@/components/dashboard/TrainingWindowCard";
 import { RecoveryWindowCard }      from "@/components/dashboard/RecoveryWindowCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
+import { ProgressInsightsCard }     from "@/components/dashboard/ProgressInsightsCard";
 import {
   computeRecoveryScore,
   getRecoveryScores,
@@ -1283,6 +1284,7 @@ export default function DashboardPage() {
         )}
         <CoachAccuracyCard      report={accuracyReport} />
         <PerformanceTrendsCard  summaries={exerciseSummaries} />
+        <ProgressInsightsCard />
         <CoachingMemoryCard     items={coachingMemory} />
         <TrainingSummaryCard    summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
