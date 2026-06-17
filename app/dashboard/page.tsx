@@ -217,6 +217,10 @@ import { buildEquipmentInventory }      from "@/lib/equipment/equipmentInventory
 import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
 import { logEquipmentSkip }             from "@/lib/equipment/equipmentLearning";
 import { logEquipmentUsage, analyzeEquipmentUsage } from "@/lib/equipment/equipmentUsage";
+import { saveFatigueEntry, getFatigueHistory, sleepQualityToScore } from "@/lib/recovery/fatigueHistory";
+import type { SleepQuality as FatigueSleepQuality } from "@/lib/recovery/fatigueHistory";
+import { predictFatigue, type FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
+import { FatigueInsightsCard } from "@/components/dashboard/FatigueInsightsCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -239,13 +243,14 @@ function computePhase(user: OnboardingData, cycleLength?: number): PhaseData {
 }
 
 function runPipeline(
-  user:        OnboardingData,
-  phase:       PhaseData,
-  profile?:    AdaptiveProfile,
-  progression?: ProgressionProfile,
-  readiness?:  ReadinessScore,
+  user:               OnboardingData,
+  phase:              PhaseData,
+  profile?:           AdaptiveProfile,
+  progression?:       ProgressionProfile,
+  readiness?:         ReadinessScore,
+  fatiguePrediction?: FatiguePrediction,
 ): DailyRecommendation {
-  return generateRecommendation(phase, user, profile, progression, readiness);
+  return generateRecommendation(phase, user, profile, progression, readiness, fatiguePrediction);
 }
 
 function runWorkoutPipeline(
@@ -508,6 +513,8 @@ export default function DashboardPage() {
     equipmentProfile,        setEquipmentProfile,
     equipmentUsageAnalytics, setEquipmentUsageAnalytics,
   } = useEquipmentData();
+
+  const [fatiguePrediction, setFatiguePrediction] = useState<FatiguePrediction | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -802,6 +809,28 @@ export default function DashboardPage() {
     setBurnoutRisk(burnoutRiskVal);
     const recoveryScoresNow  = getRecoveryScores();
     const recoveryTrendNow   = computeRecoveryTrend(recoveryScoresNow);
+
+    // ── Phase 30: Save fatigue entry + predict ────────────────────────────────
+    const meanSymSeverityFatigue = todaySymptomsVal.length > 0
+      ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
+      : 0;
+    saveFatigueEntry({
+      date:            todayStr,
+      sleepQuality:    effectiveUser.sleepQuality as FatigueSleepQuality,
+      sleepScore:      sleepQualityToScore(effectiveUser.sleepQuality as FatigueSleepQuality),
+      stressLevel:     effectiveUser.stressLevel,
+      energyLevel:     readiness.contributors?.energy ?? 2,
+      trainingLoad:    prelimLoad.weeklyVolume,
+      symptomCount:    todaySymptomsVal.length,
+      symptomSeverity: meanSymSeverityFatigue,
+      recoveryScore:   recoveryScoreVal.score,
+      readinessScore:  readiness.score,
+    });
+    const fatiguePredictionVal = predictFatigue(
+      recoveryDebtVal, burnoutRiskVal, recoveryTrendNow, getFatigueHistory(),
+    );
+    setFatiguePrediction(fatiguePredictionVal);
+
     const healthTrendVal     = buildHealthTrend({
       recoveryTrend:      recoveryTrendNow,
       recoveryDebt:       recoveryDebtVal,
@@ -1015,7 +1044,29 @@ export default function DashboardPage() {
       setReadinessTrend(getReadinessTrend());
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
-    const newRec          = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined);
+    // Update fatigue entry with fresh check-in data
+    const checkinSymSev = todaySymptomsVal.length > 0
+      ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
+      : 0;
+    saveFatigueEntry({
+      date:            data.date,
+      sleepQuality:    data.sleepQuality as FatigueSleepQuality,
+      sleepScore:      sleepQualityToScore(data.sleepQuality as FatigueSleepQuality),
+      stressLevel:     data.stressLevel,
+      energyLevel:     newReadiness?.contributors?.energy ?? 2,
+      trainingLoad:    loadReport?.weeklyVolume ?? 0,
+      symptomCount:    todaySymptomsVal.length,
+      symptomSeverity: checkinSymSev,
+      recoveryScore:   recoveryScore?.score,
+      readinessScore:  newReadiness?.score,
+    });
+    const checkinFatiguePrediction =
+      recoveryDebt && burnoutRisk && recoveryTrend
+        ? predictFatigue(recoveryDebt, burnoutRisk, recoveryTrend, getFatigueHistory())
+        : undefined;
+    setFatiguePrediction(checkinFatiguePrediction);
+
+    const newRec          = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined, checkinFatiguePrediction);
     const forecastBurden  = computeForecastBurden(cycleForecast.symptomEvents);
     const personalizedRec = applyAccuracyCalibration(
       applyForecastModifier(
@@ -1220,6 +1271,7 @@ export default function DashboardPage() {
           capacity={recoveryCapacity}
           debt={recoveryDebt}
         />
+        <FatigueInsightsCard prediction={fatiguePrediction} />
         <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
         <PerformanceForecastCard
           potential={performancePotential}

@@ -11,6 +11,7 @@ import type { OnboardingData as UserOnboarding } from "@/lib/onboarding-types";
 import type { AdaptiveProfile }    from "@/lib/adaptive-profile";
 import type { ProgressionProfile } from "@/lib/progression/progressionProfile";
 import type { ReadinessScore }     from "@/lib/readiness/calculateReadiness";
+import type { FatiguePrediction }  from "@/lib/recovery/fatiguePrediction";
 import type {
   PhaseData,
   DailyRecommendation,
@@ -667,23 +668,24 @@ function buildReadinessExplanation(readiness: ReadinessScore): ExplanationPoint 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function generateRecommendation(
-  phase:        PhaseData,
-  user:         UserOnboarding,
-  profile?:     AdaptiveProfile,
-  progression?: ProgressionProfile,
-  readiness?:   ReadinessScore,
+  phase:             PhaseData,
+  user:              UserOnboarding,
+  profile?:          AdaptiveProfile,
+  progression?:      ProgressionProfile,
+  readiness?:        ReadinessScore,
+  fatiguePrediction?: FatiguePrediction,
 ): DailyRecommendation {
   const weights       = profile?.readinessWeights;
   const basePoints    = buildExplanation(phase, user, weights);
   const progressionPt = buildProgressionExplanation(progression);
   const readinessPt   = readiness ? buildReadinessExplanation(readiness) : null;
-  const explanationPoints = [
+  const explanationPoints: ExplanationPoint[] = [
     ...basePoints,
     ...(progressionPt ? [progressionPt] : []),
     ...(readinessPt   ? [readinessPt]   : []),
   ];
 
-  return {
+  const base = {
     generatedAt: new Date().toISOString(),
     phase,
     training:    buildTraining(phase, user, weights, readiness),
@@ -693,4 +695,38 @@ export function generateRecommendation(
     disclaimer:
       "These recommendations are guidance informed by physiology research and your profile data. They are not medical advice. Individual responses vary — your felt experience is always the primary signal.",
   };
+
+  // ─── Modifier Layer 7: fatigue prediction ─────────────────────────────────
+  // Applies only when day3 risk is high or critical and prediction has enough data.
+  const day3 = fatiguePrediction?.day3;
+  if (
+    fatiguePrediction?.hasEnoughData &&
+    day3 &&
+    (day3.riskLevel === "high" || day3.riskLevel === "critical")
+  ) {
+    const fatigueNote =
+      day3.riskLevel === "critical"
+        ? `High fatigue risk predicted in the next 3 days (${day3.riskScore}% risk). Prioritise recovery — consider replacing one session with active rest.`
+        : `Elevated fatigue risk detected for the next 3 days (${day3.riskScore}% risk). Reduce volume ~10% and protect sleep.`;
+
+    const fatiguePt: ExplanationPoint = {
+      signal:      "Fatigue Forecast",
+      observation: `3-day fatigue risk: ${day3.riskLevel} (${day3.riskScore}%)`,
+      implication: day3.reasons[0] ?? "Accumulated load signals moderate recovery strain.",
+      weight:      day3.riskLevel === "critical" ? "Primary" : "Secondary",
+    };
+
+    return {
+      ...base,
+      training: {
+        ...base.training,
+        avoidNote: base.training.avoidNote
+          ? `${base.training.avoidNote} ${fatigueNote}`
+          : fatigueNote,
+      },
+      explanationPoints: [...base.explanationPoints, fatiguePt],
+    };
+  }
+
+  return base;
 }
