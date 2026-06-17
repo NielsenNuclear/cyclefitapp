@@ -118,6 +118,7 @@ import { TrainingWindowCard }      from "@/components/dashboard/TrainingWindowCa
 import { RecoveryWindowCard }      from "@/components/dashboard/RecoveryWindowCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
 import { ProgressInsightsCard }     from "@/components/dashboard/ProgressInsightsCard";
+import { GoalProgressCard }         from "@/components/dashboard/GoalProgressCard";
 import {
   computeRecoveryScore,
   getRecoveryScores,
@@ -1337,6 +1338,12 @@ export default function DashboardPage() {
         <CoachAccuracyCard      report={accuracyReport} />
         <PerformanceTrendsCard  summaries={exerciseSummaries} />
         <ProgressInsightsCard />
+        {onboardingRef.current && (
+          <GoalProgressCard
+            goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
+            sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
+          />
+        )}
         <CoachingMemoryCard     items={coachingMemory} />
         <TrainingSummaryCard    summary={historySummary} />
         <RecoveryStatusCard  report={loadReport} />
