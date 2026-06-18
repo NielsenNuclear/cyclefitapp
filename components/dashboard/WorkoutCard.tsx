@@ -726,6 +726,120 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+// ─── PrepSection ──────────────────────────────────────────────────────────────
+// Collapsible warmup / activation / recovery block.
+
+import type { WarmupBlock, MobilityItem, RecoveryBlock } from "@/lib/exercises/generateWorkout";
+
+interface PrepSectionProps {
+  label:       string;
+  defaultOpen: boolean;
+  warmup?:     WarmupBlock;
+  items?:      MobilityItem[];
+  recovery?:   RecoveryBlock;
+}
+
+function PrepSection({ label, defaultOpen, warmup, items, recovery }: PrepSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  const totalMin = warmup?.totalMinutes ?? recovery?.totalMinutes;
+  const subtitle = totalMin ? `~${totalMin} min` : undefined;
+
+  return (
+    <div className="mb-3 border border-[#E8E5DC] rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-2.5 bg-[#FAFAF7] hover:bg-[#F5F3EE] transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#534AB7]">
+            {label}
+          </span>
+          {subtitle && (
+            <span className="text-[10px] text-[#9B9690]">{subtitle}</span>
+          )}
+        </div>
+        <span className="text-[11px] text-[#9B9690]">{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div className="px-4 py-3 space-y-2 bg-white">
+          {/* Cardio warmup */}
+          {warmup?.cardio && (
+            <div className="flex items-start gap-2 pb-2 border-b border-[#F0EDE4]">
+              <span className="text-[10px] text-[#9B9690] font-bold uppercase tracking-wide mt-0.5 shrink-0">Cardio</span>
+              <div className="flex-1">
+                <p className="text-[12px] font-medium text-[#1C1B18]">{warmup.cardio.name}</p>
+                <p className="text-[11px] text-[#9B9690]">{warmup.cardio.duration} · {warmup.cardio.intensity}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Mobility items */}
+          {warmup?.mobility && warmup.mobility.length > 0 && (
+            <div className="pb-2 border-b border-[#F0EDE4]">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Mobility</div>
+              <div className="space-y-1.5">
+                {warmup.mobility.map((item, i) => (
+                  <MobilityItemRow key={i} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Activation (when shown inside warmup block) */}
+          {warmup?.activation && warmup.activation.length > 0 && (
+            <div>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Activation</div>
+              <div className="space-y-1.5">
+                {warmup.activation.map((item, i) => (
+                  <MobilityItemRow key={i} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Standalone items list (activation block) */}
+          {items && items.length > 0 && (
+            <div className="space-y-1.5">
+              {items.map((item, i) => (
+                <MobilityItemRow key={i} item={item} />
+              ))}
+            </div>
+          )}
+
+          {/* Recovery stretches */}
+          {recovery?.stretches && recovery.stretches.length > 0 && (
+            <div className="space-y-1.5">
+              {recovery.stretches.map((item, i) => (
+                <MobilityItemRow key={i} item={item} />
+              ))}
+            </div>
+          )}
+
+          {/* Breathwork */}
+          {recovery?.breathwork && (
+            <div className="mt-2 px-3 py-2 bg-[#F3F2FD] rounded-lg">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[#534AB7] mb-1">Breathwork</div>
+              <p className="text-[11px] text-[#3C3489] leading-relaxed">{recovery.breathwork}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobilityItemRow({ item }: { item: MobilityItem }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <p className="text-[12px] text-[#1C1B18] leading-snug">{item.name}</p>
+      <span className="shrink-0 text-[10px] text-[#9B9690] font-medium whitespace-nowrap">{item.duration}</span>
+    </div>
+  );
+}
+
 // ─── WorkoutCard ──────────────────────────────────────────────────────────────
 
 interface WorkoutCardProps {
@@ -1053,6 +1167,31 @@ export function WorkoutCard({
         </div>
       )}
 
+      {/* ── Movement Preparation ─────────────────────────────────────────────── */}
+      {workout.warmupBlock && mode !== "active" && (
+        <PrepSection
+          label="Warmup"
+          warmup={workout.warmupBlock}
+          defaultOpen={true}
+        />
+      )}
+      {workout.activationBlock && workout.activationBlock.length > 0 && mode !== "active" && (
+        <PrepSection
+          label="Activation"
+          items={workout.activationBlock}
+          defaultOpen={false}
+        />
+      )}
+
+      {/* Movement readiness notes */}
+      {workout.movementReadiness?.notes.length && workout.movementReadiness.notes.length > 0 && mode !== "active" && (
+        <div className="mb-3 px-3 py-2 bg-[#F3F2FD] rounded-xl border border-[#C9C5EE]">
+          {workout.movementReadiness.notes.slice(0, 2).map((n, i) => (
+            <p key={i} className="text-[11px] text-[#3C3489] leading-relaxed">{n}</p>
+          ))}
+        </div>
+      )}
+
       {/* Exercise list — idle: prescription view; active: logging rows */}
       <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-1">
         {mode === "active" ? "Log your sets" : `Exercises · ${exercises.length} movements`}
@@ -1108,6 +1247,17 @@ export function WorkoutCard({
           <p className="text-[11px] text-[#6B6860] leading-relaxed italic">
             {workout.workoutRationale}
           </p>
+        </div>
+      )}
+
+      {/* ── Recovery Finisher ─────────────────────────────────────────────────── */}
+      {workout.recoveryBlock && mode !== "active" && (
+        <div className="mt-3">
+          <PrepSection
+            label="Recovery Finisher"
+            recovery={workout.recoveryBlock}
+            defaultOpen={false}
+          />
         </div>
       )}
 

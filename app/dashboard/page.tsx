@@ -222,6 +222,7 @@ import { saveFatigueEntry, getFatigueHistory, sleepQualityToScore } from "@/lib/
 import type { SleepQuality as FatigueSleepQuality } from "@/lib/recovery/fatigueHistory";
 import { predictFatigue, type FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
 import { FatigueInsightsCard } from "@/components/dashboard/FatigueInsightsCard";
+import { logMobilityComplaints } from "@/lib/movement/mobilityLearning";
 import { generateDailyGuidance, type DailyGuidance } from "@/lib/coaching/dailyGuidance";
 import { computeWeeklyReview, type WeeklyReview }    from "@/lib/coaching/weeklyReview";
 import { computeMonthlyReview, type MonthlyReview }  from "@/lib/coaching/monthlyReview";
@@ -270,6 +271,7 @@ function runWorkoutPipeline(
   exerciseSummaries?: ExerciseProgressSummary[],
   adaptiveModifier?:  AdaptiveModifier,
   userEquipment?:     string[],
+  symptoms?:          Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -301,6 +303,9 @@ function runWorkoutPipeline(
     adaptiveVolumeMultiplier:    adaptiveModifier?.volumeMultiplier,
     adaptiveIntensityMultiplier: adaptiveModifier?.intensityMultiplier,
     userEquipment,
+    symptoms,
+    stressLevel:  user.stressLevel,
+    sleepQuality: user.sleepQuality,
   });
 }
 
@@ -574,6 +579,7 @@ export default function DashboardPage() {
     const todayStr  = new Date().toISOString().slice(0, 10);
     const todaySymptomsVal = getSymptomsForDate(todayStr);
     setTodaySymptoms(todaySymptomsVal);
+    logMobilityComplaints(todayStr, todaySymptomsVal);
     setShowFeedback(getLoggedWorkout(todayStr) !== null);
     setAccuracyReport(getAccuracyReport());
     const exerciseSummariesVal = getExerciseProgress(getWorkoutLog());
@@ -986,6 +992,7 @@ export default function DashboardPage() {
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
+      todaySymptomsVal,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1119,7 +1126,7 @@ export default function DashboardPage() {
       recommendation: personalizedRec,
     }));
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current);
+    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal);
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
       for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
@@ -1236,7 +1243,7 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current);
+    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms);
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
       for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {

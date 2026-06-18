@@ -14,8 +14,15 @@ import type { CoachingAdjustment, ComplexityModifier }     from "@/lib/progressi
 import type { RecommendedAction }                          from "@/lib/progression/progressionProfile";
 import type { ReadinessScore }                             from "@/lib/readiness/calculateReadiness";
 import type { ExerciseProgressSummary }                    from "@/lib/progression/exerciseProgress";
+import { assessMovementReadiness, type MovementReadiness } from "@/lib/movement/movementReadiness";
+import { buildSymptomModifier }                            from "@/lib/movement/symptomMovementModifiers";
+import { generateWarmup, type WarmupBlock, type MobilityItem } from "@/lib/movement/generateWarmup";
+import { generateRecoveryFinisher, type RecoveryBlock }   from "@/lib/movement/recoveryFinishers";
+import { getBeginnerCue, isFoundationSafe }               from "@/lib/movement/beginnerFoundations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export type { WarmupBlock, MobilityItem, RecoveryBlock, MovementReadiness };
 
 export type { TrainingState } from "@/types/recommendation";
 
@@ -37,6 +44,10 @@ export interface WorkoutGenerationInput {
   adaptiveIntensityMultiplier?: number;   // [0.80–1.10]; defaults to 1.0
   // Phase 27F — equipment-based filtering (overrides environment filter when non-empty)
   userEquipment?: string[];
+  // Phase 29 — Movement preparation inputs
+  symptoms?:    Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>;
+  stressLevel?: number;        // 1–10 (from check-in)
+  sleepQuality?: string;       // "excellent"|"good"|"variable"|"poor"
 }
 
 export interface WorkoutExercise {
@@ -67,6 +78,11 @@ export interface GeneratedWorkout {
   phaseNote?:           string;
   // Exercises that required equipment the user doesn't own (for learning layer logging)
   equipmentFallbacks?:  Array<{ exerciseName: string; missingEquip: string[] }>;
+  // Phase 29 — Movement preparation blocks (all optional for backward compat)
+  movementReadiness?:   MovementReadiness;
+  warmupBlock?:         WarmupBlock;
+  activationBlock?:     MobilityItem[];
+  recoveryBlock?:       RecoveryBlock;
 }
 
 // ─── Adaptation tables ────────────────────────────────────────────────────────
@@ -331,6 +347,9 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     readiness,
     exerciseSummaries,
     userEquipment,
+    symptoms    = [],
+    stressLevel = 5,
+    sleepQuality = "good",
   } = input;
 
   // Merge progression and readiness into a single effective adjustment
@@ -424,6 +443,52 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       }))
     : prescribed;
 
+  // ── Phase 29: Movement preparation ───────────────────────────────────────────
+  const equipment = userEquipment ?? [];
+  const movementReadiness = assessMovementReadiness({
+    energyLevel,
+    phaseName:     phase.name,
+    symptoms,
+    trainingState,
+  });
+
+  const symptomModifier = buildSymptomModifier(symptoms);
+
+  const warmupFull = generateWarmup({
+    splitType,
+    dayName:          workoutDay.dayName,
+    movementReadiness,
+    symptomModifier,
+    energyLevel,
+    userEquipment:    equipment,
+  });
+
+  const warmupBlock:     WarmupBlock    = warmupFull;
+  const activationBlock: MobilityItem[] = warmupFull.activation;
+
+  const recoveryBlock = generateRecoveryFinisher({
+    splitType,
+    dayName:          workoutDay.dayName,
+    movementReadiness,
+    stressLevel,
+    sleepQuality,
+    userEquipment:    equipment,
+  });
+
+  // ── Beginner cue injection ─────────────────────────────────────────────────
+  const exercisesWithCues: WorkoutExercise[] = difficulty === "Beginner"
+    ? exercises.map(ex => {
+        const cue = getBeginnerCue(ex.name);
+        if (!cue) return ex;
+        return { ...ex, notes: ex.notes ? `${cue} ${ex.notes}` : cue };
+      })
+    : exercises;
+
+  // ── Symptom coaching notes added to rationale ─────────────────────────────
+  const symptomRationale = symptomModifier.coachingNotes.length > 0
+    ? ` ${symptomModifier.coachingNotes[0]}`
+    : "";
+
   return {
     workoutName:          buildWorkoutName(workoutDay.dayName, phase.name),
     generatedAt:          new Date().toISOString(),
@@ -434,11 +499,15 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     goalFocus:            goalType ? GOAL_PROFILES[goalType].focus : "Balanced Fitness",
     energyLevel,
     trainingState,
-    exercises,
-    totalExercises:       exercises.length,
+    exercises:            exercisesWithCues,
+    totalExercises:       exercisesWithCues.length,
     estimatedDurationMin: workoutDay.estimatedDurationMin,
-    workoutRationale:     buildWorkoutRationale(workoutDay.dayName, energyLevel, trainingState, phase.name),
+    workoutRationale:     buildWorkoutRationale(workoutDay.dayName, energyLevel, trainingState, phase.name) + symptomRationale,
     phaseNote:            PHASE_NOTES[phase.name],
     equipmentFallbacks:   equipmentFallbacks.length > 0 ? equipmentFallbacks : undefined,
+    movementReadiness,
+    warmupBlock,
+    activationBlock,
+    recoveryBlock,
   };
 }
