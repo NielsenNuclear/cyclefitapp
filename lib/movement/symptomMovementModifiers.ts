@@ -68,7 +68,7 @@ const SYMPTOM_RULES: Record<string, SymptomRule> = {
     notes:    ["Neck pain — gentle mobility only. Avoid heavy trap loading."],
   },
   knee_pain: {
-    addIds:   ["ankle_circles", "leg_swings", "hip_cars", "quad_stretch"],
+    addIds:   ["ankle_circles", "leg_swings", "hip_cars", "standing_quad"],
     restrict: ["lunge", "jump", "leg extension"],
     notes:    ["Knee pain — extra lower-limb prep. Avoid deep flexion under load."],
   },
