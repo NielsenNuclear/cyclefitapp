@@ -788,18 +788,6 @@ function PrepSection({ label, defaultOpen, warmup, items, recovery }: PrepSectio
             </div>
           )}
 
-          {/* Activation (when shown inside warmup block) */}
-          {warmup?.activation && warmup.activation.length > 0 && (
-            <div>
-              <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-1.5">Activation</div>
-              <div className="space-y-1.5">
-                {warmup.activation.map((item, i) => (
-                  <MobilityItemRow key={i} item={item} />
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Standalone items list (activation block) */}
           {items && items.length > 0 && (
             <div className="space-y-1.5">
