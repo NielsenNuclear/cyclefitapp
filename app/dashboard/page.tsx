@@ -227,6 +227,14 @@ import { generateDailyGuidance, type DailyGuidance } from "@/lib/coaching/dailyG
 import { computeWeeklyReview, type WeeklyReview }    from "@/lib/coaching/weeklyReview";
 import { computeMonthlyReview, type MonthlyReview }  from "@/lib/coaching/monthlyReview";
 import { AdaptiveCoachCard }                         from "@/components/dashboard/AdaptiveCoachCard";
+import { initOrUpdateMesocycle, weeksSinceLastDeload, type MesocycleState } from "@/lib/periodization/mesocycle";
+import { computePeriodizationStatus, type PeriodizationStatus }             from "@/lib/periodization/periodizationState";
+import { computeCycleSynergy, type CycleSynergySignal }                      from "@/lib/periodization/cycleSynergy";
+import { computeAdaptiveDeload, type AdaptiveDeloadDecision }                 from "@/lib/periodization/adaptiveDeload";
+import { computeAchievementForecast, type AchievementForecast }              from "@/lib/periodization/achievementForecast";
+import { getPeriodizationProfile }                                            from "@/lib/periodization/goalProfiles";
+import { getPeriodizationInsight, type PeriodizationInsight }                from "@/lib/periodization/periodizationLearning";
+import { PeriodizationCard }                                                  from "@/components/dashboard/PeriodizationCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -270,8 +278,9 @@ function runWorkoutPipeline(
   capacityLevel?:     CapacityLevel,
   exerciseSummaries?: ExerciseProgressSummary[],
   adaptiveModifier?:  AdaptiveModifier,
-  userEquipment?:     string[],
-  symptoms?:          Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>,
+  userEquipment?:       string[],
+  symptoms?:            Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>,
+  periodizationStatus?: PeriodizationStatus,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -304,8 +313,9 @@ function runWorkoutPipeline(
     adaptiveIntensityMultiplier: adaptiveModifier?.intensityMultiplier,
     userEquipment,
     symptoms,
-    stressLevel:  user.stressLevel,
-    sleepQuality: user.sleepQuality,
+    stressLevel:         user.stressLevel,
+    sleepQuality:        user.sleepQuality,
+    periodizationStatus,
   });
 }
 
@@ -524,10 +534,16 @@ export default function DashboardPage() {
     equipmentUsageAnalytics, setEquipmentUsageAnalytics,
   } = useEquipmentData();
 
-  const [fatiguePrediction, setFatiguePrediction] = useState<FatiguePrediction | undefined>(undefined);
-  const [dailyGuidance,    setDailyGuidance]    = useState<DailyGuidance | undefined>(undefined);
-  const [weeklyReview,     setWeeklyReview]     = useState<WeeklyReview  | undefined>(undefined);
-  const [monthlyReview,    setMonthlyReview]    = useState<MonthlyReview | undefined>(undefined);
+  const [fatiguePrediction,    setFatiguePrediction]    = useState<FatiguePrediction | undefined>(undefined);
+  const [dailyGuidance,        setDailyGuidance]        = useState<DailyGuidance | undefined>(undefined);
+  const [weeklyReview,         setWeeklyReview]         = useState<WeeklyReview  | undefined>(undefined);
+  const [monthlyReview,        setMonthlyReview]        = useState<MonthlyReview | undefined>(undefined);
+  const [periodizationState,   setPeriodizationState]   = useState<MesocycleState | undefined>(undefined);
+  const [periodizationStatus,  setPeriodizationStatus]  = useState<PeriodizationStatus | undefined>(undefined);
+  const [cycleSynergySignal,   setCycleSynergySignal]   = useState<CycleSynergySignal | undefined>(undefined);
+  const [adaptiveDeloadDecision, setAdaptiveDeloadDecision] = useState<AdaptiveDeloadDecision | undefined>(undefined);
+  const [achievementForecast,  setAchievementForecast]  = useState<AchievementForecast | undefined>(undefined);
+  const [periodizationInsight, setPeriodizationInsight] = useState<PeriodizationInsight | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -988,11 +1004,66 @@ export default function DashboardPage() {
     setEquipmentProfile(computeEquipmentProfile(equipmentInventoryVal.allEquipmentNames));
     setEquipmentUsageAnalytics(analyzeEquipmentUsage(equipmentInventoryVal.allEquipmentNames));
 
+    // ── Phase 30: Goal Periodization Engine ──────────────────────────────────
+    const periodizationGoalType = mapOnboardingGoalToGoalType(user.goals ?? []);
+    const mesocycleStateVal     = initOrUpdateMesocycle(todayStr, periodizationGoalType);
+    setPeriodizationState(mesocycleStateVal);
+    const readinessTrendVal = getReadinessTrend();
+    const adaptiveDeloadVal = computeAdaptiveDeload({
+      scheduledForDeload:   false,   // will be true once state machine places us in deload phase
+      deloadRecommendation: deloadRecVal,
+      readinessTrend:       readinessTrendVal,
+      recoveryDebt:         recoveryDebtVal,
+      burnoutRisk:          burnoutRiskVal,
+      activeSymptomCount:   todaySymptomsVal.length,
+      weeksSinceLastDeload: weeksSinceLastDeload(mesocycleStateVal),
+    });
+    const periodizationStatusVal = computePeriodizationStatus(
+      mesocycleStateVal,
+      adaptiveDeloadVal.triggerEarly,
+    );
+    // Re-check deload decision now that we know the scheduled state
+    const scheduledDeload = periodizationStatusVal.phase === "deload";
+    const finalAdaptiveDeload = computeAdaptiveDeload({
+      scheduledForDeload:   scheduledDeload,
+      deloadRecommendation: deloadRecVal,
+      readinessTrend:       readinessTrendVal,
+      recoveryDebt:         recoveryDebtVal,
+      burnoutRisk:          burnoutRiskVal,
+      activeSymptomCount:   todaySymptomsVal.length,
+      weeksSinceLastDeload: weeksSinceLastDeload(mesocycleStateVal),
+    });
+    setPeriodizationStatus(periodizationStatusVal);
+    setAdaptiveDeloadDecision(finalAdaptiveDeload);
+    const cycleSynergyVal = computeCycleSynergy({
+      cycleDay:     phase.cycleDay ?? null,
+      cycleLength:  effectiveCycleLength,
+      patterns:     patterns,
+      currentPhase: periodizationStatusVal.phase,
+    });
+    setCycleSynergySignal(cycleSynergyVal);
+    const recentHistory28 = rawHistory.filter(h => h.id >= (() => {
+      const d = new Date(); d.setDate(d.getDate() - 28); return d.toISOString().slice(0, 10);
+    })());
+    const recentCompletionRate = recentHistory28.length > 0
+      ? recentHistory28.filter(h => h.status === "completed" || h.status === "partially_completed").length / recentHistory28.length
+      : 0;
+    const forecastVal = computeAchievementForecast({
+      goal:                 periodizationGoalType,
+      profile:              getPeriodizationProfile(periodizationGoalType),
+      currentPhase:         periodizationStatusVal.phase,
+      totalTrainingWeeks:   mesocycleStateVal.totalTrainingWeeks,
+      recentCompletionRate,
+      readinessTrend:       readinessTrendVal,
+    });
+    setAchievementForecast(forecastVal);
+    setPeriodizationInsight(getPeriodizationInsight(periodizationGoalType));
+
     const wkt = runWorkoutPipeline(
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
-      todaySymptomsVal,
+      todaySymptomsVal, periodizationStatusVal,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1291,6 +1362,16 @@ export default function DashboardPage() {
         <OvulationEstimateCard estimate={ovulationEstimate} />
         <TrainingWindowCard    window={primeTrainingWindow} />
         <RecoveryWindowCard    window={recoveryWindow} />
+        {periodizationStatus && onboardingRef.current && (
+          <PeriodizationCard
+            status={periodizationStatus}
+            goalLabel={getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label}
+            cycleSynergy={cycleSynergySignal}
+            deloadDecision={adaptiveDeloadDecision}
+            forecast={achievementForecast}
+            insight={periodizationInsight}
+          />
+        )}
         <AdaptiveInsightsCard insights={adaptiveInsights} />
         <PersonalizationCard progress={personalizationProgress} />
         <WhatAxisLearnedCard

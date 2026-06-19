@@ -19,6 +19,7 @@ import { buildSymptomModifier }                            from "@/lib/movement/
 import { generateWarmup, type WarmupBlock, type MobilityItem } from "@/lib/movement/generateWarmup";
 import { generateRecoveryFinisher, type RecoveryBlock }   from "@/lib/movement/recoveryFinishers";
 import { getBeginnerCue, isFoundationSafe }               from "@/lib/movement/beginnerFoundations";
+import type { PeriodizationStatus }                        from "@/lib/periodization/periodizationState";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +49,8 @@ export interface WorkoutGenerationInput {
   symptoms?:    Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>;
   stressLevel?: number;        // 1–10 (from check-in)
   sleepQuality?: string;       // "excellent"|"good"|"variable"|"poor"
+  // Phase 30D — Periodization modifier
+  periodizationStatus?: PeriodizationStatus;
 }
 
 export interface WorkoutExercise {
@@ -448,6 +451,19 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       }))
     : prescribed;
 
+  // ── Phase 30D: Periodization modifier ────────────────────────────────────────
+  const periodizationStatus = input.periodizationStatus;
+  const periodizedExercises: WorkoutExercise[] = periodizationStatus
+    ? exercises.map(ex => ({
+        ...ex,
+        sets: Math.max(1, ex.sets + periodizationStatus.setsOffset),
+        rpe:  ex.rpe !== undefined
+          ? Math.round(Math.min(10, Math.max(3, ex.rpe + periodizationStatus.rpeOffset)) * 10) / 10
+          : undefined,
+        reps: periodizationStatus.deloadReps ?? ex.reps,
+      }))
+    : exercises;
+
   // ── Phase 29: Movement preparation ───────────────────────────────────────────
   const equipment = userEquipment ?? [];
   const movementReadiness = assessMovementReadiness({
@@ -482,12 +498,12 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
 
   // ── Beginner cue injection ─────────────────────────────────────────────────
   const exercisesWithCues: WorkoutExercise[] = difficulty === "Beginner"
-    ? exercises.map(ex => {
+    ? periodizedExercises.map(ex => {
         const cue = getBeginnerCue(ex.name);
         if (!cue) return ex;
         return { ...ex, notes: ex.notes ? `${cue} ${ex.notes}` : cue };
       })
-    : exercises;
+    : periodizedExercises;
 
   // ── Symptom coaching notes added to rationale ─────────────────────────────
   const symptomRationale = symptomModifier.coachingNotes.length > 0
