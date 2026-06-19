@@ -97,6 +97,11 @@ const SYMPTOM_RULES: Record<string, SymptomRule> = {
     restrict: [],
     notes:    ["Core comfort included. Avoid tight waist bracing if uncomfortable."],
   },
+  headache: {
+    addIds:   ["neck_rotations", "neck_side_stretch", "chin_tucks"],
+    restrict: ["overhead press", "shrugs"],
+    notes:    ["Headache present — gentle neck mobility included. Avoid high-tension upper trap loading."],
+  },
 };
 
 // ─── Main export ──────────────────────────────────────────────────────────────
