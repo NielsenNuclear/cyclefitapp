@@ -115,16 +115,16 @@ function getActivationIdsForSplit(
     return ["bw_squat_act", "glute_bridge_mob", "monster_walk", "single_leg_rdl_act"];
   }
   if (day.includes("push") || day.includes("chest") || day.includes("shoulder")) {
-    return ["scap_pushup", "band_pull_apart", "wall_slides", "external_rotation"];
+    return ["scap_pushup", "band_pull_apart", "wall_slides", "external_rotation", "dead_bug_mob"];
   }
   if (day.includes("pull") || day.includes("back")) {
-    return ["scap_pushup", "band_row_act", "face_pull_mob", "external_rotation"];
+    return ["scap_pushup", "band_row_act", "face_pull_mob", "external_rotation", "bird_dog_mob", "dead_bug_mob"];
   }
   if (day.includes("upper")) {
-    return ["scap_pushup", "band_pull_apart", "external_rotation"];
+    return ["scap_pushup", "band_pull_apart", "external_rotation", "bird_dog_mob", "dead_bug_mob"];
   }
   // Full body
-  return ["bw_squat_act", "glute_bridge_mob", "scap_pushup", "band_pull_apart"];
+  return ["bw_squat_act", "glute_bridge_mob", "scap_pushup", "band_pull_apart", "dead_bug_mob"];
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
