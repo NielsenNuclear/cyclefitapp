@@ -419,7 +419,12 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     return rotatedExercises;
   })();
 
-  const prescribed: WorkoutExercise[] = trimmedExercises.map(exercise => {
+  // Beginner safety: exclude high-skill movements that require coaching prerequisites
+  const safeExercises: Exercise[] = difficulty === "Beginner"
+    ? trimmedExercises.filter(ex => isFoundationSafe(ex.name))
+    : trimmedExercises;
+
+  const prescribed: WorkoutExercise[] = safeExercises.map(exercise => {
     const ex = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
     const replacedName = rotationMap.get(exercise.name);
     if (replacedName) {
