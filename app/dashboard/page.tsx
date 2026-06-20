@@ -235,6 +235,9 @@ import { computeAchievementForecast, type AchievementForecast }              fro
 import { getPeriodizationProfile }                                            from "@/lib/periodization/goalProfiles";
 import { getPeriodizationInsight, type PeriodizationInsight }                from "@/lib/periodization/periodizationLearning";
 import { PeriodizationCard }                                                  from "@/components/dashboard/PeriodizationCard";
+import { applyCycleAwareProgression }                                         from "@/lib/progression/cycleAwareProgression";
+import { buildTrainingResponseProfile, type TrainingResponseProfile }         from "@/lib/progression/trainingResponseProfile";
+import { ExerciseIntelligenceCard }                                           from "@/components/dashboard/ExerciseIntelligenceCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -281,6 +284,7 @@ function runWorkoutPipeline(
   userEquipment?:       string[],
   symptoms?:            Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>,
   periodizationStatus?: PeriodizationStatus,
+  exerciseMastery?:     ExerciseMasteryEntry[],
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -316,6 +320,7 @@ function runWorkoutPipeline(
     stressLevel:         user.stressLevel,
     sleepQuality:        user.sleepQuality,
     periodizationStatus,
+    exerciseMastery,
   });
 }
 
@@ -544,6 +549,7 @@ export default function DashboardPage() {
   const [adaptiveDeloadDecision, setAdaptiveDeloadDecision] = useState<AdaptiveDeloadDecision | undefined>(undefined);
   const [achievementForecast,  setAchievementForecast]  = useState<AchievementForecast | undefined>(undefined);
   const [periodizationInsight, setPeriodizationInsight] = useState<PeriodizationInsight | undefined>(undefined);
+  const [trainingResponse,     setTrainingResponse]     = useState<TrainingResponseProfile | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -600,10 +606,13 @@ export default function DashboardPage() {
     setAccuracyReport(getAccuracyReport());
     const exerciseSummariesVal = getExerciseProgress(getWorkoutLog());
     setExerciseSummaries(exerciseSummariesVal);
-    const perfHistoryVal = getExercisePerformanceHistory();
-    const goalType       = mapOnboardingGoalToGoalType(user.goals);
-    setProgressionTargets(computeProgressionTargets(perfHistoryVal, goalType));
-    setExerciseMastery(computeExerciseMastery(perfHistoryVal, savedEnv));
+    const perfHistoryVal        = getExercisePerformanceHistory();
+    const goalType              = mapOnboardingGoalToGoalType(user.goals);
+    const rawProgressionTargets = computeProgressionTargets(perfHistoryVal, goalType);
+    // setProgressionTargets will be called again below with cycle-aware adjustment applied
+    const exerciseMasteryVal    = computeExerciseMastery(perfHistoryVal, savedEnv);
+    setExerciseMastery(exerciseMasteryVal);
+    setTrainingResponse(buildTrainingResponseProfile(perfHistoryVal));
     const trendsVal = detectPerformanceTrends(perfHistoryVal);
     setPerformanceTrends(trendsVal);
     const plateauInterventionVals = generatePlateauInterventions(trendsVal, goalType);
@@ -621,6 +630,13 @@ export default function DashboardPage() {
     setWeeklyPrescription(buildWeeklyPrescription(mesocycleVal, goalType));
     const profile   = profileRef.current ?? undefined;
     const phase     = computePhase(effectiveUser, effectiveCycleLength);
+
+    // Phase 31D — apply cycle-aware progression modifier now that phase is known
+    const cycleAdjResult = applyCycleAwareProgression(rawProgressionTargets, {
+      phaseName: phase.name,
+      cycleDay:  phase.cycleDay,
+    });
+    setProgressionTargets(cycleAdjResult.targets);
 
     const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, effectiveCycleLength);
     setLearnedPatterns(patterns);
@@ -1063,7 +1079,7 @@ export default function DashboardPage() {
       effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
-      todaySymptomsVal, periodizationStatusVal,
+      todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1467,6 +1483,10 @@ export default function DashboardPage() {
         )}
         <CoachAccuracyCard      report={accuracyReport} />
         <PerformanceTrendsCard  summaries={exerciseSummaries} />
+        <ExerciseIntelligenceCard
+          trends={performanceTrends ?? []}
+          trainingProfile={trainingResponse}
+        />
         <ProgressInsightsCard />
         {onboardingRef.current && (
           <GoalProgressCard
