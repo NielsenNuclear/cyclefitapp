@@ -238,6 +238,34 @@ import { PeriodizationCard }                                                  fr
 import { applyCycleAwareProgression }                                         from "@/lib/progression/cycleAwareProgression";
 import { buildTrainingResponseProfile, type TrainingResponseProfile }         from "@/lib/progression/trainingResponseProfile";
 import { ExerciseIntelligenceCard }                                           from "@/components/dashboard/ExerciseIntelligenceCard";
+// ─── Phase 32: Nutrition Intelligence ─────────────────────────────────────────
+import { computeNutritionTargets, type NutritionTargets }                    from "@/lib/nutrition/nutritionTargets";
+import { applyNutritionPeriodization }                                        from "@/lib/nutrition/nutritionPeriodization";
+import {
+  saveDailyNutritionCheckin,
+  getDailyNutritionCheckin,
+  getNutritionCheckinHistory,
+  getNutritionComplianceSummary,
+  type DailyNutritionCheckin,
+} from "@/lib/nutrition/nutritionCheckin";
+import { buildNutritionPatterns, type NutritionPattern }                     from "@/lib/nutrition/nutritionPatterns";
+import { buildPersonalizedNutritionProfile, type PersonalizedNutritionProfile } from "@/lib/nutrition/personalNutritionProfile";
+import { NutritionCheckinCard }                                               from "@/components/dashboard/NutritionCheckinCard";
+import { NutritionIntelligenceCard }                                          from "@/components/dashboard/NutritionIntelligenceCard";
+// ─── Phase 33: Recovery Intelligence ──────────────────────────────────────────
+import { computeRecoveryBank, type RecoveryBank }                            from "@/lib/recovery/recoveryBank";
+import { getDailyRecoveryLog, getRecoveryStrategyHistory }                   from "@/lib/recovery/recoveryStrategyCatalog";
+import {
+  recordRecoveryPrediction,
+  validateRecoveryPrediction,
+  getValidationAccuracy,
+  type RecoveryValidationAccuracy,
+} from "@/lib/recovery/recoveryValidation";
+import { computeRecoveryOutlook, type RecoveryOutlook }                      from "@/lib/recovery/recoveryOutlook";
+import { buildPersonalRecoveryProfile, type PersonalRecoveryProfile }        from "@/lib/recovery/personalRecoveryProfile";
+import { computeCorrelations }                                                from "@/lib/recovery/recoveryCorrelation";
+import { RecoveryCheckinCard }                                                from "@/components/dashboard/RecoveryCheckinCard";
+import { PersonalRecoveryCard }                                               from "@/components/dashboard/PersonalRecoveryCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -550,6 +578,18 @@ export default function DashboardPage() {
   const [achievementForecast,  setAchievementForecast]  = useState<AchievementForecast | undefined>(undefined);
   const [periodizationInsight, setPeriodizationInsight] = useState<PeriodizationInsight | undefined>(undefined);
   const [trainingResponse,     setTrainingResponse]     = useState<TrainingResponseProfile | undefined>(undefined);
+  // Phase 32 state
+  const [nutritionTargets,     setNutritionTargets]     = useState<NutritionTargets | undefined>(undefined);
+  const [nutritionPeriodNote,  setNutritionPeriodNote]  = useState<string | undefined>(undefined);
+  const [nutritionCheckinDone, setNutritionCheckinDone] = useState(false);
+  const [nutritionPattern,     setNutritionPattern]     = useState<NutritionPattern | undefined>(undefined);
+  const [nutritionProfile,     setNutritionProfile]     = useState<PersonalizedNutritionProfile | undefined>(undefined);
+  // Phase 33 state
+  const [recoveryBank,         setRecoveryBank]         = useState<RecoveryBank | undefined>(undefined);
+  const [recoveryOutlook,      setRecoveryOutlook]      = useState<RecoveryOutlook | undefined>(undefined);
+  const [personalRecovery,     setPersonalRecovery]     = useState<PersonalRecoveryProfile | undefined>(undefined);
+  const [validationAccuracy,   setValidationAccuracy]   = useState<RecoveryValidationAccuracy | undefined>(undefined);
+  const [recoveryCheckinDone,  setRecoveryCheckinDone]  = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1123,6 +1163,52 @@ export default function DashboardPage() {
     setPerformanceOpportunity(detectOpportunity(
       readinessForecastVal, cycleForecastVal.readinessDays, phase.name, recoveryDebtVal.category, primeWindowVal, phase.cycleDay,
     ));
+
+    // ── Phase 32: Nutrition Intelligence ─────────────────────────────────────
+    const nutritionTargetsVal = computeNutritionTargets(
+      phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType,
+    );
+    let finalNutritionTargets = nutritionTargetsVal;
+    let nutritionPeriodNoteVal: string | undefined;
+    if (periodizationStatusVal) {
+      const periodAdj = applyNutritionPeriodization(nutritionTargetsVal, periodizationStatusVal.phase);
+      finalNutritionTargets   = periodAdj.targets;
+      nutritionPeriodNoteVal  = periodAdj.periodizationNote;
+    }
+    setNutritionTargets(finalNutritionTargets);
+    setNutritionPeriodNote(nutritionPeriodNoteVal);
+
+    const checkinHistoryVal   = getNutritionCheckinHistory();
+    setNutritionCheckinDone(getDailyNutritionCheckin(todayStr) !== null);
+    const complianceVal       = getNutritionComplianceSummary();
+    const nutritionPatternVal = buildNutritionPatterns(
+      checkinHistoryVal, fullRdxHistory, getNutritionOutcomes(), complianceVal,
+    );
+    setNutritionPattern(nutritionPatternVal);
+    setNutritionProfile(buildPersonalizedNutritionProfile(nutritionPatternVal, getNutritionOutcomes()));
+
+    // ── Phase 33: Recovery Intelligence ──────────────────────────────────────
+    const recoveryBankVal = computeRecoveryBank(getFatigueHistory());
+    setRecoveryBank(recoveryBankVal);
+    const outlookVal = computeRecoveryOutlook(
+      recoveryDebtVal, burnoutRiskVal, recoveryTrendNow,
+      phase.cycleDay, effectiveCycleLength, todayStr,
+    );
+    setRecoveryOutlook(outlookVal);
+    recordRecoveryPrediction(todayStr, recoveryScoreVal.score);
+    const yesterdayForValidation = (() => {
+      const d = new Date(); d.setDate(d.getDate() - 1);
+      return d.toISOString().slice(0, 10);
+    })();
+    validateRecoveryPrediction(yesterdayForValidation, recoveryScoreVal.score, todayStr);
+    const validationVal = getValidationAccuracy();
+    setValidationAccuracy(validationVal);
+    const correlationsVal     = computeCorrelations(getFatigueHistory());
+    const personalRecoveryVal = buildPersonalRecoveryProfile(
+      correlationsVal, getRecoveryStrategyOutcomes(), validationVal, recoveryCapacityVal, recoveryBankVal,
+    );
+    setPersonalRecovery(personalRecoveryVal);
+    setRecoveryCheckinDone(getDailyRecoveryLog(todayStr) !== null);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -1455,6 +1541,32 @@ export default function DashboardPage() {
           nutritionAdjustments={nutritionAdjustments}
           nutritionOutcomes={nutritionOutcomes}
         />
+        {!nutritionCheckinDone && (
+          <NutritionCheckinCard
+            date={new Date().toISOString().slice(0, 10)}
+            onComplete={() => setNutritionCheckinDone(true)}
+          />
+        )}
+        {nutritionTargets && nutritionProfile && (
+          <NutritionIntelligenceCard
+            profile={nutritionProfile}
+            targets={nutritionTargets}
+            periodizationNote={nutritionPeriodNote}
+          />
+        )}
+        {!recoveryCheckinDone && (
+          <RecoveryCheckinCard
+            date={new Date().toISOString().slice(0, 10)}
+            onComplete={() => setRecoveryCheckinDone(true)}
+          />
+        )}
+        {recoveryBank && recoveryOutlook && personalRecovery && (
+          <PersonalRecoveryCard
+            profile={personalRecovery}
+            bank={recoveryBank}
+            outlook={recoveryOutlook}
+          />
+        )}
         <ProgressCard
           progressionTargets={progressionTargets}
           exerciseMastery={exerciseMastery}
