@@ -2,7 +2,9 @@
 // Complete workout prescription engine.
 // Pure logic — no React, no side effects.
 
-import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment } from "./exerciseLibrary";
+import { allExercises }                                                               from "./exerciseLibrary";
+import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment }       from "./exerciseLibrary";
+import type { ExerciseMasteryEntry }                                                  from "@/lib/progression/exerciseMastery";
 import type { SplitType }                                  from "./workoutSplits";
 import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
@@ -51,6 +53,8 @@ export interface WorkoutGenerationInput {
   sleepQuality?: string;       // "excellent"|"good"|"variable"|"poor"
   // Phase 30D — Periodization modifier
   periodizationStatus?: PeriodizationStatus;
+  // Phase 31H — Mastery-based exercise promotion
+  exerciseMastery?: ExerciseMasteryEntry[];
 }
 
 export interface WorkoutExercise {
@@ -413,13 +417,27 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       })
     : resolvedExercises;
 
+  // Phase 31H — mastery-based exercise promotion
+  // When the user has fully mastered an exercise and a harder progression exists, swap it in
+  const promotionMap = new Map<string, string>(); // promoted name → original name (for note injection)
+  const masteryPromotedExercises: Exercise[] = input.exerciseMastery && input.exerciseMastery.length > 0
+    ? rotatedExercises.map(ex => {
+        const mastery = input.exerciseMastery!.find(m => m.exerciseName === ex.name);
+        if (!mastery?.advancementSuggestion || mastery.masteryLevel !== "mastered") return ex;
+        const promoted = allExercises.find(e => e.name === mastery.advancementSuggestion);
+        if (!promoted) return ex;
+        promotionMap.set(promoted.name, ex.name);
+        return promoted;
+      })
+    : rotatedExercises;
+
   // Apply complexity modifier: reduce/deload trim the lowest-priority accessory
   const trimmedExercises: Exercise[] = (() => {
     const complexity = effectiveAdjustment?.complexityModifier;
-    if (complexity === "decrease" && rotatedExercises.length > 3) {
-      return rotatedExercises.slice(0, rotatedExercises.length - 1);
+    if (complexity === "decrease" && masteryPromotedExercises.length > 3) {
+      return masteryPromotedExercises.slice(0, masteryPromotedExercises.length - 1);
     }
-    return rotatedExercises;
+    return masteryPromotedExercises;
   })();
 
   // Beginner safety: exclude high-skill movements that require coaching prerequisites
@@ -428,10 +446,13 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     : trimmedExercises;
 
   const prescribed: WorkoutExercise[] = safeExercises.map(exercise => {
-    const ex = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
+    const ex           = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
     const replacedName = rotationMap.get(exercise.name);
+    const promotedFrom = promotionMap.get(exercise.name);
     if (replacedName) {
       ex.notes = `Rotated in for ${replacedName} — you've been skipping that exercise recently. Same movement pattern and muscle focus.`;
+    } else if (promotedFrom) {
+      ex.notes = `Mastery progression: promoted from ${promotedFrom} — you've fully mastered the foundation. Time for the next challenge.`;
     }
     return ex;
   });
