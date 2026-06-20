@@ -14,9 +14,10 @@ export interface LoggedExercise {
   prescribedReps: string;
   completedReps:  string;
   prescribedRPE:  number;  // 0 = not applicable (mobility)
-  actualRPE:      number;  // 0 = not applicable
-  weight?:        number;  // kg — 0 or absent = bodyweight
-  actualReps?:    number;  // numeric rep count (first number from completedReps string)
+  actualRPE:             number;  // 0 = not applicable
+  perceivedDifficulty?:  number;  // 1–10 subjective difficulty (Phase 31A)
+  weight?:               number;  // kg — 0 or absent = bodyweight
+  actualReps?:           number;  // numeric rep count (first number from completedReps string)
 }
 
 export interface LoggedWorkout {

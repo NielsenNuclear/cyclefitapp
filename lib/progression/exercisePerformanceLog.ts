@@ -7,13 +7,14 @@ import { getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ExercisePerformanceEntry {
-  exerciseName:  string;
-  date:          string;
-  weight:        number;   // kg; 0 = bodyweight
-  actualReps:    number;
-  completedSets: number;
-  actualRPE:     number;
-  prescribedRPE: number;
+  exerciseName:         string;
+  date:                 string;
+  weight:               number;   // kg; 0 = bodyweight
+  actualReps:           number;
+  completedSets:        number;
+  actualRPE:            number;
+  prescribedRPE:        number;
+  perceivedDifficulty?: number;   // 1–10 subjective difficulty (Phase 31A); separate from RPE
 }
 
 // ─── Main exports ─────────────────────────────────────────────────────────────
@@ -32,13 +33,14 @@ export function getExercisePerformanceHistory(): ExercisePerformanceEntry[] {
       const reps = ex.actualReps ?? 0;
       if (reps === 0) continue;
       entries.push({
-        exerciseName:  ex.exerciseName,
-        date:          workout.date,
-        weight:        ex.weight ?? 0,
-        actualReps:    reps,
-        completedSets: ex.completedSets,
-        actualRPE:     ex.actualRPE,
-        prescribedRPE: ex.prescribedRPE,
+        exerciseName:         ex.exerciseName,
+        date:                 workout.date,
+        weight:               ex.weight ?? 0,
+        actualReps:           reps,
+        completedSets:        ex.completedSets,
+        actualRPE:            ex.actualRPE,
+        prescribedRPE:        ex.prescribedRPE,
+        perceivedDifficulty:  ex.perceivedDifficulty,
       });
     }
   }
