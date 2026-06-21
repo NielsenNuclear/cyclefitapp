@@ -5,6 +5,7 @@
 import { allExercises }                                                               from "./exerciseLibrary";
 import type { Exercise, DifficultyLevel, MovementPattern, TrainingEnvironment }       from "./exerciseLibrary";
 import type { ExerciseMasteryEntry }                                                  from "@/lib/progression/exerciseMastery";
+import type { ProgressionTarget }                                                      from "@/lib/progression/progressionTargets";
 import type { SplitType }                                  from "./workoutSplits";
 import type { PhaseData, TrainingState }                   from "@/types/recommendation";
 import { buildWorkoutDay }                                 from "./workoutSplits";
@@ -55,6 +56,8 @@ export interface WorkoutGenerationInput {
   periodizationStatus?: PeriodizationStatus;
   // Phase 31H — Mastery-based exercise promotion
   exerciseMastery?: ExerciseMasteryEntry[];
+  // Stab-C — per-exercise next-session targets (weight / rep coaching cues)
+  progressionTargets?: ProgressionTarget[];
 }
 
 export interface WorkoutExercise {
@@ -446,13 +449,16 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     : trimmedExercises;
 
   const prescribed: WorkoutExercise[] = safeExercises.map(exercise => {
-    const ex           = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
-    const replacedName = rotationMap.get(exercise.name);
-    const promotedFrom = promotionMap.get(exercise.name);
+    const ex             = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
+    const replacedName   = rotationMap.get(exercise.name);
+    const promotedFrom   = promotionMap.get(exercise.name);
+    const progressTarget = input.progressionTargets?.find(t => t.exerciseName === exercise.name);
     if (replacedName) {
       ex.notes = `Rotated in for ${replacedName} — you've been skipping that exercise recently. Same movement pattern and muscle focus.`;
     } else if (promotedFrom) {
       ex.notes = `Mastery progression: promoted from ${promotedFrom} — you've fully mastered the foundation. Time for the next challenge.`;
+    } else if (progressTarget && progressTarget.targetWeight > 0) {
+      ex.notes = progressTarget.note;
     }
     return ex;
   });
