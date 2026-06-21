@@ -58,6 +58,8 @@ export interface WorkoutGenerationInput {
   exerciseMastery?: ExerciseMasteryEntry[];
   // Stab-C — per-exercise next-session targets (weight / rep coaching cues)
   progressionTargets?: ProgressionTarget[];
+  // Phase 34F — adherence risk volume scale (0.70 high / 0.85 moderate / 1.0 low)
+  adherenceRiskScale?: number;
 }
 
 export interface WorkoutExercise {
@@ -478,10 +480,21 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
       }))
     : prescribed;
 
+  // ── Phase 34F: Adherence risk volume scale ────────────────────────────────────
+  // Applied after adaptive multipliers. Reduces set counts when skip risk is
+  // moderate or high, making the session more likely to be completed.
+  const adherenceScale = input.adherenceRiskScale ?? 1.0;
+  const adherenceScaled: WorkoutExercise[] = adherenceScale !== 1.0
+    ? exercises.map(ex => ({
+        ...ex,
+        sets: Math.max(1, Math.round(ex.sets * adherenceScale)),
+      }))
+    : exercises;
+
   // ── Phase 30D: Periodization modifier ────────────────────────────────────────
   const periodizationStatus = input.periodizationStatus;
   const periodizedExercises: WorkoutExercise[] = periodizationStatus
-    ? exercises.map(ex => ({
+    ? adherenceScaled.map(ex => ({
         ...ex,
         sets: Math.max(1, ex.sets + periodizationStatus.setsOffset),
         rpe:  ex.rpe !== undefined
@@ -489,7 +502,7 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
           : undefined,
         reps: periodizationStatus.deloadReps ?? ex.reps,
       }))
-    : exercises;
+    : adherenceScaled;
 
   // ── Phase 29: Movement preparation ───────────────────────────────────────────
   const equipment = userEquipment ?? [];

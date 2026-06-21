@@ -266,6 +266,27 @@ import { buildPersonalRecoveryProfile, type PersonalRecoveryProfile }        fro
 import { computeCorrelations }                                                from "@/lib/recovery/recoveryCorrelation";
 import { RecoveryCheckinCard }                                                from "@/components/dashboard/RecoveryCheckinCard";
 import { PersonalRecoveryCard }                                               from "@/components/dashboard/PersonalRecoveryCard";
+// ─── Phase 34: Habit & Adherence Intelligence ──────────────────────────────────
+import {
+  recordDailyAdherence,
+  getAdherenceHistory,
+  updateSkipReason,
+  type AdherenceEntry,
+} from "@/lib/adherence/adherenceTracker";
+import {
+  recordSkipReason,
+  getSkipReasonHistory,
+  buildSkipReasonSummary,
+  type SkipReason,
+} from "@/lib/adherence/skipReasonStore";
+import { computeAdherenceAnalytics, type AdherenceAnalytics } from "@/lib/adherence/adherenceAnalytics";
+import { buildBehaviorPatterns, type BehaviorPatterns }       from "@/lib/adherence/behaviorPatterns";
+import { computeAdherenceRisk, riskToVolumeScale, type AdherenceRisk } from "@/lib/adherence/adherenceRisk";
+import { getMinimumViableWorkout, type MinimumViableWorkout } from "@/lib/adherence/minimumWorkout";
+import { buildPersonalAdherenceProfile, type PersonalAdherenceProfile } from "@/lib/adherence/personalAdherenceProfile";
+import { HabitIntelligenceCard }       from "@/components/dashboard/HabitIntelligenceCard";
+import { SkipReasonCard }              from "@/components/dashboard/SkipReasonCard";
+import { MinimumViableWorkoutCard }    from "@/components/dashboard/MinimumViableWorkoutCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -314,6 +335,7 @@ function runWorkoutPipeline(
   periodizationStatus?: PeriodizationStatus,
   exerciseMastery?:     ExerciseMasteryEntry[],
   progressionTargets?:  ProgressionTarget[],
+  adherenceRiskScale?:  number,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -351,6 +373,7 @@ function runWorkoutPipeline(
     periodizationStatus,
     exerciseMastery,
     progressionTargets,
+    adherenceRiskScale,
   });
 }
 
@@ -592,6 +615,14 @@ export default function DashboardPage() {
   const [personalRecovery,     setPersonalRecovery]     = useState<PersonalRecoveryProfile | undefined>(undefined);
   const [validationAccuracy,   setValidationAccuracy]   = useState<RecoveryValidationAccuracy | undefined>(undefined);
   const [recoveryCheckinDone,  setRecoveryCheckinDone]  = useState(false);
+  // Phase 34 state
+  const [adherenceAnalytics,   setAdherenceAnalytics]   = useState<AdherenceAnalytics | undefined>(undefined);
+  const [behaviorPatterns,     setBehaviorPatterns]      = useState<BehaviorPatterns | undefined>(undefined);
+  const [adherenceRisk,        setAdherenceRisk]         = useState<AdherenceRisk | undefined>(undefined);
+  const [adherenceProfile,     setAdherenceProfile]      = useState<PersonalAdherenceProfile | undefined>(undefined);
+  const [showSkipReason,       setShowSkipReason]        = useState(false);
+  const [showRescueSession,    setShowRescueSession]     = useState(false);
+  const [rescueWorkout,        setRescueWorkout]         = useState<MinimumViableWorkout | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1133,11 +1164,24 @@ export default function DashboardPage() {
     setAchievementForecast(forecastVal);
     setPeriodizationInsight(getPeriodizationInsight(periodizationGoalType));
 
+    // ── Phase 34 (pre-workout): compute adherence risk for volume scaling ─────
+    const adherenceHistoryPre   = getAdherenceHistory();
+    const behaviorPatternsPre   = buildBehaviorPatterns(adherenceHistoryPre);
+    const adherenceRiskPre      = computeAdherenceRisk(
+      adherenceHistoryPre,
+      behaviorPatternsPre,
+      new Date().getDay(),
+      phase.name ?? "",
+      readiness.contributors?.energy ?? 2,
+    );
+    const adherenceRiskScaleVal = riskToVolumeScale(adherenceRiskPre.riskLevel);
+
     const wkt = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
+      adherenceRiskScaleVal,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1227,6 +1271,39 @@ export default function DashboardPage() {
     );
     setPersonalRecovery(personalRecoveryVal);
     setRecoveryCheckinDone(getDailyRecoveryLog(todayStr) !== null);
+
+    // ── Phase 34: Habit & Adherence Intelligence ──────────────────────────────
+    // Record today's adherence entry (upsert — status updates throughout the day)
+    const todayStatus34 = rawHistory.find(e => e.id === todayStr)?.status ?? "pending";
+    const adherenceEntry: AdherenceEntry = {
+      date:           todayStr,
+      status:         todayStatus34,
+      weekday:        new Date().getDay(),
+      cyclePhase:     phase.name ?? "",
+      trainingBlock:  periodizationStatusVal?.phase ?? "",
+      energyLevel:    readiness.contributors?.energy ?? 2,
+      readinessScore: readiness.score,
+    };
+    recordDailyAdherence(adherenceEntry);
+
+    // Re-read after upsert (now includes today's entry); reuse pre-computed patterns/risk
+    const adherenceHistoryVal   = getAdherenceHistory();
+    const adherenceAnalyticsVal = computeAdherenceAnalytics(adherenceHistoryVal, todayStr);
+    setAdherenceAnalytics(adherenceAnalyticsVal);
+    setBehaviorPatterns(behaviorPatternsPre);
+    setAdherenceRisk(adherenceRiskPre);
+
+    const skipSummaryVal      = buildSkipReasonSummary(getSkipReasonHistory());
+    const adherenceProfileVal = buildPersonalAdherenceProfile(
+      adherenceAnalyticsVal, behaviorPatternsPre, adherenceRiskPre, skipSummaryVal,
+    );
+    setAdherenceProfile(adherenceProfileVal);
+
+    // Surface rescue session when skip risk is high
+    if (adherenceRiskPre.riskLevel === "high" && wkt) {
+      setRescueWorkout(getMinimumViableWorkout(wkt.dayName));
+      setShowRescueSession(true);
+    }
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -1396,23 +1473,71 @@ export default function DashboardPage() {
     setPlateauInterventions(generatePlateauInterventions(freshTrends, goalType));
   }
 
+  function refreshAdherenceAfterMark(newStatus: AdherenceEntry["status"]) {
+    const todayStr34 = new Date().toISOString().slice(0, 10);
+    const user34     = onboardingRef.current;
+    if (!user34) return;
+    const phase34    = recommendation?.phase;
+    const rs34       = readinessScore;
+    const entry34: AdherenceEntry = {
+      date:           todayStr34,
+      status:         newStatus,
+      weekday:        new Date().getDay(),
+      cyclePhase:     phase34?.name ?? "",
+      trainingBlock:  periodizationStatus?.phase ?? "",
+      energyLevel:    rs34?.contributors?.energy ?? 2,
+      readinessScore: rs34?.score ?? 50,
+    };
+    recordDailyAdherence(entry34);
+    const hist34      = getAdherenceHistory();
+    const analytics34 = computeAdherenceAnalytics(hist34, todayStr34);
+    const patterns34  = buildBehaviorPatterns(hist34);
+    const risk34      = computeAdherenceRisk(hist34, patterns34, new Date().getDay(), phase34?.name ?? "", rs34?.contributors?.energy ?? 2);
+    const skipSum34   = buildSkipReasonSummary(getSkipReasonHistory());
+    setAdherenceAnalytics(analytics34);
+    setBehaviorPatterns(patterns34);
+    setAdherenceRisk(risk34);
+    setAdherenceProfile(buildPersonalAdherenceProfile(analytics34, patterns34, risk34, skipSum34));
+  }
+
   function handleMarkComplete() {
     markWorkoutCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
     setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
+    setShowSkipReason(false);
+    setShowRescueSession(false);
     refreshAfterMark();
+    refreshAdherenceAfterMark("completed");
   }
 
   function handleMarkPartial() {
     markWorkoutPartiallyCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
     setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
+    setShowSkipReason(false);
+    setShowRescueSession(false);
     refreshAfterMark();
+    refreshAdherenceAfterMark("partially_completed");
   }
 
   function handleMarkSkip() {
     markWorkoutSkipped(new Date().toISOString().slice(0, 10));
+    setShowSkipReason(true);
     refreshAfterMark();
+    refreshAdherenceAfterMark("skipped");
+  }
+
+  function handleSkipReasonComplete(reason: SkipReason) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    recordSkipReason(todayStr, reason);
+    updateSkipReason(todayStr, reason);
+    setShowSkipReason(false);
+    const hist34    = getAdherenceHistory();
+    const analytics34 = computeAdherenceAnalytics(hist34, todayStr);
+    const patterns34  = buildBehaviorPatterns(hist34);
+    const risk34      = computeAdherenceRisk(hist34, patterns34, new Date().getDay(), recommendation?.phase?.name ?? "", readinessScore?.contributors?.energy ?? 2);
+    const skipSum34   = buildSkipReasonSummary(getSkipReasonHistory());
+    setAdherenceProfile(buildPersonalAdherenceProfile(analytics34, patterns34, risk34, skipSum34));
   }
 
   function handleWorkoutLogged(_log: LoggedWorkout) {
@@ -1596,6 +1721,18 @@ export default function DashboardPage() {
             outlook={recoveryOutlook}
           />
         )}
+        {showRescueSession && rescueWorkout && (
+          <MinimumViableWorkoutCard
+            workout={rescueWorkout}
+            onDismiss={() => setShowRescueSession(false)}
+          />
+        )}
+        <HabitIntelligenceCard
+          analytics={adherenceAnalytics}
+          patterns={behaviorPatterns}
+          risk={adherenceRisk}
+          profile={adherenceProfile}
+        />
         <ProgressCard
           progressionTargets={progressionTargets}
           exerciseMastery={exerciseMastery}
@@ -1614,6 +1751,13 @@ export default function DashboardPage() {
             onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
             onWorkoutLogged={handleWorkoutLogged}
+          />
+        )}
+        {showSkipReason && (
+          <SkipReasonCard
+            date={new Date().toISOString().slice(0, 10)}
+            onComplete={handleSkipReasonComplete}
+            onDismiss={() => setShowSkipReason(false)}
           />
         )}
         {showFeedback && (
