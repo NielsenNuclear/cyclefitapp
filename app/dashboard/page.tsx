@@ -287,6 +287,19 @@ import { buildPersonalAdherenceProfile, type PersonalAdherenceProfile } from "@/
 import { HabitIntelligenceCard }       from "@/components/dashboard/HabitIntelligenceCard";
 import { SkipReasonCard }              from "@/components/dashboard/SkipReasonCard";
 import { MinimumViableWorkoutCard }    from "@/components/dashboard/MinimumViableWorkoutCard";
+// ─── Phase 35: Adherence Intelligence Engine ──────────────────────────────────
+import { computeConsistencyScore, saveConsistencyScore, getConsistencyHistory, type ConsistencyScore } from "@/lib/adherence/consistency";
+import { detectAdherenceRisk, type AdherenceRiskReport }           from "@/lib/adherence/riskDetection";
+import { activateRescueMode, deactivateRescueMode, getRescueModeState, maybeAutoActivateRescueMode, type RescueModeState } from "@/lib/adherence/rescueMode";
+import { computeMultiDomainStreaks, type MultiDomainStreaks }       from "@/lib/adherence/streaks";
+import { computeMomentum, type MomentumScore }                     from "@/lib/adherence/momentum";
+import { decideMissedWorkout, type WorkoutRecoveryPlan }           from "@/lib/adherence/workoutRecovery";
+import { recordLifeEvent, clearLifeEvent, getActiveLifeEvent, type ActiveLifeEvent, type LifeEventType } from "@/lib/adherence/lifeEvents";
+import { buildMotivationPatterns, type MotivationPatterns }        from "@/lib/adherence/motivationPatterns";
+import { buildSuccessFormula, type SuccessFormula }                from "@/lib/adherence/successFormula";
+import { AdherenceCard }   from "@/components/dashboard/AdherenceCard";
+import { MomentumCard }    from "@/components/dashboard/MomentumCard";
+import { RescueModeCard }  from "@/components/dashboard/RescueModeCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -623,6 +636,16 @@ export default function DashboardPage() {
   const [showSkipReason,       setShowSkipReason]        = useState(false);
   const [showRescueSession,    setShowRescueSession]     = useState(false);
   const [rescueWorkout,        setRescueWorkout]         = useState<MinimumViableWorkout | undefined>(undefined);
+  // Phase 35 state
+  const [consistencyScore,     setConsistencyScore]      = useState<ConsistencyScore | undefined>(undefined);
+  const [multiDomainStreaks,   setMultiDomainStreaks]    = useState<MultiDomainStreaks | undefined>(undefined);
+  const [momentumScore,        setMomentumScore]         = useState<MomentumScore | undefined>(undefined);
+  const [adherenceRiskReport,  setAdherenceRiskReport]  = useState<AdherenceRiskReport | undefined>(undefined);
+  const [rescueModeState,      setRescueModeState]       = useState<RescueModeState | null>(null);
+  const [lifeEvent,            setLifeEvent]             = useState<ActiveLifeEvent | null>(null);
+  const [motivationPatterns,   setMotivationPatterns]    = useState<MotivationPatterns | undefined>(undefined);
+  const [successFormula,       setSuccessFormula]        = useState<SuccessFormula | undefined>(undefined);
+  const [workoutRecoveryPlan,  setWorkoutRecoveryPlan]  = useState<WorkoutRecoveryPlan | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1176,12 +1199,20 @@ export default function DashboardPage() {
     );
     const adherenceRiskScaleVal = riskToVolumeScale(adherenceRiskPre.riskLevel);
 
+    // ── Phase 35 (pre-workout): life event and rescue mode override volume ───
+    const lifeEventPre       = getActiveLifeEvent(todayStr);
+    const rescueModePreState = getRescueModeState(todayStr);
+    const finalAdherenceScale =
+      lifeEventPre?.adjustments.volumeScale ??
+      rescueModePreState?.adjustments.volumeScale ??
+      adherenceRiskScaleVal;
+
     const wkt = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
-      adherenceRiskScaleVal,
+      finalAdherenceScale,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1303,6 +1334,42 @@ export default function DashboardPage() {
     if (adherenceRiskPre.riskLevel === "high" && wkt) {
       setRescueWorkout(getMinimumViableWorkout(wkt.dayName));
       setShowRescueSession(true);
+    }
+
+    // ── Phase 35: Adherence Intelligence Engine ───────────────────────────────
+    const recoveryLogsAll  = getRecoveryStrategyHistory();
+    const consistencyVal   = computeConsistencyScore(
+      todayStr, adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory,
+    );
+    saveConsistencyScore(consistencyVal);
+    setConsistencyScore(consistencyVal);
+
+    const consistencyHistoryVal = getConsistencyHistory();
+    setMultiDomainStreaks(computeMultiDomainStreaks(
+      adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory,
+    ));
+    const momentumVal = computeMomentum(adherenceHistoryVal, todayStr);
+    setMomentumScore(momentumVal);
+
+    const risk35Val = detectAdherenceRisk(
+      todayStr, adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory, consistencyHistoryVal,
+    );
+    setAdherenceRiskReport(risk35Val);
+    maybeAutoActivateRescueMode(risk35Val, todayStr);
+    setRescueModeState(getRescueModeState(todayStr));
+    setLifeEvent(getActiveLifeEvent(todayStr));
+
+    const motivationPatternsVal = buildMotivationPatterns(
+      adherenceHistoryVal, fullRdxHistory, fatigueHistoryAll, checkinHistoryVal,
+    );
+    setMotivationPatterns(motivationPatternsVal);
+    setSuccessFormula(buildSuccessFormula(motivationPatternsVal, behaviorPatternsPre));
+
+    // Missed workout recovery decision — recompute when today's status is skipped
+    if (todayStatus34 === "skipped") {
+      setWorkoutRecoveryPlan(decideMissedWorkout(
+        readiness.score, recoveryDebtVal, burnoutRiskVal, deloadRecVal, phase.name ?? "",
+      ));
     }
   }, [router]);
 
@@ -1540,6 +1607,22 @@ export default function DashboardPage() {
     setAdherenceProfile(buildPersonalAdherenceProfile(analytics34, patterns34, risk34, skipSum34));
   }
 
+  function handleLifeEvent(type: LifeEventType, days: number) {
+    recordLifeEvent(type, days);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    setLifeEvent(getActiveLifeEvent(todayStr));
+  }
+
+  function handleClearLifeEvent() {
+    clearLifeEvent();
+    setLifeEvent(null);
+  }
+
+  function handleExitRescueMode() {
+    deactivateRescueMode();
+    setRescueModeState(null);
+  }
+
   function handleWorkoutLogged(_log: LoggedWorkout) {
     setShowFeedback(true);
     refreshAfterMark();
@@ -1727,6 +1810,23 @@ export default function DashboardPage() {
             onDismiss={() => setShowRescueSession(false)}
           />
         )}
+        {rescueModeState && (
+          <RescueModeCard
+            rescueMode={rescueModeState}
+            onExit={handleExitRescueMode}
+          />
+        )}
+        <AdherenceCard
+          consistency={consistencyScore}
+          risk={adherenceRiskReport}
+          streaks={multiDomainStreaks}
+          formula={successFormula}
+          momentum={momentumScore}
+          lifeEvent={lifeEvent}
+          onLifeEvent={handleLifeEvent}
+          onClearLifeEvent={handleClearLifeEvent}
+        />
+        <MomentumCard momentum={momentumScore} />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
           patterns={behaviorPatterns}
