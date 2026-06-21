@@ -300,6 +300,15 @@ import { buildSuccessFormula, type SuccessFormula }                from "@/lib/a
 import { AdherenceCard }   from "@/components/dashboard/AdherenceCard";
 import { MomentumCard }    from "@/components/dashboard/MomentumCard";
 import { RescueModeCard }  from "@/components/dashboard/RescueModeCard";
+// ─── Phase 36: Performance Intelligence Engine ─────────────────────────────────
+import { savePerformanceRecords }                                              from "@/lib/performance/performanceDatabase";
+import { computeTrainingQuality, type TrainingQualityScore }                  from "@/lib/performance/trainingQuality";
+import { detectPlateaus, type PlateauReport as Perf36PlateauReport }          from "@/lib/performance/plateauDetection";
+import { getAllPersonalBests, recordAndDetectPRs, type PersonalBestSet }       from "@/lib/performance/personalBests";
+import { computeGoalVelocity, type GoalVelocity }                             from "@/lib/performance/goalVelocity";
+import { buildPerformancePredictors, type PerformancePredictors }             from "@/lib/performance/performancePredictors";
+import { computeGoalAdjustments, type GoalAdjustmentAdvice }                  from "@/lib/performance/goalAdjustment";
+import { PerformanceHubCard }                                                  from "@/components/dashboard/PerformanceHubCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -646,6 +655,13 @@ export default function DashboardPage() {
   const [motivationPatterns,   setMotivationPatterns]    = useState<MotivationPatterns | undefined>(undefined);
   const [successFormula,       setSuccessFormula]        = useState<SuccessFormula | undefined>(undefined);
   const [workoutRecoveryPlan,  setWorkoutRecoveryPlan]  = useState<WorkoutRecoveryPlan | undefined>(undefined);
+  // Phase 36 state
+  const [trainingQuality,      setTrainingQuality]      = useState<TrainingQualityScore | undefined>(undefined);
+  const [plateauReport,        setPlateauReport]        = useState<Perf36PlateauReport | undefined>(undefined);
+  const [personalBests,        setPersonalBests]        = useState<PersonalBestSet[] | undefined>(undefined);
+  const [goalVelocity,         setGoalVelocity]         = useState<GoalVelocity | undefined>(undefined);
+  const [perfPredictors,       setPerfPredictors]       = useState<PerformancePredictors | undefined>(undefined);
+  const [goalAdjustments,      setGoalAdjustments]      = useState<GoalAdjustmentAdvice | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1371,6 +1387,40 @@ export default function DashboardPage() {
         readiness.score, recoveryDebtVal, burnoutRiskVal, deloadRecVal, phase.name ?? "",
       ));
     }
+
+    // ── Phase 36: Performance Intelligence Engine ─────────────────────────────
+    // Enrich today's performance entries with training context for downstream analysis
+    const todayPerfEntries = perfHistoryVal.filter(e => e.date === todayStr);
+    if (todayPerfEntries.length > 0) {
+      savePerformanceRecords(todayPerfEntries, {
+        cyclePhase:     phase.name ?? "",
+        readinessScore: readiness.score,
+        mesocyclePhase: periodizationStatusVal?.phase ?? "",
+      }, todayStr);
+      // Detect and record personal bests from today's session
+      for (const entry of todayPerfEntries) {
+        if (entry.weight > 0) {
+          recordAndDetectPRs(entry.exerciseName, entry.weight, entry.actualReps, todayStr);
+        }
+      }
+    }
+
+    const trainingQualityVal = computeTrainingQuality(30);
+    setTrainingQuality(trainingQualityVal);
+
+    const plateauReportVal = detectPlateaus(todayStr);
+    setPlateauReport(plateauReportVal);
+
+    const personalBestsVal = getAllPersonalBests(todayStr);
+    setPersonalBests(personalBestsVal);
+
+    const velocityVal = computeGoalVelocity(goalType, todayStr);
+    setGoalVelocity(velocityVal);
+
+    const perfPredictorsVal = buildPerformancePredictors();
+    setPerfPredictors(perfPredictorsVal);
+
+    setGoalAdjustments(computeGoalAdjustments(velocityVal, plateauReportVal, perfPredictorsVal, trainingQualityVal));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -1827,6 +1877,14 @@ export default function DashboardPage() {
           onClearLifeEvent={handleClearLifeEvent}
         />
         <MomentumCard momentum={momentumScore} />
+        <PerformanceHubCard
+          quality={trainingQuality}
+          plateaus={plateauReport}
+          personalBests={personalBests}
+          velocity={goalVelocity}
+          adjustments={goalAdjustments}
+          predictors={perfPredictors}
+        />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
           patterns={behaviorPatterns}
