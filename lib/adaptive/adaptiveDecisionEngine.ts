@@ -13,6 +13,7 @@ import type { RecoveryDebt }           from "@/lib/recovery/recoveryDebt";
 import type { BurnoutRisk }            from "@/lib/recovery/burnoutRisk";
 import type { SymptomEscalationEntry }   from "@/lib/recovery/symptomEscalation";
 import type { RecoveryStrategyOutcome }   from "@/lib/recovery/recoveryLearning";
+import type { RecoveryBank }              from "@/lib/recovery/recoveryBank";
 
 // ─── Shared input ─────────────────────────────────────────────────────────────
 
@@ -33,6 +34,8 @@ export interface AdaptiveEngineInput {
   symptomEscalations?:  SymptomEscalationEntry[];
   // Phase 23D — recovery strategy learning outcomes
   strategyOutcomes?:    RecoveryStrategyOutcome[];
+  // Stab-E — recovery bank balance (resilience reserves)
+  recoveryBank?:        RecoveryBank | null;
 }
 
 // ─── Modifier types ───────────────────────────────────────────────────────────
@@ -167,6 +170,18 @@ export function computeAdaptiveModifier(input: AdaptiveEngineInput): AdaptiveMod
   if ((dc === "critical") || (dc === "high" && dt === "accumulating")) {
     volume = Math.min(volume, 0.85);
     rationale.push("Recovery debt critical or high/accumulating — volume capped");
+  }
+
+  // Layer 5b — recovery bank: depleted resilience reserves further cap volume
+  const bankBalance = input.recoveryBank?.balance;
+  if (bankBalance !== undefined) {
+    if (bankBalance < 25) {
+      volume = Math.min(volume, 0.80);
+      rationale.push("Resilience reserves critically depleted — volume capped");
+    } else if (bankBalance < 40 && input.recoveryBank?.trend === "depleting") {
+      volume = Math.min(volume, 0.88);
+      rationale.push("Resilience reserves low and depleting — volume moderated");
+    }
   }
 
   // Layer 6 — recovery strategy learning: adjust based on what actually restores this user.
