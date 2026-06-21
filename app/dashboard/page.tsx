@@ -313,6 +313,7 @@ function runWorkoutPipeline(
   symptoms?:            Array<{ symptomId: string; severity: 0 | 1 | 2 | 3 }>,
   periodizationStatus?: PeriodizationStatus,
   exerciseMastery?:     ExerciseMasteryEntry[],
+  progressionTargets?:  ProgressionTarget[],
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -349,6 +350,7 @@ function runWorkoutPipeline(
     sleepQuality:        user.sleepQuality,
     periodizationStatus,
     exerciseMastery,
+    progressionTargets,
   });
 }
 
@@ -678,7 +680,10 @@ export default function DashboardPage() {
     });
     setProgressionTargets(cycleAdjResult.targets);
 
-    const patterns = getLearnedPatterns(getSymptomHistory(), user.lastPeriodDate, effectiveCycleLength);
+    // Hoist repeated localStorage reads — symptom history parsed once, reused across all systems
+    const symptomHistoryAll = getSymptomHistory();
+
+    const patterns = getLearnedPatterns(symptomHistoryAll, user.lastPeriodDate, effectiveCycleLength);
     setLearnedPatterns(patterns);
     const cycleForecastVal = computeCycleForecast(patterns, phase.cycleDay, effectiveCycleLength);
     setCycleForecast(cycleForecastVal);
@@ -734,7 +739,7 @@ export default function DashboardPage() {
     const physiologyHistoryVal     = getPhysiologyHistory();
     const physiologyFingerprintVal = buildPhysiologyFingerprint(physiologyHistoryVal);
     setPhysiologyFingerprint(physiologyFingerprintVal);
-    const personalWeightsVal = buildPersonalWeights(fullRdxHistory, getSymptomHistory());
+    const personalWeightsVal = buildPersonalWeights(fullRdxHistory, symptomHistoryAll);
     setPersonalWeights(personalWeightsVal);
 
     // Score yesterday's interventions + recovery strategies now that today's data is known
@@ -772,15 +777,15 @@ export default function DashboardPage() {
     setPrimeTrainingWindow(primeWindowVal);
     const recoveryWindowVal = detectRecoveryWindow(fullRdxHistory, periodHistoryVal, effectiveCycleLength);
     setRecoveryWindow(recoveryWindowVal);
-    const timelineVal  = buildSymptomTimeline(getSymptomHistory(), periodHistoryVal, effectiveCycleLength);
+    const timelineVal  = buildSymptomTimeline(symptomHistoryAll, periodHistoryVal, effectiveCycleLength);
     setSymptomTimeline(timelineVal);
     const clustersVal  = buildSymptomClusters(timelineVal, effectiveCycleLength);
     const patternConfidencesVal = buildPatternConfidences(
-      getSymptomHistory(), periodHistoryVal, effectiveCycleLength,
+      symptomHistoryAll, periodHistoryVal, effectiveCycleLength,
     );
     setPatternConfidences(patternConfidencesVal);
     const symptomEscalationsVal = detectSymptomEscalation({
-      symptomHistory: getSymptomHistory(),
+      symptomHistory: symptomHistoryAll,
       periodHistory:  periodHistoryVal,
       cycleLength:    effectiveCycleLength,
     });
@@ -813,7 +818,7 @@ export default function DashboardPage() {
     const recoveryCapacityVal = computeRecoveryCapacity({
       recentHistory:    rawHistory.filter(h => h.id >= thirtyDaysAgoStr),
       recentFeedback:   getAllFeedback().filter(f => f.date >= thirtyDaysAgoStr),
-      recentSymptoms:   getSymptomHistory().filter(s => s.date >= thirtyDaysAgoStr),
+      recentSymptoms:   symptomHistoryAll.filter(s => s.date >= thirtyDaysAgoStr),
       recoveryPatterns: getRecoveryResponsePatterns(),
       today:            todayStr,
     });
@@ -823,7 +828,7 @@ export default function DashboardPage() {
       readinessHistory: fullRdxHistory.slice(0, 7),
       recentFeedback:   getAllFeedback().filter(f => f.date >= fourteenDaysAgoStr),
       recentHistory:    rawHistory.filter(h => h.id >= fourteenDaysAgoStr),
-      recentSymptoms:   getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
+      recentSymptoms:   symptomHistoryAll.filter(s => s.date >= sevenDaysAgoStr),
       currentPhase:     phase,
       recoveryCapacity: recoveryCapacityVal,
     });
@@ -841,7 +846,7 @@ export default function DashboardPage() {
 
     const rec                   = runPipeline(effectiveUser, phase, profile, prog, readiness);
     const forecastBurden        = computeForecastBurden(cycleForecastVal.symptomEvents);
-    const calibrationFactorsVal = computeCalibration(getAllValidations(), getSymptomHistory());
+    const calibrationFactorsVal = computeCalibration(getAllValidations(), symptomHistoryAll);
     setCalibrationFactors(calibrationFactorsVal);
     const personalizedRec = applyAccuracyCalibration(
       applyForecastModifier(
@@ -866,12 +871,21 @@ export default function DashboardPage() {
     const deloadRecVal = detectDeload({
       recentLog:         getWorkoutLog().filter(l => l.date >= fourteenDaysAgoStr),
       recentFeedback:    recentFeedbackVal,
-      recentSymptoms:    getSymptomHistory().filter(s => s.date >= sevenDaysAgoStr),
+      recentSymptoms:    symptomHistoryAll.filter(s => s.date >= sevenDaysAgoStr),
       exerciseSummaries: exerciseSummariesVal,
       readinessHistory:  fullRdxHistory.slice(0, 14),
       recoveryCapacity:  recoveryCapacityVal,
     });
     setDeloadRec(deloadRecVal);
+    // Stab-B: deload always overrides a "Push" or "Maintain" badge — the workout
+    // prescription is already a deload; the displayed badge must agree.
+    const effectiveBadge: ReadinessBadge =
+      deloadRecVal.needed && (personalizedRec.training.badge === "Push" || personalizedRec.training.badge === "Maintain")
+        ? "Watch"
+        : personalizedRec.training.badge;
+    if (effectiveBadge !== personalizedRec.training.badge) {
+      setRecommendation({ ...personalizedRec, training: { ...personalizedRec.training, badge: effectiveBadge } });
+    }
     const todayWorkoutDone =
       rawHistory.find(e => e.id === todayStr)?.status === "completed" ||
       rawHistory.find(e => e.id === todayStr)?.status === "partially_completed";
@@ -888,7 +902,7 @@ export default function DashboardPage() {
     const burnoutRiskVal = computeBurnoutRisk({
       readinessHistory: fullRdxHistory.slice(0, 28),
       workoutHistory:   rawHistory,
-      symptomHistory:   getSymptomHistory(),
+      symptomHistory:   symptomHistoryAll,
       recoveryDebt:     recoveryDebtVal,
       loadReport:       prelimLoad,
     });
@@ -912,8 +926,10 @@ export default function DashboardPage() {
       recoveryScore:   recoveryScoreVal.score,
       readinessScore:  readiness.score,
     });
+    const fatigueHistoryAll    = getFatigueHistory();
+    const recoveryBankVal      = computeRecoveryBank(fatigueHistoryAll);
     const fatiguePredictionVal = predictFatigue(
-      recoveryDebtVal, burnoutRiskVal, recoveryTrendNow, getFatigueHistory(),
+      recoveryDebtVal, burnoutRiskVal, recoveryTrendNow, fatigueHistoryAll,
     );
     setFatiguePrediction(fatiguePredictionVal);
 
@@ -1021,7 +1037,8 @@ export default function DashboardPage() {
     // so the modifier is actually applied to set counts and RPE targets.
     const interventionOutcomesVal = getInterventionOutcomes();
     setInterventionOutcomes(interventionOutcomesVal);
-    setStrategyOutcomes(getRecoveryStrategyOutcomes());
+    const strategyOutcomesAll = getRecoveryStrategyOutcomes();
+    setStrategyOutcomes(strategyOutcomesAll);
 
     // Adaptive Decision Engine — synthesise all layers + recovery intelligence
     const adaptiveInput = {
@@ -1038,7 +1055,8 @@ export default function DashboardPage() {
       recoveryDebt:         recoveryDebtVal,
       burnoutRisk:          burnoutRiskVal,
       symptomEscalations:   symptomEscalationsVal,
-      strategyOutcomes:     getRecoveryStrategyOutcomes(),
+      strategyOutcomes:     strategyOutcomesAll,
+      recoveryBank:         recoveryBankVal,
     };
     const adaptiveModifierVal = computeAdaptiveModifier(adaptiveInput);
     setAdaptiveModifier(adaptiveModifierVal);
@@ -1050,7 +1068,7 @@ export default function DashboardPage() {
       patternConfidences: patternConfidencesVal,
       readinessHistory:   fullRdxHistory,
       physiologyHistory:  physiologyHistoryVal,
-      strategyOutcomes:   getRecoveryStrategyOutcomes(),
+      strategyOutcomes:   strategyOutcomesAll,
       calibrationFactors: calibrationFactorsVal,
     }));
 
@@ -1116,10 +1134,10 @@ export default function DashboardPage() {
     setPeriodizationInsight(getPeriodizationInsight(periodizationGoalType));
 
     const wkt = runWorkoutPipeline(
-      effectiveUser, rec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
-      badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacityVal.level,
+      effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
+      badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
       exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
-      todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal,
+      todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
     );
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
@@ -1188,7 +1206,7 @@ export default function DashboardPage() {
     setNutritionProfile(buildPersonalizedNutritionProfile(nutritionPatternVal, getNutritionOutcomes()));
 
     // ── Phase 33: Recovery Intelligence ──────────────────────────────────────
-    const recoveryBankVal = computeRecoveryBank(getFatigueHistory());
+    // recoveryBankVal already computed earlier (after saveFatigueEntry) and passed to adaptiveModifier
     setRecoveryBank(recoveryBankVal);
     const outlookVal = computeRecoveryOutlook(
       recoveryDebtVal, burnoutRiskVal, recoveryTrendNow,
@@ -1203,9 +1221,9 @@ export default function DashboardPage() {
     validateRecoveryPrediction(yesterdayForValidation, recoveryScoreVal.score, todayStr);
     const validationVal = getValidationAccuracy();
     setValidationAccuracy(validationVal);
-    const correlationsVal     = computeCorrelations(getFatigueHistory());
+    const correlationsVal     = computeCorrelations(fatigueHistoryAll);
     const personalRecoveryVal = buildPersonalRecoveryProfile(
-      correlationsVal, getRecoveryStrategyOutcomes(), validationVal, recoveryCapacityVal, recoveryBankVal,
+      correlationsVal, strategyOutcomesAll, validationVal, recoveryCapacityVal, recoveryBankVal,
     );
     setPersonalRecovery(personalRecoveryVal);
     setRecoveryCheckinDone(getDailyRecoveryLog(todayStr) !== null);
@@ -1317,6 +1335,17 @@ export default function DashboardPage() {
     setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsCheckin.fuelingLevel));
     setNutritionAdjustments(getSymptomNutritionAdjustments(todaySymptomsVal));
     setNutritionOutcomes(getNutritionOutcomes());
+    // Stab-F: recompute Phase 32 nutrition targets after check-in (readiness + symptoms changed)
+    const nutritionTargetsCheckin = computeNutritionTargets(
+      phase, newReadiness ?? readinessScore, wkt, recoveryCapacity ?? null, todaySymptomsVal, goalType,
+    );
+    let finalNutritionTargetsCheckin = nutritionTargetsCheckin;
+    if (periodizationStatus) {
+      const periodAdj = applyNutritionPeriodization(nutritionTargetsCheckin, periodizationStatus.phase);
+      finalNutritionTargetsCheckin = periodAdj.targets;
+      setNutritionPeriodNote(periodAdj.periodizationNote);
+    }
+    setNutritionTargets(finalNutritionTargetsCheckin);
     // Phase 25+26 recompute after check-in (symptoms and readiness changed)
     setRecoveryEffectiveness(computeRecoveryEffectiveness(getRecoveryStrategyOutcomes()));
     const activeReadiness = newReadiness ?? readinessScore;
