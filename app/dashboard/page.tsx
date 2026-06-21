@@ -300,6 +300,19 @@ import { buildSuccessFormula, type SuccessFormula }                from "@/lib/a
 import { AdherenceCard }   from "@/components/dashboard/AdherenceCard";
 import { MomentumCard }    from "@/components/dashboard/MomentumCard";
 import { RescueModeCard }  from "@/components/dashboard/RescueModeCard";
+// ─── Phase 37: Auto-Regulation & Dynamic Training Intelligence ─────────────────
+import { computeCurrentFatigueScore, saveFatigueScore, getFatigueScoreHistory, type FatigueScoreEntry } from "@/lib/autoregulation/fatigueModel";
+import { computeReadinessConfidence, type ReadinessConfidence }               from "@/lib/autoregulation/readinessConfidence";
+import { makeTrainingDecision, type TrainingDecision as TrainingDecision37 }  from "@/lib/autoregulation/trainingDecisionEngine";
+import { applyExerciseAdjustments }                                            from "@/lib/autoregulation/exerciseAdjustments";
+import { predictSessionOutcome, saveOutcomePrediction, getOutcomePrediction, type OutcomePrediction } from "@/lib/autoregulation/outcomePrediction";
+import { validateOutcome, getPredictionAccuracy, type PredictionAccuracyReport } from "@/lib/autoregulation/outcomeValidation";
+import { computeWorkoutRecoveryCost, type WorkoutRecoveryCost }                from "@/lib/autoregulation/recoveryCost";
+import { buildPerformanceProgressionReport, type PerformanceProgressionReport } from "@/lib/autoregulation/performanceProgression";
+import { TrainingDecisionCard }                                                 from "@/components/dashboard/TrainingDecisionCard";
+import { FatigueCard }                                                          from "@/components/dashboard/FatigueCard";
+import { ReadinessConfidenceCard }                                              from "@/components/dashboard/ReadinessConfidenceCard";
+import { PredictionAccuracyCard }                                               from "@/components/dashboard/PredictionAccuracyCard";
 // ─── Phase 36: Performance Intelligence Engine ─────────────────────────────────
 import { savePerformanceRecords }                                              from "@/lib/performance/performanceDatabase";
 import { computeTrainingQuality, type TrainingQualityScore }                  from "@/lib/performance/trainingQuality";
@@ -655,6 +668,14 @@ export default function DashboardPage() {
   const [motivationPatterns,   setMotivationPatterns]    = useState<MotivationPatterns | undefined>(undefined);
   const [successFormula,       setSuccessFormula]        = useState<SuccessFormula | undefined>(undefined);
   const [workoutRecoveryPlan,  setWorkoutRecoveryPlan]  = useState<WorkoutRecoveryPlan | undefined>(undefined);
+  // Phase 37 state
+  const [fatigueEntry,         setFatigueEntry]         = useState<FatigueScoreEntry | undefined>(undefined);
+  const [readinessConfidence,  setReadinessConfidence]  = useState<ReadinessConfidence | undefined>(undefined);
+  const [trainingDecision,     setTrainingDecision]     = useState<TrainingDecision37 | undefined>(undefined);
+  const [outcomePrediction,    setOutcomePrediction]    = useState<OutcomePrediction | undefined>(undefined);
+  const [predictionAccuracy,   setPredictionAccuracy]   = useState<PredictionAccuracyReport | undefined>(undefined);
+  const [workoutRecoveryCost,  setWorkoutRecoveryCost]  = useState<WorkoutRecoveryCost | undefined>(undefined);
+  const [perfProgression,      setPerfProgression]      = useState<PerformanceProgressionReport | undefined>(undefined);
   // Phase 36 state
   const [trainingQuality,      setTrainingQuality]      = useState<TrainingQualityScore | undefined>(undefined);
   const [plateauReport,        setPlateauReport]        = useState<Perf36PlateauReport | undefined>(undefined);
@@ -1223,14 +1244,88 @@ export default function DashboardPage() {
       rescueModePreState?.adjustments.volumeScale ??
       adherenceRiskScaleVal;
 
-    const wkt = runWorkoutPipeline(
+    // ── Phase 37: Auto-Regulation (pre-workout) ───────────────────────────────
+    const meanSymSevPre = todaySymptomsVal.length > 0
+      ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
+      : 0;
+
+    const fatigueEntryVal = computeCurrentFatigueScore({
+      weeklyTrainingLoad:   prelimLoad.weeklyVolume,
+      recoveryBankScore:    recoveryBankVal.balance,
+      sleepQuality:         effectiveUser.sleepQuality,
+      stressLevel:          effectiveUser.stressLevel,
+      symptomCount:         todaySymptomsVal.length,
+      symptomSeverityMean:  meanSymSevPre,
+      burnoutRiskScore:     burnoutRiskVal.score,
+    });
+    saveFatigueScore(fatigueEntryVal);
+    setFatigueEntry(fatigueEntryVal);
+
+    const rdxConfidenceVal = computeReadinessConfidence({
+      readinessScore:       readiness.score,
+      checkinHistoryCount:  fullRdxHistory.length,
+      hasTodayCheckin:      getTodayCheckin() !== null,
+      cycleDataConfidence:  patternConfidencesVal.reduce(
+        (s, p: { confidence: number }) => s + p.confidence, 0,
+      ) / Math.max(1, patternConfidencesVal.length),
+      symptomHistoryCount:  symptomHistoryAll.length,
+      recoveryHistoryCount: getRecoveryStrategyHistory().length,
+    });
+    setReadinessConfidence(rdxConfidenceVal);
+
+    const trainingDecisionVal = makeTrainingDecision({
+      readinessScore:        readiness.score,
+      readinessCategory:     readiness.category,
+      recoveryDebtScore:     recoveryDebtVal.debtScore,
+      burnoutRiskScore:      burnoutRiskVal.score,
+      fatigueEntry:          fatigueEntryVal,
+      symptomSeverityMean:   meanSymSevPre,
+      symptomCount:          todaySymptomsVal.length,
+      isDeloadRecommended:   deloadRecVal.needed,
+      performanceTrends:     trendsVal,
+      adherenceRiskLevel:    adherenceRiskPre.riskLevel,
+      existingVolumeScale:   finalAdherenceScale,
+      isDeloadPeriod:        periodizationStatusVal?.phase === "deload",
+    });
+    setTrainingDecision(trainingDecisionVal);
+
+    // Compose Phase 37 intensity modifier with existing adaptive modifier
+    const phase37AdaptiveModifier = {
+      ...adaptiveModifierVal,
+      intensityMultiplier:
+        (adaptiveModifierVal.intensityMultiplier ?? 1.0) * trainingDecisionVal.intensityMultiplier,
+    };
+
+    const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
-      exerciseSummariesVal, adaptiveModifierVal, equipmentInventoryVal.allEquipmentNames,
+      exerciseSummariesVal, phase37AdaptiveModifier, equipmentInventoryVal.allEquipmentNames,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
-      finalAdherenceScale,
+      trainingDecisionVal.finalVolumeScale,  // Phase 37 is now the single volume authority
     );
+    // Phase 37B: apply exercise complexity swaps
+    const wkt = applyExerciseAdjustments(wktRaw, trainingDecisionVal);
     setWorkout(wkt);
+
+    // Phase 37F: predict session outcome and 37H: compute recovery cost
+    const outcomePredVal = predictSessionOutcome({
+      readinessScore:     readiness.score,
+      fatigueScore:       fatigueEntryVal.score,
+      fatigueZone:        fatigueEntryVal.zone,
+      decisionType:       trainingDecisionVal.type,
+      volumeModifier:     trainingDecisionVal.finalVolumeScale,
+      sessionName:        wkt.workoutName,
+      adherenceRiskLevel: adherenceRiskPre.riskLevel,
+    });
+    saveOutcomePrediction(outcomePredVal);
+    setOutcomePrediction(outcomePredVal);
+    setWorkoutRecoveryCost(computeWorkoutRecoveryCost(wkt));
+    setPredictionAccuracy(getPredictionAccuracy());
+
+    // Phase 37C: performance progression report
+    const perfExerciseNames = [...new Set(perfHistoryVal.map(e => e.exerciseName))].slice(0, 10);
+    setPerfProgression(buildPerformanceProgressionReport(perfExerciseNames));
+
     if (wkt.equipmentFallbacks) {
       for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
         logEquipmentSkip(exerciseName, missingEquip);
@@ -1588,6 +1683,23 @@ export default function DashboardPage() {
     const freshTrends = detectPerformanceTrends(freshPerfHistory);
     setPerformanceTrends(freshTrends);
     setPlateauInterventions(generatePlateauInterventions(freshTrends, goalType));
+
+    // Phase 37G: validate yesterday's prediction now that we have actual outcome
+    const yesterdayPred = getOutcomePrediction((() => {
+      const d = new Date(); d.setDate(d.getDate() - 1);
+      return d.toISOString().slice(0, 10);
+    })());
+    if (yesterdayPred) {
+      const yesterdayLog = getWorkoutLog().find(l => l.date === yesterdayPred.date);
+      if (yesterdayLog && yesterdayLog.completionStatus !== "skipped") {
+        validateOutcome(yesterdayPred.date, {
+          completed:         true,
+          sessionRPE:        yesterdayLog.overallDifficulty ?? 5,
+          overallDifficulty: yesterdayLog.overallDifficulty ?? 5,
+        });
+        setPredictionAccuracy(getPredictionAccuracy());
+      }
+    }
   }
 
   function refreshAdherenceAfterMark(newStatus: AdherenceEntry["status"]) {
@@ -1762,6 +1874,10 @@ export default function DashboardPage() {
           />
         )}
         <AdaptiveInsightsCard insights={adaptiveInsights} />
+        <TrainingDecisionCard decision={trainingDecision} prediction={outcomePrediction} />
+        <FatigueCard entry={fatigueEntry} />
+        <ReadinessConfidenceCard confidence={readinessConfidence} />
+        <PredictionAccuracyCard report={predictionAccuracy} />
         <PersonalizationCard progress={personalizationProgress} />
         <WhatAxisLearnedCard
           fingerprint={physiologyFingerprint}
