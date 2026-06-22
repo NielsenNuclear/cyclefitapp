@@ -322,6 +322,20 @@ import { computeGoalVelocity, type GoalVelocity }                             fr
 import { buildPerformancePredictors, type PerformancePredictors }             from "@/lib/performance/performancePredictors";
 import { computeGoalAdjustments, type GoalAdjustmentAdvice }                  from "@/lib/performance/goalAdjustment";
 import { PerformanceHubCard }                                                  from "@/components/dashboard/PerformanceHubCard";
+// ─── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────────
+import { buildGoalRoadmap, type GoalRoadmap }                                  from "@/lib/planning/goalRoadmap";
+import { getOrBuildMacrocycle, type MacroCyclePlan }                           from "@/lib/planning/macrocyclePlanner";
+import { computeGoalFeasibility, type GoalFeasibility }                        from "@/lib/planning/goalFeasibility";
+import { computeMilestones, type MilestoneStatus }                             from "@/lib/planning/milestoneEngine";
+import { updateTimeline, type TimelineUpdate }                                  from "@/lib/planning/timelineUpdater";
+import { computeTrainingMaturity, type TrainingMaturity }                      from "@/lib/planning/trainingMaturity";
+import { buildSeasonalityReport, type SeasonalityReport }                      from "@/lib/planning/seasonalityAnalysis";
+import { detectGoalConflicts, type GoalConflictReport }                        from "@/lib/planning/goalConflict";
+import { buildAnnualForecast, type AnnualForecast }                            from "@/lib/planning/annualForecast";
+import { GoalRoadmapCard }                                                      from "@/components/dashboard/GoalRoadmapCard";
+import { MilestoneCard }                                                        from "@/components/dashboard/MilestoneCard";
+import { ForecastCard }                                                         from "@/components/dashboard/ForecastCard";
+import { TrainingMaturityCard }                                                 from "@/components/dashboard/TrainingMaturityCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -683,6 +697,16 @@ export default function DashboardPage() {
   const [goalVelocity,         setGoalVelocity]         = useState<GoalVelocity | undefined>(undefined);
   const [perfPredictors,       setPerfPredictors]       = useState<PerformancePredictors | undefined>(undefined);
   const [goalAdjustments,      setGoalAdjustments]      = useState<GoalAdjustmentAdvice | undefined>(undefined);
+  // Phase 38 state
+  const [goalRoadmap,          setGoalRoadmap]          = useState<GoalRoadmap | undefined>(undefined);
+  const [macrocyclePlan,       setMacrocyclePlan]       = useState<MacroCyclePlan | undefined>(undefined);
+  const [goalFeasibility,      setGoalFeasibility]      = useState<GoalFeasibility | undefined>(undefined);
+  const [milestones,           setMilestones]           = useState<MilestoneStatus | undefined>(undefined);
+  const [timelineUpdate,       setTimelineUpdate]       = useState<TimelineUpdate | undefined>(undefined);
+  const [trainingMaturity,     setTrainingMaturity]     = useState<TrainingMaturity | undefined>(undefined);
+  const [seasonalityReport,    setSeasonalityReport]    = useState<SeasonalityReport | undefined>(undefined);
+  const [goalConflict,         setGoalConflict]         = useState<GoalConflictReport | undefined>(undefined);
+  const [annualForecast,       setAnnualForecast]       = useState<AnnualForecast | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1516,6 +1540,36 @@ export default function DashboardPage() {
     setPerfPredictors(perfPredictorsVal);
 
     setGoalAdjustments(computeGoalAdjustments(velocityVal, plateauReportVal, perfPredictorsVal, trainingQualityVal));
+
+    // ── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────
+    const trainingMaturityVal = computeTrainingMaturity(
+      rawHistory, perfHistoryVal, exerciseSummariesVal, consistencyVal,
+    );
+    setTrainingMaturity(trainingMaturityVal);
+
+    const goalConflictVal = detectGoalConflicts(user.goals ?? []);
+    setGoalConflict(goalConflictVal);
+
+    const roadmapVal = buildGoalRoadmap(goalType, velocityVal, todayStr);
+    setGoalRoadmap(roadmapVal);
+
+    const feasibilityVal = computeGoalFeasibility(roadmapVal, consistencyVal, trainingMaturityVal, velocityVal);
+    setGoalFeasibility(feasibilityVal);
+
+    setMacrocyclePlan(getOrBuildMacrocycle(goalType, todayStr, rawHistory));
+
+    const roadmapTimelineVal = updateTimeline(roadmapVal, velocityVal);
+    setTimelineUpdate(roadmapTimelineVal);
+
+    const milestonesVal = computeMilestones(
+      perfHistoryVal, rawHistory.filter(h => h.status === "completed" || h.status === "partially_completed").length,
+      consistencyVal, adherenceHistoryVal, todayStr,
+    );
+    setMilestones(milestonesVal);
+
+    setSeasonalityReport(buildSeasonalityReport(fullRdxHistory, todayStr));
+
+    setAnnualForecast(buildAnnualForecast(roadmapVal, feasibilityVal, velocityVal, trainingMaturityVal, consistencyVal));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2001,6 +2055,18 @@ export default function DashboardPage() {
           adjustments={goalAdjustments}
           predictors={perfPredictors}
         />
+        <GoalRoadmapCard
+          roadmap={goalRoadmap}
+          feasibility={goalFeasibility}
+          timeline={timelineUpdate}
+        />
+        <MilestoneCard milestones={milestones} />
+        <ForecastCard
+          forecast={annualForecast}
+          macrocycle={macrocyclePlan}
+          goalConflict={goalConflict}
+        />
+        <TrainingMaturityCard maturity={trainingMaturity} />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
           patterns={behaviorPatterns}
