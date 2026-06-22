@@ -336,6 +336,32 @@ import { LifestyleCard }                                                        
 import { BurnoutPreventionCard }                                                 from "@/components/dashboard/BurnoutPreventionCard";
 import { ScheduleInsightsCard }                                                  from "@/components/dashboard/ScheduleInsightsCard";
 import { UpcomingLifeEventsCard }                                                from "@/components/dashboard/UpcomingLifeEventsCard";
+// ─── Phase 40: Personal Physiology Learning Engine ────────────────────────────
+import { computePhaseResponseProfile, savePhaseResponseProfile, type PhaseResponseProfile } from "@/lib/physiology/phaseResponseModel";
+import { computeSymptomImpactProfile, type SymptomImpactProfile }             from "@/lib/physiology/symptomImpactModel";
+import { computePredictorRanking, type PredictorRankingProfile }              from "@/lib/physiology/readinessPredictorRanking";
+import { computeRecoveryResponseProfile, type RecoveryResponseProfile }       from "@/lib/physiology/recoveryResponseModel";
+import { buildPersonalReadinessEquation, type PersonalReadinessEquation }     from "@/lib/physiology/personalReadinessEquation";
+import { computePhysiologyConfidence, type PhysiologyConfidence }             from "@/lib/physiology/physiologyConfidence";
+import { getRecoveryResponses }                                                from "@/lib/recovery/recoveryResponse";
+import { SignalImportanceCard }                                                from "@/components/dashboard/SignalImportanceCard";
+import { PersonalResponseCard }                                                from "@/components/dashboard/PersonalResponseCard";
+// ─── Phase 41: Prediction & Forecast Accuracy Engine ──────────────────────────
+import { logPrediction, scoreActual, getPredictionHistory, type PredictionLogEntry } from "@/lib/accuracy/predictionHistory";
+import { computeCalibrationReport, type CalibrationReport }                   from "@/lib/accuracy/calibrationEngine";
+import { computeForecastAccuracy, type ForecastAccuracyReport }               from "@/lib/accuracy/forecastAccuracy";
+import { computeRecommendationConfidence, type RecommendationConfidence }     from "@/lib/accuracy/recommendationConfidence";
+import { detectUncertainty, type UncertaintySignal }                          from "@/lib/accuracy/uncertaintyDetection";
+import { detectDrift, type DriftReport }                                      from "@/lib/accuracy/driftDetection";
+import { ConfidenceDashboardCard }                                             from "@/components/dashboard/ConfidenceDashboardCard";
+import { AccuracyTimelineCard }                                                from "@/components/dashboard/AccuracyTimelineCard";
+// ─── Phase 42: Evidence-Based Recommendation Engine ───────────────────────────
+import { buildRecommendationEvidence, saveRecommendationEvidence, type RecommendationEvidence } from "@/lib/evidence/recommendationEvidence";
+import { buildCounterfactual, type Counterfactual }                           from "@/lib/evidence/counterfactualEngine";
+import { getFeedbackSummary, type FeedbackSummary }                           from "@/lib/evidence/recommendationValidation";
+import { buildAdaptiveNarrative, type AdaptiveNarrative }                     from "@/lib/evidence/adaptiveNarrative";
+import { UserTrustCard }                                                       from "@/components/dashboard/UserTrustCard";
+import { ExplainabilityCard }                                                  from "@/components/dashboard/ExplainabilityCard";
 // ─── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────────
 import { buildGoalRoadmap, type GoalRoadmap }                                  from "@/lib/planning/goalRoadmap";
 import { getOrBuildMacrocycle, type MacroCyclePlan }                           from "@/lib/planning/macrocyclePlanner";
@@ -730,6 +756,25 @@ export default function DashboardPage() {
   const [seasonalityReport,    setSeasonalityReport]    = useState<SeasonalityReport | undefined>(undefined);
   const [goalConflict,         setGoalConflict]         = useState<GoalConflictReport | undefined>(undefined);
   const [annualForecast,       setAnnualForecast]       = useState<AnnualForecast | undefined>(undefined);
+  // Phase 40 state
+  const [phaseResponse,        setPhaseResponse]        = useState<PhaseResponseProfile | undefined>(undefined);
+  const [symptomImpact,        setSymptomImpact]        = useState<SymptomImpactProfile | undefined>(undefined);
+  const [predictorRanking,     setPredictorRanking]     = useState<PredictorRankingProfile | undefined>(undefined);
+  const [recoveryResponseProf, setRecoveryResponseProf] = useState<RecoveryResponseProfile | undefined>(undefined);
+  const [personalEquation,     setPersonalEquation]     = useState<PersonalReadinessEquation | undefined>(undefined);
+  const [physiologyConf,       setPhysiologyConf]       = useState<PhysiologyConfidence | undefined>(undefined);
+  // Phase 41 state
+  const [predictionLog,        setPredictionLog]        = useState<PredictionLogEntry[] | undefined>(undefined);
+  const [calibrationReport,    setCalibrationReport]    = useState<CalibrationReport | undefined>(undefined);
+  const [forecastAccuracy,     setForecastAccuracy]     = useState<ForecastAccuracyReport | undefined>(undefined);
+  const [recConfidence,        setRecConfidence]        = useState<RecommendationConfidence | undefined>(undefined);
+  const [uncertainty,          setUncertainty]          = useState<UncertaintySignal | undefined>(undefined);
+  const [driftReport,          setDriftReport]          = useState<DriftReport | undefined>(undefined);
+  // Phase 42 state
+  const [recEvidence,          setRecEvidence]          = useState<RecommendationEvidence | undefined>(undefined);
+  const [counterfactual,       setCounterfactual]       = useState<Counterfactual | undefined>(undefined);
+  const [feedbackSummary,      setFeedbackSummary]      = useState<FeedbackSummary | undefined>(undefined);
+  const [adaptiveNarrative,    setAdaptiveNarrative]    = useState<AdaptiveNarrative | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1662,6 +1707,79 @@ export default function DashboardPage() {
     setSeasonalityReport(buildSeasonalityReport(fullRdxHistory, todayStr));
 
     setAnnualForecast(buildAnnualForecast(roadmapVal, feasibilityVal, velocityVal, trainingMaturityVal, consistencyVal));
+
+    // ── Phase 40: Personal Physiology Learning Engine ─────────────────────────
+    const phaseResponseVal = computePhaseResponseProfile(
+      fullRdxHistory, adherenceHistoryVal, symptomHistoryAll,
+      periodHistoryVal, effectiveCycleLength,
+    );
+    savePhaseResponseProfile(phaseResponseVal);
+    setPhaseResponse(phaseResponseVal);
+
+    const symptomImpactVal = computeSymptomImpactProfile(symptomHistoryAll, fullRdxHistory);
+    setSymptomImpact(symptomImpactVal);
+
+    const predictorRankingVal = computePredictorRanking(fullRdxHistory);
+    setPredictorRanking(predictorRankingVal);
+
+    const recoveryResponseProfVal = computeRecoveryResponseProfile();
+    setRecoveryResponseProf(recoveryResponseProfVal);
+
+    const personalEquationVal = buildPersonalReadinessEquation(predictorRankingVal);
+    setPersonalEquation(personalEquationVal);
+
+    const physiologyConfVal = computePhysiologyConfidence(
+      fullRdxHistory, symptomHistoryAll, getRecoveryResponses(), adherenceHistoryVal,
+    );
+    setPhysiologyConf(physiologyConfVal);
+
+    // ── Phase 41: Prediction & Forecast Accuracy Engine ──────────────────────
+    // Log today's readiness prediction (score from the previous day's forecast)
+    logPrediction(todayStr, "readiness", readiness.score);
+    logPrediction(todayStr, "recovery",  recoveryScoreVal.score);
+    // Score yesterday's predictions with today's actuals
+    const p41Yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+    scoreActual(p41Yesterday, "readiness", readiness.score);
+    scoreActual(p41Yesterday, "recovery",  recoveryScoreVal.score);
+
+    const predictionLogVal    = getPredictionHistory();
+    setPredictionLog(predictionLogVal);
+
+    const calibrationVal = computeCalibrationReport(predictionLogVal);
+    setCalibrationReport(calibrationVal);
+
+    const forecastAccVal = computeForecastAccuracy(predictionLogVal, predictionAccuracy);
+    setForecastAccuracy(forecastAccVal);
+
+    const totalWkts = rawHistory.filter(h => h.status === "completed" || h.status === "partially_completed").length;
+    const recConfVal = computeRecommendationConfidence(physiologyConfVal, forecastAccVal, totalWkts);
+    setRecConfidence(recConfVal);
+    setUncertainty(detectUncertainty(recConfVal));
+    setDriftReport(detectDrift(fullRdxHistory, adherenceHistoryVal));
+
+    // ── Phase 42: Evidence-Based Recommendation Engine ───────────────────────
+    const evidenceVal = buildRecommendationEvidence({
+      date:           todayStr,
+      recommendation: trainingDecisionVal.type,
+      readinessScore: readiness.score,
+      recoveryScore:  recoveryScoreVal.score,
+      stressLevel:    effectiveUser.stressLevel,
+      sleepQuality:   effectiveUser.sleepQuality,
+      confidence:     recConfVal.score,
+      totalWorkouts:  totalWkts,
+    });
+    saveRecommendationEvidence(evidenceVal);
+    setRecEvidence(evidenceVal);
+
+    setCounterfactual(buildCounterfactual(
+      trainingDecisionVal.type, readiness.score, recoveryScoreVal.score, effectiveUser.stressLevel,
+    ));
+
+    setFeedbackSummary(getFeedbackSummary());
+
+    setAdaptiveNarrative(buildAdaptiveNarrative(
+      phaseResponseVal, symptomImpactVal, predictorRankingVal, recoveryResponseProfVal,
+    ));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2163,6 +2281,25 @@ export default function DashboardPage() {
         <BurnoutPreventionCard report={lifestyleBurnout} />
         <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
         <UpcomingLifeEventsCard events={upcomingLifeEvents} />
+        {/* Phase 40: Personal Physiology Learning */}
+        <PersonalResponseCard
+          phaseResponse={phaseResponse}
+          symptomImpact={symptomImpact}
+          recoveryModel={recoveryResponseProf}
+          confidence={physiologyConf}
+        />
+        <SignalImportanceCard ranking={predictorRanking} equation={personalEquation} />
+        {/* Phase 41: Prediction & Forecast Accuracy */}
+        <ConfidenceDashboardCard confidence={recConfidence} calibration={calibrationReport} drift={driftReport} />
+        <AccuracyTimelineCard accuracy={forecastAccuracy} />
+        {/* Phase 42: Evidence-Based Recommendation */}
+        <ExplainabilityCard evidence={recEvidence} counterfactual={counterfactual} />
+        <UserTrustCard
+          physiologyConf={physiologyConf}
+          accuracy={forecastAccuracy}
+          feedback={feedbackSummary}
+          narrative={adaptiveNarrative}
+        />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
           patterns={behaviorPatterns}
