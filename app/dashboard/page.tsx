@@ -336,6 +336,28 @@ import { LifestyleCard }                                                        
 import { BurnoutPreventionCard }                                                 from "@/components/dashboard/BurnoutPreventionCard";
 import { ScheduleInsightsCard }                                                  from "@/components/dashboard/ScheduleInsightsCard";
 import { UpcomingLifeEventsCard }                                                from "@/components/dashboard/UpcomingLifeEventsCard";
+// ─── Phase 43: Outcome Optimization Engine ────────────────────────────────────
+import { recordSuccessSnapshot, buildGoalSuccessModel, type GoalSuccessModel } from "@/lib/outcomes/goalSuccessModel";
+import { computeBehaviorImpactRanking, type BehaviorImpactReport }            from "@/lib/outcomes/behaviorImpactRanking";
+import { detectSuccessPatterns, type SuccessPatternReport }                    from "@/lib/outcomes/successPatternDetection";
+import { identifyLeveragePoint, type LeveragePoint }                           from "@/lib/outcomes/leveragePointEngine";
+import { computeOutcomeScorecard, type OutcomeScorecard }                      from "@/lib/outcomes/outcomeScorecard";
+import { OutcomeOptimizationCard }                                             from "@/components/dashboard/OutcomeOptimizationCard";
+// ─── Phase 44: Human Performance Operating System ─────────────────────────────
+import { computeCapacityScore, saveCapacityScore, type CapacityScore }        from "@/lib/unified/capacityScore";
+import { computeMomentumScore, type MomentumScore as UnifiedMomentumScore }   from "@/lib/unified/momentumScore";
+import { computeTrajectoryScore, type TrajectoryScore }                        from "@/lib/unified/trajectoryEngine";
+import { detectLifeBalance, type LifeBalanceReport }                           from "@/lib/unified/lifeBalanceDetection";
+import { computeCapacityForecast, type CapacityForecast }                      from "@/lib/unified/capacityForecast";
+import { buildUnifiedInsightsFeed, type UnifiedInsight }                       from "@/lib/unified/unifiedInsightsFeed";
+import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
+import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
+// ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
+import { recordSituation, scoreSituationOutcome, findSimilarSituations, type SimilarSituation } from "@/lib/memory/situationMemory";
+import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
+import { buildCoachingNarrative, type CoachingNarrative as P45Narrative }     from "@/lib/memory/coachingNarrative";
+import { buildIdentityModel, type IdentityModel }                             from "@/lib/memory/identityModel";
+import { SituationMemoryCard }                                                 from "@/components/dashboard/SituationMemoryCard";
 // ─── Phase 40: Personal Physiology Learning Engine ────────────────────────────
 import { computePhaseResponseProfile, savePhaseResponseProfile, type PhaseResponseProfile } from "@/lib/physiology/phaseResponseModel";
 import { computeSymptomImpactProfile, type SymptomImpactProfile }             from "@/lib/physiology/symptomImpactModel";
@@ -775,6 +797,24 @@ export default function DashboardPage() {
   const [counterfactual,       setCounterfactual]       = useState<Counterfactual | undefined>(undefined);
   const [feedbackSummary,      setFeedbackSummary]      = useState<FeedbackSummary | undefined>(undefined);
   const [adaptiveNarrative,    setAdaptiveNarrative]    = useState<AdaptiveNarrative | undefined>(undefined);
+  // Phase 43 state
+  const [goalSuccessModel,     setGoalSuccessModel]     = useState<GoalSuccessModel | undefined>(undefined);
+  const [behaviorImpact,       setBehaviorImpact]       = useState<BehaviorImpactReport | undefined>(undefined);
+  const [successPatterns,      setSuccessPatterns]      = useState<SuccessPatternReport | undefined>(undefined);
+  const [leveragePoint,        setLeveragePoint]        = useState<LeveragePoint | undefined>(undefined);
+  const [outcomeScorecard,     setOutcomeScorecard]     = useState<OutcomeScorecard | undefined>(undefined);
+  // Phase 44 state
+  const [capacityScore,        setCapacityScore]        = useState<CapacityScore | undefined>(undefined);
+  const [unifiedMomentum,      setUnifiedMomentum]      = useState<UnifiedMomentumScore | undefined>(undefined);
+  const [trajectoryScore,      setTrajectoryScore]      = useState<TrajectoryScore | undefined>(undefined);
+  const [lifeBalance,          setLifeBalance]          = useState<LifeBalanceReport | undefined>(undefined);
+  const [capacityForecast,     setCapacityForecast]     = useState<CapacityForecast | undefined>(undefined);
+  const [unifiedInsights,      setUnifiedInsights]      = useState<UnifiedInsight[] | undefined>(undefined);
+  // Phase 45 state
+  const [similarSituations,    setSimilarSituations]    = useState<SimilarSituation[] | undefined>(undefined);
+  const [recMemoryProfile,     setRecMemoryProfile]     = useState<RecommendationMemoryProfile | undefined>(undefined);
+  const [p45Narrative,         setP45Narrative]         = useState<P45Narrative | undefined>(undefined);
+  const [identityModel,        setIdentityModel]        = useState<IdentityModel | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1780,6 +1820,99 @@ export default function DashboardPage() {
     setAdaptiveNarrative(buildAdaptiveNarrative(
       phaseResponseVal, symptomImpactVal, predictorRankingVal, recoveryResponseProfVal,
     ));
+
+    // ── Phase 43: Outcome Optimization Engine ────────────────────────────────
+    recordSuccessSnapshot(
+      todayStr, velocityVal, consistencyVal, adherenceHistoryVal, nutritionPatternVal,
+    );
+    const goalSuccessModelVal = buildGoalSuccessModel();
+    setGoalSuccessModel(goalSuccessModelVal);
+
+    const behaviorImpactVal = computeBehaviorImpactRanking(
+      fullRdxHistory, adherenceHistoryVal, nutritionPatternVal, consistencyVal,
+    );
+    setBehaviorImpact(behaviorImpactVal);
+
+    const successPatternsVal = detectSuccessPatterns(fullRdxHistory, adherenceHistoryVal);
+    setSuccessPatterns(successPatternsVal);
+
+    const leveragePointVal = identifyLeveragePoint(behaviorImpactVal, goalSuccessModelVal);
+    setLeveragePoint(leveragePointVal ?? undefined);
+
+    const outcomeScorecardVal = computeOutcomeScorecard(
+      velocityVal, consistencyVal, goalSuccessModelVal, behaviorImpactVal, leveragePointVal,
+    );
+    setOutcomeScorecard(outcomeScorecardVal);
+
+    // ── Phase 44: Human Performance Operating System ──────────────────────────
+    const nutritionCompliancePct = Math.round(
+      ((nutritionPatternVal?.proteinComplianceRate ?? 0.5) + (nutritionPatternVal?.hydrationComplianceRate ?? 0.5)) / 2 * 100,
+    );
+    const capacityScoreVal = computeCapacityScore({
+      date:                todayStr,
+      readinessScore:      readiness.score,
+      recoveryScore:       recoveryScoreVal.score,
+      energyScore:         energyAvailabilityVal.score,
+      nutritionCompliance: nutritionCompliancePct,
+      cyclePhase:          phase.name ?? "",
+      fatigueScore:        fatigueEntryVal.score,
+    });
+    setCapacityScore(capacityScoreVal);
+    saveCapacityScore({ date: todayStr, score: capacityScoreVal.score, tier: capacityScoreVal.tier });
+
+    const unifiedMomentumVal = computeMomentumScore();
+    setUnifiedMomentum(unifiedMomentumVal);
+
+    const trajectoryVal = computeTrajectoryScore(velocityVal);
+    setTrajectoryScore(trajectoryVal);
+
+    const lifeBalanceVal = detectLifeBalance(consistencyVal, capacityScoreVal.components);
+    setLifeBalance(lifeBalanceVal);
+
+    const capacityForecastVal = computeCapacityForecast(capacityScoreVal, unifiedMomentumVal);
+    setCapacityForecast(capacityForecastVal);
+
+    setUnifiedInsights(buildUnifiedInsightsFeed({
+      capacity:   capacityScoreVal,
+      momentum:   unifiedMomentumVal,
+      trajectory: trajectoryVal,
+      leverage:   leveragePointVal,
+      balance:    lifeBalanceVal,
+      drift:      driftReport,
+    }));
+
+    // ── Phase 45: Digital Coaching Memory ────────────────────────────────────
+    // Record today's situation before workout
+    recordSituation(
+      todayStr, readiness.score, effectiveUser.stressLevel,
+      fatigueEntryVal.zone, phase.name ?? "",
+      { recommendationType: trainingDecisionVal.type, workoutMode: lifeContextVal.recommendedMode },
+    );
+    // Score yesterday's situation outcome with today's readiness
+    scoreSituationOutcome(
+      p41Yesterday, readiness.score, todayWorkoutStatus === "completed" || todayWorkoutStatus === "partially_completed",
+      fullRdxHistory[1]?.score ?? readiness.score,
+    );
+
+    const currentSituationContext = {
+      cyclePhase:      phase.name ?? "",
+      readinessBucket: (readiness.score < 55 ? "low" : readiness.score < 75 ? "moderate" : "high") as "low" | "moderate" | "high",
+      stressLevel:     effectiveUser.stressLevel,
+      fatigueZone:     fatigueEntryVal.zone,
+      weekday:         new Date().getDay(),
+    };
+    const similarSituationsVal = findSimilarSituations(currentSituationContext, todayStr, 5);
+    setSimilarSituations(similarSituationsVal);
+
+    const recMemoryProfileVal = buildRecommendationMemoryProfile();
+    setRecMemoryProfile(recMemoryProfileVal);
+
+    const p45NarrativeVal = buildCoachingNarrative(
+      similarSituationsVal, recMemoryProfileVal, phaseResponseVal, readiness.score, phase.name ?? "",
+    );
+    setP45Narrative(p45NarrativeVal);
+
+    setIdentityModel(buildIdentityModel(phaseResponseVal, recMemoryProfileVal, successPatternsVal));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2299,6 +2432,31 @@ export default function DashboardPage() {
           accuracy={forecastAccuracy}
           feedback={feedbackSummary}
           narrative={adaptiveNarrative}
+        />
+        {/* Phase 43: Outcome Optimization */}
+        <OutcomeOptimizationCard
+          scorecard={outcomeScorecard}
+          leveragePoint={leveragePoint}
+          successPatterns={successPatterns}
+        />
+        {/* Phase 44: Human Performance Operating System */}
+        <ExecutiveSummaryCard
+          capacity={capacityScore}
+          momentum={unifiedMomentum}
+          trajectory={trajectoryScore}
+          insights={unifiedInsights}
+        />
+        <CapacityCard
+          capacity={capacityScore}
+          momentum={unifiedMomentum}
+          forecast={capacityForecast}
+          balance={lifeBalance}
+        />
+        {/* Phase 45: Digital Coaching Memory */}
+        <SituationMemoryCard
+          narrative={p45Narrative}
+          identity={identityModel}
+          similar={similarSituations}
         />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
