@@ -342,7 +342,10 @@ import { computeBehaviorImpactRanking, type BehaviorImpactReport }            fr
 import { detectSuccessPatterns, type SuccessPatternReport }                    from "@/lib/outcomes/successPatternDetection";
 import { identifyLeveragePoint, type LeveragePoint }                           from "@/lib/outcomes/leveragePointEngine";
 import { computeOutcomeScorecard, type OutcomeScorecard }                      from "@/lib/outcomes/outcomeScorecard";
+import { detectBottlenecks, type BottleneckReport }                            from "@/lib/outcomes/bottleneckDetection";
+import { computeCompletionForecast, type CompletionForecast }                  from "@/lib/outcomes/completionForecast";
 import { OutcomeOptimizationCard }                                             from "@/components/dashboard/OutcomeOptimizationCard";
+import { OutcomeIntelligenceCard }                                             from "@/components/dashboard/OutcomeIntelligenceCard";
 // ─── Phase 44: Human Performance Operating System ─────────────────────────────
 import { computeCapacityScore, saveCapacityScore, type CapacityScore }        from "@/lib/unified/capacityScore";
 import { computeMomentumScore, type MomentumScore as UnifiedMomentumScore }   from "@/lib/unified/momentumScore";
@@ -350,6 +353,7 @@ import { computeTrajectoryScore, type TrajectoryScore }                        f
 import { detectLifeBalance, type LifeBalanceReport }                           from "@/lib/unified/lifeBalanceDetection";
 import { computeCapacityForecast, type CapacityForecast }                      from "@/lib/unified/capacityForecast";
 import { buildUnifiedInsightsFeed, type UnifiedInsight }                       from "@/lib/unified/unifiedInsightsFeed";
+import { assessRecoverySufficiency, type RecoverySufficiency }                 from "@/lib/unified/recoverySufficiency";
 import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
 import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
 // ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
@@ -803,8 +807,11 @@ export default function DashboardPage() {
   const [successPatterns,      setSuccessPatterns]      = useState<SuccessPatternReport | undefined>(undefined);
   const [leveragePoint,        setLeveragePoint]        = useState<LeveragePoint | undefined>(undefined);
   const [outcomeScorecard,     setOutcomeScorecard]     = useState<OutcomeScorecard | undefined>(undefined);
+  const [bottleneckReport,     setBottleneckReport]     = useState<BottleneckReport | undefined>(undefined);
+  const [completionForecast,   setCompletionForecast]   = useState<CompletionForecast | undefined>(undefined);
   // Phase 44 state
   const [capacityScore,        setCapacityScore]        = useState<CapacityScore | undefined>(undefined);
+  const [recoverySufficiency,  setRecoverySufficiency]  = useState<RecoverySufficiency | undefined>(undefined);
   const [unifiedMomentum,      setUnifiedMomentum]      = useState<UnifiedMomentumScore | undefined>(undefined);
   const [trajectoryScore,      setTrajectoryScore]      = useState<TrajectoryScore | undefined>(undefined);
   const [lifeBalance,          setLifeBalance]          = useState<LifeBalanceReport | undefined>(undefined);
@@ -1844,6 +1851,14 @@ export default function DashboardPage() {
     );
     setOutcomeScorecard(outcomeScorecardVal);
 
+    // 43D/43G — Bottleneck Detection + Completion Forecast
+    const bottleneckVal = detectBottlenecks(
+      fullRdxHistory, nutritionPatternVal, recoveryScoreVal.score, consistencyVal.composite,
+    );
+    setBottleneckReport(bottleneckVal);
+    const completionForecastVal = computeCompletionForecast(goalSuccessModelVal, velocityVal, bottleneckVal);
+    setCompletionForecast(completionForecastVal);
+
     // ── Phase 44: Human Performance Operating System ──────────────────────────
     const nutritionCompliancePct = Math.round(
       ((nutritionPatternVal?.proteinComplianceRate ?? 0.5) + (nutritionPatternVal?.hydrationComplianceRate ?? 0.5)) / 2 * 100,
@@ -1859,6 +1874,10 @@ export default function DashboardPage() {
     });
     setCapacityScore(capacityScoreVal);
     saveCapacityScore({ date: todayStr, score: capacityScoreVal.score, tier: capacityScoreVal.tier });
+    setRecoverySufficiency(assessRecoverySufficiency(
+      recoveryScoreVal.score, fatigueEntryVal.score, consistencyVal.composite,
+      fullRdxHistory[0]?.contributors?.trainingLoad ?? 50,
+    ));
 
     const unifiedMomentumVal = computeMomentumScore();
     setUnifiedMomentum(unifiedMomentumVal);
@@ -2439,6 +2458,14 @@ export default function DashboardPage() {
           leveragePoint={leveragePoint}
           successPatterns={successPatterns}
         />
+        {/* Phase 43: Outcome Intelligence (bottleneck + forecast) */}
+        <OutcomeIntelligenceCard
+          successModel={goalSuccessModel}
+          behaviorImpact={behaviorImpact}
+          bottlenecks={bottleneckReport}
+          leveragePoint={leveragePoint}
+          forecast={completionForecast}
+        />
         {/* Phase 44: Human Performance Operating System */}
         <ExecutiveSummaryCard
           capacity={capacityScore}
@@ -2451,6 +2478,7 @@ export default function DashboardPage() {
           momentum={unifiedMomentum}
           forecast={capacityForecast}
           balance={lifeBalance}
+          sufficiency={recoverySufficiency}
         />
         {/* Phase 45: Digital Coaching Memory */}
         <SituationMemoryCard

@@ -1,16 +1,25 @@
 "use client";
 
-import type { CapacityScore }      from "@/lib/unified/capacityScore";
-import type { MomentumScore }      from "@/lib/unified/momentumScore";
-import type { CapacityForecast }   from "@/lib/unified/capacityForecast";
-import type { LifeBalanceReport }  from "@/lib/unified/lifeBalanceDetection";
+import type { CapacityScore }        from "@/lib/unified/capacityScore";
+import type { MomentumScore }        from "@/lib/unified/momentumScore";
+import type { CapacityForecast }     from "@/lib/unified/capacityForecast";
+import type { LifeBalanceReport }    from "@/lib/unified/lifeBalanceDetection";
+import type { RecoverySufficiency }  from "@/lib/unified/recoverySufficiency";
 
 interface Props {
-  capacity:  CapacityScore | undefined;
-  momentum:  MomentumScore | undefined;
-  forecast:  CapacityForecast | undefined;
-  balance:   LifeBalanceReport | undefined;
+  capacity:    CapacityScore | undefined;
+  momentum:    MomentumScore | undefined;
+  forecast:    CapacityForecast | undefined;
+  balance:     LifeBalanceReport | undefined;
+  sufficiency: RecoverySufficiency | undefined;
 }
+
+const SUFFICIENCY_BOX: Record<string, string> = {
+  over_trained:   "bg-rose-500/10 border-rose-500/20 text-rose-400",
+  strained:       "bg-amber-500/10 border-amber-500/20 text-amber-400",
+  balanced:       "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+  under_engaged:  "bg-sky-500/10 border-sky-500/20 text-sky-400",
+};
 
 const TIER_RING: Record<string, string> = {
   peak:     "stroke-emerald-400",
@@ -34,7 +43,7 @@ const PILLAR_BAR = (score: number) =>
 const MOMENTUM_ICON: Record<string, string> = { building: "↑", stable: "→", fading: "↓", insufficient: "—" };
 const MOMENTUM_COLOR: Record<string, string> = { building: "text-emerald-400", stable: "text-sky-400", fading: "text-rose-400", insufficient: "text-white/25" };
 
-export function CapacityCard({ capacity, momentum, forecast, balance }: Props) {
+export function CapacityCard({ capacity, momentum, forecast, balance, sufficiency }: Props) {
   if (!capacity) return null;
 
   const CIRCUMFERENCE = 2 * Math.PI * 36;
@@ -105,6 +114,16 @@ export function CapacityCard({ capacity, momentum, forecast, balance }: Props) {
       {balance && !balance.isBalanced && balance.weakestPillar && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
           <div className="text-[10px] text-amber-400 font-semibold">{balance.message}</div>
+        </div>
+      )}
+
+      {/* Recovery sufficiency (44E) */}
+      {sufficiency?.dataReady && (
+        <div className={`border rounded-xl px-3 py-2 ${SUFFICIENCY_BOX[sufficiency.status] ?? "bg-white/5 border-white/10 text-white/40"}`}>
+          <div className="text-[10px] font-semibold capitalize">
+            Recovery: {sufficiency.status.replace("_", " ")}
+          </div>
+          <div className="text-[9px] opacity-70 mt-0.5">{sufficiency.recommendation}</div>
         </div>
       )}
     </div>
