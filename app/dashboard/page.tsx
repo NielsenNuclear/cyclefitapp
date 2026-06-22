@@ -322,6 +322,20 @@ import { computeGoalVelocity, type GoalVelocity }                             fr
 import { buildPerformancePredictors, type PerformancePredictors }             from "@/lib/performance/performancePredictors";
 import { computeGoalAdjustments, type GoalAdjustmentAdvice }                  from "@/lib/performance/goalAdjustment";
 import { PerformanceHubCard }                                                  from "@/components/dashboard/PerformanceHubCard";
+// ─── Phase 39: Lifestyle Intelligence Engine ───────────────────────────────────
+import { buildTrainingAvailabilityProfile, type TrainingAvailabilityProfile }  from "@/lib/lifestyle/scheduleIntelligence";
+import { computeDailyTimeBudget, type DailyTimeBudget }                        from "@/lib/lifestyle/timeBudget";
+import { getTravelModeState, type TravelModeState }                             from "@/lib/lifestyle/travelMode";
+import { getScheduledEvents, getUpcomingEvents, getCurrentActiveScheduledEvent, type ScheduledLifeEventWithContext } from "@/lib/lifestyle/lifeStressCalendar";
+import { computeEnergyAvailability, type EnergyAvailability }                  from "@/lib/lifestyle/energyAvailability";
+import { applyWorkoutMode }                                                     from "@/lib/lifestyle/workoutModes";
+import { buildScheduleLearningProfile, type ScheduleLearningProfile }          from "@/lib/lifestyle/scheduleLearning";
+import { computeLifestyleBurnout, saveBurnoutEntry, type LifestyleBurnoutReport } from "@/lib/lifestyle/burnoutDetection";
+import { buildLifeContext, type LifeContext }                                   from "@/lib/lifestyle/lifeContextEngine";
+import { LifestyleCard }                                                         from "@/components/dashboard/LifestyleCard";
+import { BurnoutPreventionCard }                                                 from "@/components/dashboard/BurnoutPreventionCard";
+import { ScheduleInsightsCard }                                                  from "@/components/dashboard/ScheduleInsightsCard";
+import { UpcomingLifeEventsCard }                                                from "@/components/dashboard/UpcomingLifeEventsCard";
 // ─── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────────
 import { buildGoalRoadmap, type GoalRoadmap }                                  from "@/lib/planning/goalRoadmap";
 import { getOrBuildMacrocycle, type MacroCyclePlan }                           from "@/lib/planning/macrocyclePlanner";
@@ -697,6 +711,15 @@ export default function DashboardPage() {
   const [goalVelocity,         setGoalVelocity]         = useState<GoalVelocity | undefined>(undefined);
   const [perfPredictors,       setPerfPredictors]       = useState<PerformancePredictors | undefined>(undefined);
   const [goalAdjustments,      setGoalAdjustments]      = useState<GoalAdjustmentAdvice | undefined>(undefined);
+  // Phase 39 state
+  const [travelModeState,        setTravelModeState]        = useState<TravelModeState | undefined>(undefined);
+  const [energyAvailability,     setEnergyAvailability]     = useState<EnergyAvailability | undefined>(undefined);
+  const [timeBudget,             setTimeBudget]             = useState<DailyTimeBudget | undefined>(undefined);
+  const [lifeContext,            setLifeContext]            = useState<LifeContext | undefined>(undefined);
+  const [lifestyleBurnout,       setLifestyleBurnout]       = useState<LifestyleBurnoutReport | undefined>(undefined);
+  const [scheduleLearning,       setScheduleLearning]       = useState<ScheduleLearningProfile | undefined>(undefined);
+  const [availabilityProfile,    setAvailabilityProfile]    = useState<TrainingAvailabilityProfile | undefined>(undefined);
+  const [upcomingLifeEvents,     setUpcomingLifeEvents]     = useState<ScheduledLifeEventWithContext[] | undefined>(undefined);
   // Phase 38 state
   const [goalRoadmap,          setGoalRoadmap]          = useState<GoalRoadmap | undefined>(undefined);
   const [macrocyclePlan,       setMacrocyclePlan]       = useState<MacroCyclePlan | undefined>(undefined);
@@ -1313,6 +1336,70 @@ export default function DashboardPage() {
     });
     setTrainingDecision(trainingDecisionVal);
 
+    // ── Phase 39: Lifestyle Intelligence Engine (pre-workout) ─────────────────
+    const travelModeVal = getTravelModeState();
+    setTravelModeState(travelModeVal);
+
+    const availProfileVal = buildTrainingAvailabilityProfile(adherenceHistoryPre);
+    setAvailabilityProfile(availProfileVal);
+
+    const scheduledEventsVal = getScheduledEvents(todayStr);
+    const upcomingEventsVal  = getUpcomingEvents(todayStr, 14);
+    setUpcomingLifeEvents(upcomingEventsVal);
+    const currentScheduledEvent = getCurrentActiveScheduledEvent(todayStr);
+
+    const energyAvailabilityVal = computeEnergyAvailability({
+      readinessScore:        readiness.score,
+      stressLevel:           effectiveUser.stressLevel,
+      sleepQuality:          effectiveUser.sleepQuality,
+      recoveryBankBalance:   recoveryBankVal.balance,
+      activeLifeEvent:       lifeEventPre,
+      currentScheduledEvent,
+      burnoutRisk:           burnoutRiskVal,
+    });
+    setEnergyAvailability(energyAvailabilityVal);
+
+    const todayWdAvailability = availProfileVal.byDay.find(d => d.weekday === new Date().getDay()) ?? null;
+    const timeBudgetVal = computeDailyTimeBudget(
+      lifeEventPre, travelModeVal, todayWdAvailability, energyAvailabilityVal.level, currentScheduledEvent,
+    );
+    setTimeBudget(timeBudgetVal);
+
+    const recentAdherenceRate =
+      adherenceHistoryPre.length > 0
+        ? Math.round(
+            (adherenceHistoryPre.filter(e => e.status === "completed" || e.status === "partially_completed").length /
+              adherenceHistoryPre.length) * 100,
+          )
+        : 50;
+    const lifestyleBurnoutVal = computeLifestyleBurnout({
+      recentAdherenceRate,
+      readinessTrendSlope:  recoveryTrendNow.slope7d ?? 0,
+      stressLevel:          effectiveUser.stressLevel,
+      symptomCount:         todaySymptomsVal.length,
+      activeLifeEvent:      lifeEventPre,
+      adherenceRiskReport:  null,
+      physioBurnoutScore:   burnoutRiskVal.score,
+      historyDepth:         adherenceHistoryPre.length,
+    });
+    saveBurnoutEntry({ date: todayStr, score: lifestyleBurnoutVal.score, risk: lifestyleBurnoutVal.risk });
+    setLifestyleBurnout(lifestyleBurnoutVal);
+
+    const scheduleLearningVal = buildScheduleLearningProfile(adherenceHistoryPre, rawHistory);
+    setScheduleLearning(scheduleLearningVal);
+
+    const lifeContextVal = buildLifeContext({
+      energyAvailability:  energyAvailabilityVal,
+      timeBudget:          timeBudgetVal,
+      travelMode:          travelModeVal,
+      lifestyleBurnout:    lifestyleBurnoutVal,
+      scheduleLearning:    scheduleLearningVal,
+      activeLifeEvent:     lifeEventPre,
+      upcomingEvents:      upcomingEventsVal,
+      readinessScore:      readiness.score,
+    });
+    setLifeContext(lifeContextVal);
+
     // Compose Phase 37 intensity modifier with existing adaptive modifier
     const phase37AdaptiveModifier = {
       ...adaptiveModifierVal,
@@ -1320,15 +1407,20 @@ export default function DashboardPage() {
         (adaptiveModifierVal.intensityMultiplier ?? 1.0) * trainingDecisionVal.intensityMultiplier,
     };
 
+    // Phase 39: equipment override for travel mode
+    const phase39Equipment = lifeContextVal.adjustments.equipmentOverride !== null
+      ? lifeContextVal.adjustments.equipmentOverride
+      : equipmentInventoryVal.allEquipmentNames;
+
     const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
-      exerciseSummariesVal, phase37AdaptiveModifier, equipmentInventoryVal.allEquipmentNames,
+      exerciseSummariesVal, phase37AdaptiveModifier, phase39Equipment,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
       trainingDecisionVal.finalVolumeScale,  // Phase 37 is now the single volume authority
     );
-    // Phase 37B: apply exercise complexity swaps
-    const wkt = applyExerciseAdjustments(wktRaw, trainingDecisionVal);
+    // Phase 37B: apply exercise complexity swaps → Phase 39F: trim to time budget mode
+    const wkt = applyWorkoutMode(applyExerciseAdjustments(wktRaw, trainingDecisionVal), lifeContextVal.recommendedMode);
     setWorkout(wkt);
 
     // Phase 37F: predict session outcome and 37H: compute recovery cost
@@ -2067,6 +2159,10 @@ export default function DashboardPage() {
           goalConflict={goalConflict}
         />
         <TrainingMaturityCard maturity={trainingMaturity} />
+        <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
+        <BurnoutPreventionCard report={lifestyleBurnout} />
+        <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
+        <UpcomingLifeEventsCard events={upcomingLifeEvents} />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
           patterns={behaviorPatterns}
