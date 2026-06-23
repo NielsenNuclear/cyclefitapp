@@ -358,6 +358,12 @@ import { buildUnifiedInsightsFeed, type UnifiedInsight }                       f
 import { assessRecoverySufficiency, type RecoverySufficiency }                 from "@/lib/unified/recoverySufficiency";
 import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
 import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
+// ─── Phase 56: Observability & Validation Layer ───────────────────────────────
+import { generateRecommendationExplanation, saveRecommendationExplanation, type RecommendationExplanation as RecExplanation } from "@/lib/intelligence/recommendationExplanation";
+import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          from "@/lib/intelligence/pipelineTrace";
+import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
+import { RecommendationExplanationCard }                                       from "@/components/intelligence/RecommendationExplanationCard";
+import { PipelineTraceViewer }                                                 from "@/components/dev/PipelineTraceViewer";
 // ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
 import { recordSituation, scoreSituationOutcome, findSimilarSituations, type SimilarSituation } from "@/lib/memory/situationMemory";
 import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
@@ -852,6 +858,10 @@ export default function DashboardPage() {
   const [progressionVelocity,  setProgressionVelocity]  = useState<ProgressionVelocity | undefined>(undefined);
   const [athleteIdentity,      setAthleteIdentity]      = useState<AthleteIdentity | undefined>(undefined);
   const [developmentMilestones, setDevelopmentMilestones] = useState<MilestoneReport | undefined>(undefined);
+  // Phase 56 state
+  const [recExplanation,       setRecExplanation]       = useState<RecExplanation | undefined>(undefined);
+  const [pipelineTrace,        setPipelineTrace]        = useState<PipelineTrace | undefined>(undefined);
+  const [recValidation,        setRecValidation]        = useState<RecValidationResult | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1858,6 +1868,54 @@ export default function DashboardPage() {
     saveUncertaintySignal(uncertaintyVal); // Phase 52: persist so next session can apply the gate
     setDriftReport(detectDrift(fullRdxHistory, adherenceHistoryVal));
 
+    // ── Phase 56: Recommendation Observability & Validation ──────────────────
+    const confLevel56: "high" | "medium" | "low" =
+      recConfVal.level === "high" ? "high" : recConfVal.level === "moderate" ? "medium" : "low";
+
+    const explanationVal = generateRecommendationExplanation({
+      readinessScore:      readiness.score,
+      readinessCategory:   readiness.category,
+      recoveryScore:       recoveryScoreVal.score,
+      cyclePhase:          phase.name ?? "unknown",
+      adherenceScale:      finalAdherenceScale,
+      uncertaintyModifier: prevSessionUncertainty?.volumeModifier ?? 1.0,
+      burnoutRiskScore:    burnoutRiskVal.score,
+      fatigueScore:        fatigueEntryVal.score,
+      symptomCount:        todaySymptomsVal.length,
+      symptomSeverityMean: meanSymSevPre,
+      momentumLevel:       momentumVal?.level ?? "flat",
+      finalVolumeScale:    trainingDecisionVal.finalVolumeScale,
+      confidenceLevel:     confLevel56,
+      todayDate:           todayStr,
+    });
+    setRecExplanation(explanationVal);
+    saveRecommendationExplanation(explanationVal);
+
+    const traceVal = buildPipelineTrace({
+      readiness:           readiness.score,
+      readinessCategory:   readiness.category,
+      recoveryScore:       recoveryScoreVal.score,
+      recoveryDebtScore:   recoveryDebtVal.debtScore,
+      cyclePhase:          phase.name ?? "unknown",
+      adherenceRisk:       adherenceRiskPre.riskLevel,
+      adherenceScale:      finalAdherenceScale,
+      uncertaintyModifier: prevSessionUncertainty?.volumeModifier ?? 1.0,
+      burnoutRiskScore:    burnoutRiskVal.score,
+      fatigueScore:        fatigueEntryVal.score,
+      symptomCount:        todaySymptomsVal.length,
+      finalVolumeScale:    trainingDecisionVal.finalVolumeScale,
+      workoutMode:         "full",
+      recommendationLevel: trainingDecisionVal.type,
+      todayDate:           todayStr,
+    });
+    setPipelineTrace(traceVal);
+    savePipelineTrace(traceVal);
+
+    const recValidation56 = validateRecommendationConsistency(
+      explanationVal, readiness.score, recoveryScoreVal.score, todaySymptomsVal.length,
+    );
+    setRecValidation(recValidation56);
+
     // ── Phase 42: Evidence-Based Recommendation Engine ───────────────────────
     const evidenceVal = buildRecommendationEvidence({
       date:           todayStr,
@@ -2371,6 +2429,11 @@ export default function DashboardPage() {
           />
         )}
         <PhaseCard phase={recommendation.phase} />
+        <RecommendationExplanationCard
+          explanation={recExplanation}
+          validation={recValidation}
+        />
+        <PipelineTraceViewer trace={pipelineTrace} />
         <CycleIntelligenceCard
           cycleAccuracy={cycleAccuracy}
           performanceProfile={performanceProfile}

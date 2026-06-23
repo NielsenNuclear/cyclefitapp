@@ -77,6 +77,14 @@ export const STORAGE_KEYS = {
   // ── Athlete Development ──────────────────────────────────────────────────
   ATHLETE_MILESTONES:        "axis_athlete_milestones",     // lib/athlete/milestoneDetection.ts
   // NOTE: "axis_milestones" (above) is used by lib/planning/milestoneEngine.ts — different schema
+
+  // ── Phase 56: Observability & Validation ─────────────────────────────────
+  RECOMMENDATION_EXPLANATION: "axis_recommendation_explanation",
+  RECOMMENDATION_HISTORY:     "axis_recommendation_history",
+  PIPELINE_TRACE:             "axis_pipeline_trace",
+
+  // ── Phase 55: Adherence Risk Cross-Session ────────────────────────────────
+  ADHERENCE_RISK_35:          "axis_adherence_risk35_v1",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
