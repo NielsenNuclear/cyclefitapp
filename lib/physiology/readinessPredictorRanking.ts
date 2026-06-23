@@ -5,7 +5,19 @@
 
 import type { ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
 
-const MIN_SAMPLE = 14;
+const MIN_SAMPLE    = 14;
+const STORAGE_KEY   = "axis_predictor_ranking_v1";
+const RETENTION_DAYS = 90;
+
+// ─── Persistence ─────────────────────────────────────────────────────────────
+
+interface PersistedRankingData {
+  profile:     PredictorRankingProfile;
+  sampleCount: number;
+  savedAt:     string;
+}
+
+function isClient(): boolean { return typeof window !== "undefined"; }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +60,31 @@ function covarianceContribution(contributors: number[], scores: number[]): numbe
   const mc = contributors.reduce((s, v) => s + v, 0) / n;
   const ms = scores.reduce((s, v) => s + v, 0) / n;
   return Math.abs(contributors.reduce((s, c, i) => s + (c - mc) * (scores[i] - ms), 0) / n);
+}
+
+export function savePredictorRanking(profile: PredictorRankingProfile, sampleCount: number): void {
+  if (!isClient() || !profile.dataReady) return;
+  try {
+    const data: PersistedRankingData = {
+      profile, sampleCount,
+      savedAt: new Date().toISOString().slice(0, 10),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+export function loadPersistedPredictorRanking(): PersistedRankingData | null {
+  if (!isClient()) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as PersistedRankingData;
+    const savedDate = new Date(data.savedAt + "T12:00:00");
+    const cutoff    = new Date();
+    cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
+    if (savedDate < cutoff) { localStorage.removeItem(STORAGE_KEY); return null; }
+    return data;
+  } catch { return null; }
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────

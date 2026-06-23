@@ -5,6 +5,33 @@
 
 import type { RecommendationConfidence } from "./recommendationConfidence";
 
+const STORAGE_KEY    = "axis_uncertainty_v1";
+const EXPIRY_DAYS    = 7;
+
+function isClient(): boolean { return typeof window !== "undefined"; }
+
+export function saveUncertaintySignal(signal: UncertaintySignal): void {
+  if (!isClient()) return;
+  try {
+    const data = { signal, savedAt: new Date().toISOString().slice(0, 10) };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+export function loadUncertaintySignal(): UncertaintySignal | null {
+  if (!isClient()) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as { signal: UncertaintySignal; savedAt: string };
+    const savedDate = new Date(data.savedAt + "T12:00:00");
+    const cutoff    = new Date();
+    cutoff.setDate(cutoff.getDate() - EXPIRY_DAYS);
+    if (savedDate < cutoff) { localStorage.removeItem(STORAGE_KEY); return null; }
+    return data.signal;
+  } catch { return null; }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface UncertaintySignal {

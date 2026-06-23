@@ -362,10 +362,25 @@ import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } fr
 import { buildCoachingNarrative, type CoachingNarrative as P45Narrative }     from "@/lib/memory/coachingNarrative";
 import { buildIdentityModel, type IdentityModel }                             from "@/lib/memory/identityModel";
 import { SituationMemoryCard }                                                 from "@/components/dashboard/SituationMemoryCard";
+import { AdherenceIntelligenceCard }                                           from "@/components/dashboard/AdherenceIntelligenceCard";
+import { AthleteDevelopmentCard }                                              from "@/components/dashboard/AthleteDevelopmentCard";
+// ─── Phase 46: Behavioral Adherence Intelligence ───────────────────────────────
+import { computeAdherencePatterns, type AdherencePatternReport }              from "@/lib/adherence/patternEngine";
+import { analyzeMissedWorkouts, type MissedWorkoutAnalysis }                  from "@/lib/adherence/missedWorkoutAnalysis";
+import { forecastAdherenceRisk, type AdherenceRiskForecast }                  from "@/lib/adherence/adherenceRiskForecast";
+import { computeAdaptiveWorkoutSize, type WorkoutSizeRecommendation }         from "@/lib/adherence/adaptiveWorkoutSizing";
+import { computeHabitStrength, type HabitStrengthScore }                      from "@/lib/adherence/habitStrength";
+// ─── Phase 47: Longitudinal Athlete Development Model ─────────────────────────
+import { computeTrainingAge, type TrainingAge as AthleteTrainingAge }         from "@/lib/athlete/trainingAge";
+import { computeResilienceIndex, type ResilienceIndex }                       from "@/lib/athlete/resilienceIndex";
+import { computeProgressionVelocity, type ProgressionVelocity }              from "@/lib/athlete/progressionVelocity";
+import { computeAthleteIdentity, type AthleteIdentity }                       from "@/lib/athlete/athleteIdentity";
+import { detectMilestones, markMilestoneCelebrated, type MilestoneReport }    from "@/lib/athlete/milestoneDetection";
 // ─── Phase 40: Personal Physiology Learning Engine ────────────────────────────
 import { computePhaseResponseProfile, savePhaseResponseProfile, type PhaseResponseProfile } from "@/lib/physiology/phaseResponseModel";
 import { computeSymptomImpactProfile, type SymptomImpactProfile }             from "@/lib/physiology/symptomImpactModel";
-import { computePredictorRanking, type PredictorRankingProfile }              from "@/lib/physiology/readinessPredictorRanking";
+import { computePredictorRanking, savePredictorRanking, loadPersistedPredictorRanking, type PredictorRankingProfile } from "@/lib/physiology/readinessPredictorRanking";
+import { applyPersonalizedReadinessWeights }                                  from "@/lib/readiness/personalizedReadiness";
 import { computeRecoveryResponseProfile, type RecoveryResponseProfile }       from "@/lib/physiology/recoveryResponseModel";
 import { buildPersonalReadinessEquation, type PersonalReadinessEquation }     from "@/lib/physiology/personalReadinessEquation";
 import { computePhysiologyConfidence, type PhysiologyConfidence }             from "@/lib/physiology/physiologyConfidence";
@@ -377,7 +392,7 @@ import { logPrediction, scoreActual, getPredictionHistory, type PredictionLogEnt
 import { computeCalibrationReport, type CalibrationReport }                   from "@/lib/accuracy/calibrationEngine";
 import { computeForecastAccuracy, type ForecastAccuracyReport }               from "@/lib/accuracy/forecastAccuracy";
 import { computeRecommendationConfidence, type RecommendationConfidence }     from "@/lib/accuracy/recommendationConfidence";
-import { detectUncertainty, type UncertaintySignal }                          from "@/lib/accuracy/uncertaintyDetection";
+import { detectUncertainty, saveUncertaintySignal, loadUncertaintySignal, type UncertaintySignal } from "@/lib/accuracy/uncertaintyDetection";
 import { detectDrift, type DriftReport }                                      from "@/lib/accuracy/driftDetection";
 import { ConfidenceDashboardCard }                                             from "@/components/dashboard/ConfidenceDashboardCard";
 import { AccuracyTimelineCard }                                                from "@/components/dashboard/AccuracyTimelineCard";
@@ -822,6 +837,18 @@ export default function DashboardPage() {
   const [recMemoryProfile,     setRecMemoryProfile]     = useState<RecommendationMemoryProfile | undefined>(undefined);
   const [p45Narrative,         setP45Narrative]         = useState<P45Narrative | undefined>(undefined);
   const [identityModel,        setIdentityModel]        = useState<IdentityModel | undefined>(undefined);
+  // Phase 46 state
+  const [adherencePatterns,    setAdherencePatterns]    = useState<AdherencePatternReport | undefined>(undefined);
+  const [missedWorkoutAnalysis, setMissedWorkoutAnalysis] = useState<MissedWorkoutAnalysis | undefined>(undefined);
+  const [nextWorkoutRiskForecast, setNextWorkoutRiskForecast] = useState<AdherenceRiskForecast | undefined>(undefined);
+  const [adaptiveWorkoutSize,  setAdaptiveWorkoutSize]  = useState<WorkoutSizeRecommendation | undefined>(undefined);
+  const [habitStrength,        setHabitStrength]        = useState<HabitStrengthScore | undefined>(undefined);
+  // Phase 47 state
+  const [athleteTrainingAge,   setAthleteTrainingAge]   = useState<AthleteTrainingAge | undefined>(undefined);
+  const [resilienceIndex,      setResilienceIndex]      = useState<ResilienceIndex | undefined>(undefined);
+  const [progressionVelocity,  setProgressionVelocity]  = useState<ProgressionVelocity | undefined>(undefined);
+  const [athleteIdentity,      setAthleteIdentity]      = useState<AthleteIdentity | undefined>(undefined);
+  const [developmentMilestones, setDevelopmentMilestones] = useState<MilestoneReport | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -935,9 +962,15 @@ export default function DashboardPage() {
     setRecoveryScore(recoveryScoreVal);
     setRecoveryTrend(computeRecoveryTrend(getRecoveryScores()));
 
+    // Phase 49: blend predictor-ranked weights from the previous session into the adaptive profile
+    const persistedRanking  = loadPersistedPredictorRanking();
+    const personalizedProfile = (persistedRanking?.profile.dataReady && persistedRanking.sampleCount >= 30)
+      ? applyPersonalizedReadinessWeights(persistedRanking.profile, profile)
+      : profile;
+
     const readiness = calculateReadiness({
       user: effectiveUser, phase, loadReport: prelimLoad,
-      progressionProfile: prog, adaptiveProfile: profile,
+      progressionProfile: prog, adaptiveProfile: personalizedProfile,
     });
     setReadinessScore(readiness);
     saveReadiness(readiness.score, readiness.category, readiness.contributors);
@@ -1412,20 +1445,29 @@ export default function DashboardPage() {
     });
     setReadinessConfidence(rdxConfidenceVal);
 
-    const trainingDecisionVal = makeTrainingDecision({
-      readinessScore:        readiness.score,
-      readinessCategory:     readiness.category,
-      recoveryDebtScore:     recoveryDebtVal.debtScore,
-      burnoutRiskScore:      burnoutRiskVal.score,
-      fatigueEntry:          fatigueEntryVal,
-      symptomSeverityMean:   meanSymSevPre,
-      symptomCount:          todaySymptomsVal.length,
-      isDeloadRecommended:   deloadRecVal.needed,
-      performanceTrends:     trendsVal,
-      adherenceRiskLevel:    adherenceRiskPre.riskLevel,
-      existingVolumeScale:   finalAdherenceScale,
-      isDeloadPeriod:        periodizationStatusVal?.phase === "deload",
-    });
+    // Phase 52: load previous-session uncertainty to apply a conservative gate when confidence was low
+    const prevSessionUncertainty = loadUncertaintySignal();
+    const trainingDecisionVal = (() => {
+      const td = makeTrainingDecision({
+        readinessScore:        readiness.score,
+        readinessCategory:     readiness.category,
+        recoveryDebtScore:     recoveryDebtVal.debtScore,
+        burnoutRiskScore:      burnoutRiskVal.score,
+        fatigueEntry:          fatigueEntryVal,
+        symptomSeverityMean:   meanSymSevPre,
+        symptomCount:          todaySymptomsVal.length,
+        isDeloadRecommended:   deloadRecVal.needed,
+        performanceTrends:     trendsVal,
+        adherenceRiskLevel:    adherenceRiskPre.riskLevel,
+        existingVolumeScale:   finalAdherenceScale,
+        isDeloadPeriod:        periodizationStatusVal?.phase === "deload",
+      });
+      if (!prevSessionUncertainty?.conservativeMode) return td;
+      return {
+        ...td,
+        finalVolumeScale: Math.round(td.finalVolumeScale * prevSessionUncertainty.volumeModifier * 100) / 100,
+      };
+    })();
     setTrainingDecision(trainingDecisionVal);
 
     // ── Phase 39: Lifestyle Intelligence Engine (pre-workout) ─────────────────
@@ -1664,9 +1706,10 @@ export default function DashboardPage() {
     setConsistencyScore(consistencyVal);
 
     const consistencyHistoryVal = getConsistencyHistory();
-    setMultiDomainStreaks(computeMultiDomainStreaks(
+    const multiDomainStreaksVal = computeMultiDomainStreaks(
       adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory,
-    ));
+    );
+    setMultiDomainStreaks(multiDomainStreaksVal);
     const momentumVal = computeMomentum(adherenceHistoryVal, todayStr);
     setMomentumScore(momentumVal);
 
@@ -1768,6 +1811,7 @@ export default function DashboardPage() {
 
     const predictorRankingVal = computePredictorRanking(fullRdxHistory);
     setPredictorRanking(predictorRankingVal);
+    savePredictorRanking(predictorRankingVal, fullRdxHistory.length); // Phase 49: persist for next session
 
     const recoveryResponseProfVal = computeRecoveryResponseProfile();
     setRecoveryResponseProf(recoveryResponseProfVal);
@@ -1801,7 +1845,9 @@ export default function DashboardPage() {
     const totalWkts = rawHistory.filter(h => h.status === "completed" || h.status === "partially_completed").length;
     const recConfVal = computeRecommendationConfidence(physiologyConfVal, forecastAccVal, totalWkts);
     setRecConfidence(recConfVal);
-    setUncertainty(detectUncertainty(recConfVal));
+    const uncertaintyVal = detectUncertainty(recConfVal);
+    setUncertainty(uncertaintyVal);
+    saveUncertaintySignal(uncertaintyVal); // Phase 52: persist so next session can apply the gate
     setDriftReport(detectDrift(fullRdxHistory, adherenceHistoryVal));
 
     // ── Phase 42: Evidence-Based Recommendation Engine ───────────────────────
@@ -1932,6 +1978,45 @@ export default function DashboardPage() {
     setP45Narrative(p45NarrativeVal);
 
     setIdentityModel(buildIdentityModel(phaseResponseVal, recMemoryProfileVal, successPatternsVal));
+
+    // ── Phase 46: Behavioral Adherence Intelligence ───────────────────────────
+    const adherencePatternsVal = computeAdherencePatterns(rawHistory);
+    setAdherencePatterns(adherencePatternsVal);
+
+    const missedAnalysisVal = analyzeMissedWorkouts(adherenceHistoryVal);
+    setMissedWorkoutAnalysis(missedAnalysisVal);
+
+    const recentMisses = adherenceHistoryVal.slice(0, 7).filter(e => e.status === "skipped").length;
+    const riskForecastVal = forecastAdherenceRisk(
+      readiness.score,
+      readiness.contributors?.energy ?? 2,
+      new Date().getDay(),
+      phase.name ?? "",
+      recentMisses,
+      missedAnalysisVal,
+      adherencePatternsVal,
+    );
+    setNextWorkoutRiskForecast(riskForecastVal);
+
+    setAdaptiveWorkoutSize(computeAdaptiveWorkoutSize(
+      adherencePatternsVal, riskForecastVal, wkt.estimatedDurationMin ?? 45,
+    ));
+
+    setHabitStrength(computeHabitStrength(
+      multiDomainStreaksVal, consistencyVal, totalWkts,
+    ));
+
+    // ── Phase 47: Longitudinal Athlete Development Model ─────────────────────
+    const athleteTrainingAgeVal = computeTrainingAge(rawHistory, consistencyVal);
+    setAthleteTrainingAge(athleteTrainingAgeVal);
+
+    setResilienceIndex(computeResilienceIndex(fullRdxHistory, adherenceHistoryVal));
+
+    setProgressionVelocity(computeProgressionVelocity(velocityVal));
+
+    setAthleteIdentity(computeAthleteIdentity(rawHistory, adherenceHistoryVal));
+
+    setDevelopmentMilestones(detectMilestones(totalWkts, multiDomainStreaksVal, todayStr));
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2022,7 +2107,10 @@ export default function DashboardPage() {
       recommendation: personalizedRec,
     }));
     const goalType = mapOnboardingGoalToGoalType(user.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal);
+    // Phase 50: full 16-param call + post-processing (matches mount call site)
+    const wktRaw2 = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, trainingDecision?.finalVolumeScale ?? 1.0);
+    const wktAdj2 = trainingDecision ? applyExerciseAdjustments(wktRaw2, trainingDecision) : wktRaw2;
+    const wkt = applyWorkoutMode(wktAdj2, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
       for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
@@ -2231,7 +2319,10 @@ export default function DashboardPage() {
       ? { ...user, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
-    const wkt = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms);
+    // Phase 50: full 16-param call + post-processing (matches mount call site)
+    const wktRaw3 = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, trainingDecision?.finalVolumeScale ?? 1.0);
+    const wktAdj3 = trainingDecision ? applyExerciseAdjustments(wktRaw3, trainingDecision) : wktRaw3;
+    const wkt = applyWorkoutMode(wktAdj3, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);
     if (wkt.equipmentFallbacks) {
       for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
@@ -2485,6 +2576,20 @@ export default function DashboardPage() {
           narrative={p45Narrative}
           identity={identityModel}
           similar={similarSituations}
+        />
+        <AdherenceIntelligenceCard
+          patterns={adherencePatterns}
+          missedAnalysis={missedWorkoutAnalysis}
+          riskForecast={nextWorkoutRiskForecast}
+          workoutSize={adaptiveWorkoutSize}
+          habitStrength={habitStrength}
+        />
+        <AthleteDevelopmentCard
+          trainingAge={athleteTrainingAge}
+          resilienceIndex={resilienceIndex}
+          progressionVelocity={progressionVelocity}
+          athleteIdentity={athleteIdentity}
+          milestones={developmentMilestones}
         />
         <HabitIntelligenceCard
           analytics={adherenceAnalytics}
