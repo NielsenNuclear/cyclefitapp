@@ -282,6 +282,7 @@ import {
 import { computeAdherenceAnalytics, type AdherenceAnalytics } from "@/lib/adherence/adherenceAnalytics";
 import { buildBehaviorPatterns, type BehaviorPatterns }       from "@/lib/adherence/behaviorPatterns";
 import { computeAdherenceRisk, riskToVolumeScale, type AdherenceRisk } from "@/lib/adherence/adherenceRisk";
+import { saveRisk35Level, loadRisk35Level, risk35ToVolumeScale }       from "@/lib/adherence/risk35VolumeAdapter";
 import { getMinimumViableWorkout, type MinimumViableWorkout } from "@/lib/adherence/minimumWorkout";
 import { buildPersonalAdherenceProfile, type PersonalAdherenceProfile } from "@/lib/adherence/personalAdherenceProfile";
 import { HabitIntelligenceCard }       from "@/components/dashboard/HabitIntelligenceCard";
@@ -349,6 +350,7 @@ import { OutcomeIntelligenceCard }                                             f
 // ─── Phase 44: Human Performance Operating System ─────────────────────────────
 import { computeCapacityScore, saveCapacityScore, type CapacityScore }        from "@/lib/unified/capacityScore";
 import { computeMomentumScore, type MomentumScore as UnifiedMomentumScore }   from "@/lib/unified/momentumScore";
+import { consolidateMomentum, type ConsolidatedMomentum }                    from "@/lib/unified/consolidatedMomentum";
 import { computeTrajectoryScore, type TrajectoryScore }                        from "@/lib/unified/trajectoryEngine";
 import { detectLifeBalance, type LifeBalanceReport }                           from "@/lib/unified/lifeBalanceDetection";
 import { computeCapacityForecast, type CapacityForecast }                      from "@/lib/unified/capacityForecast";
@@ -828,6 +830,7 @@ export default function DashboardPage() {
   const [capacityScore,        setCapacityScore]        = useState<CapacityScore | undefined>(undefined);
   const [recoverySufficiency,  setRecoverySufficiency]  = useState<RecoverySufficiency | undefined>(undefined);
   const [unifiedMomentum,      setUnifiedMomentum]      = useState<UnifiedMomentumScore | undefined>(undefined);
+  const [consolidatedMomentum, setConsolidatedMomentum] = useState<ConsolidatedMomentum | undefined>(undefined);
   const [trajectoryScore,      setTrajectoryScore]      = useState<TrajectoryScore | undefined>(undefined);
   const [lifeBalance,          setLifeBalance]          = useState<LifeBalanceReport | undefined>(undefined);
   const [capacityForecast,     setCapacityForecast]     = useState<CapacityForecast | undefined>(undefined);
@@ -1406,7 +1409,11 @@ export default function DashboardPage() {
       phase.name ?? "",
       readiness.contributors?.energy ?? 2,
     );
-    const adherenceRiskScaleVal = riskToVolumeScale(adherenceRiskPre.riskLevel);
+    // Phase 55: prefer persisted Phase 35 risk (richer multi-dim signal) when available
+    const savedRisk35 = loadRisk35Level();
+    const adherenceRiskScaleVal = savedRisk35
+      ? risk35ToVolumeScale(savedRisk35)
+      : riskToVolumeScale(adherenceRiskPre.riskLevel);
 
     // ── Phase 35 (pre-workout): life event and rescue mode override volume ───
     const lifeEventPre       = getActiveLifeEvent(todayStr);
@@ -1717,6 +1724,7 @@ export default function DashboardPage() {
       todayStr, adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory, consistencyHistoryVal,
     );
     setAdherenceRiskReport(risk35Val);
+    saveRisk35Level(risk35Val.level); // Phase 55: persist for next session's volume gate
     maybeAutoActivateRescueMode(risk35Val, todayStr);
     setRescueModeState(getRescueModeState(todayStr));
     setLifeEvent(getActiveLifeEvent(todayStr));
@@ -1927,6 +1935,9 @@ export default function DashboardPage() {
 
     const unifiedMomentumVal = computeMomentumScore();
     setUnifiedMomentum(unifiedMomentumVal);
+
+    // Phase 54: consolidated momentum — merges Phase 35 (adherence) + Phase 44 (capacity)
+    setConsolidatedMomentum(consolidateMomentum(momentumVal, unifiedMomentumVal, consistencyVal));
 
     const trajectoryVal = computeTrajectoryScore(velocityVal);
     setTrajectoryScore(trajectoryVal);
