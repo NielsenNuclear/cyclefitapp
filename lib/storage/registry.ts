@@ -85,6 +85,10 @@ export const STORAGE_KEYS = {
 
   // ── Phase 55: Adherence Risk Cross-Session ────────────────────────────────
   ADHERENCE_RISK_35:          "axis_adherence_risk35_v1",
+
+  // ── Phase 57: Prediction Calibration & Forecast Accuracy ─────────────────
+  PREDICTION_REGISTRY:        "axis_prediction_registry",
+  CALIBRATION_PROFILE:        "axis_calibration_profile_v1",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

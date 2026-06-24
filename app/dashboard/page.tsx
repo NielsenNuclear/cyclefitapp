@@ -364,6 +364,23 @@ import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          fr
 import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
 import { RecommendationExplanationCard }                                       from "@/components/intelligence/RecommendationExplanationCard";
 import { PipelineTraceViewer }                                                 from "@/components/dev/PipelineTraceViewer";
+// ─── Phase 57: Prediction Calibration & Forecast Accuracy ────────────────────
+import {
+  registerPrediction,
+  loadPredictionRegistry,
+  type StoredPrediction,
+} from "@/lib/intelligence/calibration/predictionRegistry";
+import { evaluatePendingPredictions, type EvaluationContext as P57EvalContext } from "@/lib/intelligence/calibration/evaluatePredictions";
+import {
+  buildCalibrationProfile,
+  saveCalibrationProfile,
+  loadCalibrationProfile,
+  type CalibrationProfile as CalibrationProfile57,
+} from "@/lib/intelligence/calibration/calibrationProfile";
+import { detectForecastBias, type BiasReport }                                 from "@/lib/intelligence/calibration/biasDetection";
+import { calibrateConfidenceLevels, type ConfidenceCalibration }               from "@/lib/intelligence/calibration/confidenceCalibration";
+import { CalibrationIntelligenceCard }                                         from "@/components/intelligence/CalibrationIntelligenceCard";
+import { CalibrationAuditView }                                                from "@/components/dev/CalibrationAuditView";
 // ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
 import { recordSituation, scoreSituationOutcome, findSimilarSituations, type SimilarSituation } from "@/lib/memory/situationMemory";
 import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
@@ -862,6 +879,10 @@ export default function DashboardPage() {
   const [recExplanation,       setRecExplanation]       = useState<RecExplanation | undefined>(undefined);
   const [pipelineTrace,        setPipelineTrace]        = useState<PipelineTrace | undefined>(undefined);
   const [recValidation,        setRecValidation]        = useState<RecValidationResult | undefined>(undefined);
+  // Phase 57 state
+  const [predictionCalibration, setPredictionCalibration] = useState<CalibrationProfile57 | undefined>(undefined);
+  const [forecastBias,           setForecastBias]          = useState<BiasReport | undefined>(undefined);
+  const [confCalibration,        setConfCalibration]       = useState<ConfidenceCalibration | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -1464,6 +1485,8 @@ export default function DashboardPage() {
 
     // Phase 52: load previous-session uncertainty to apply a conservative gate when confidence was low
     const prevSessionUncertainty = loadUncertaintySignal();
+    // Phase 57: load previous session's calibration profile — used in uncertainty gate below
+    const prevCalibration57 = loadCalibrationProfile();
     const trainingDecisionVal = (() => {
       const td = makeTrainingDecision({
         readinessScore:        readiness.score,
@@ -1863,7 +1886,7 @@ export default function DashboardPage() {
     const totalWkts = rawHistory.filter(h => h.status === "completed" || h.status === "partially_completed").length;
     const recConfVal = computeRecommendationConfidence(physiologyConfVal, forecastAccVal, totalWkts);
     setRecConfidence(recConfVal);
-    const uncertaintyVal = detectUncertainty(recConfVal);
+    const uncertaintyVal = detectUncertainty(recConfVal, prevCalibration57 ?? undefined);
     setUncertainty(uncertaintyVal);
     saveUncertaintySignal(uncertaintyVal); // Phase 52: persist so next session can apply the gate
     setDriftReport(detectDrift(fullRdxHistory, adherenceHistoryVal));
@@ -2086,6 +2109,50 @@ export default function DashboardPage() {
     setAthleteIdentity(computeAthleteIdentity(rawHistory, adherenceHistoryVal));
 
     setDevelopmentMilestones(detectMilestones(totalWkts, multiDomainStreaksVal, todayStr));
+
+    // ── Phase 57: Prediction Calibration & Forecast Accuracy ─────────────────
+    // OBSERVABILITY ONLY — Only measure, evaluate, report. No model changes.
+
+    // Evaluate predictions registered in prior sessions that are now due
+    const p57EvalCtx: P57EvalContext = {
+      today:            todayStr,
+      readinessScore:   readiness.score,
+      recoveryScore:    recoveryScoreVal.score,
+      adherenceHistory: adherenceHistoryVal,
+      goalOnTrack:      feasibilityVal?.feasible ?? false,
+    };
+    evaluatePendingPredictions(p57EvalCtx);
+
+    // Register new predictions for future evaluation
+    const confLevel57: StoredPrediction["confidence"] =
+      recConfVal.level === "high" ? "high" : recConfVal.level === "moderate" ? "medium" : "low";
+
+    registerPrediction("readiness", readiness.score, confLevel57, 1, todayStr);
+    registerPrediction("recovery",  recoveryScoreVal.score, confLevel57, 1, todayStr);
+
+    const adherenceProb57 = adherenceRiskPre.riskLevel === "high" ? 0.30
+      : adherenceRiskPre.riskLevel === "moderate" ? 0.60 : 0.85;
+    registerPrediction("adherence", adherenceProb57, confLevel57, 7, todayStr);
+
+    const outcomeProbScore57 = feasibilityVal?.feasible ? 70 : 35;
+    registerPrediction("outcome", outcomeProbScore57, confLevel57, 30, todayStr);
+
+    if (ovulationEstimateVal) {
+      const daysUntilOvulation = Math.max(1, ovulationEstimateVal.estimatedDay - (phase.cycleDay ?? 1));
+      if (daysUntilOvulation > 0) {
+        registerPrediction("cycle", daysUntilOvulation, confLevel57, daysUntilOvulation, todayStr);
+      }
+    }
+
+    // Build calibration profile from evaluated predictions + Phase 41 accuracy
+    const p57Registry         = loadPredictionRegistry();
+    const biasReportVal       = detectForecastBias(p57Registry);
+    setForecastBias(biasReportVal);
+    const confCalibrationVal  = calibrateConfidenceLevels(p57Registry);
+    setConfCalibration(confCalibrationVal);
+    const calibrationProfileVal = buildCalibrationProfile(p57Registry, forecastAccVal, todayStr);
+    setPredictionCalibration(calibrationProfileVal);
+    saveCalibrationProfile(calibrationProfileVal);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2434,6 +2501,12 @@ export default function DashboardPage() {
           validation={recValidation}
         />
         <PipelineTraceViewer trace={pipelineTrace} />
+        <CalibrationIntelligenceCard
+          calibration={predictionCalibration}
+          bias={forecastBias}
+          confidence={confCalibration}
+        />
+        <CalibrationAuditView />
         <CycleIntelligenceCard
           cycleAccuracy={cycleAccuracy}
           performanceProfile={performanceProfile}

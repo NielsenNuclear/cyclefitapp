@@ -5,6 +5,12 @@
 
 import type { RecommendationConfidence } from "./recommendationConfidence";
 
+// Minimal calibration hint (avoids circular import — caller passes what's needed)
+export interface CalibrationHint {
+  overallAccuracy: number;   // 0-1
+  dataReady:       boolean;
+}
+
 const STORAGE_KEY    = "axis_uncertainty_v1";
 const EXPIRY_DAYS    = 7;
 
@@ -44,29 +50,45 @@ export interface UncertaintySignal {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function detectUncertainty(
-  confidence: RecommendationConfidence,
+  confidence:   RecommendationConfidence,
+  calibration?: CalibrationHint,
 ): UncertaintySignal {
-  switch (confidence.level) {
-    case "high":
-      return {
-        conservativeMode:  false,
-        reason:            "High confidence — proceed as recommended.",
-        volumeModifier:    1.0,
-        intensityModifier: 1.0,
-      };
-    case "moderate":
-      return {
-        conservativeMode:  false,
-        reason:            "Moderate confidence — standard plan with slight caution.",
-        volumeModifier:    0.95,
-        intensityModifier: 1.0,
-      };
-    default:
-      return {
-        conservativeMode:  true,
-        reason:            "Low confidence in prediction — maintaining conservative approach until more data is available.",
-        volumeModifier:    0.85,
-        intensityModifier: 0.90,
-      };
+  const base: UncertaintySignal = (() => {
+    switch (confidence.level) {
+      case "high":
+        return {
+          conservativeMode:  false,
+          reason:            "High confidence — proceed as recommended.",
+          volumeModifier:    1.0,
+          intensityModifier: 1.0,
+        };
+      case "moderate":
+        return {
+          conservativeMode:  false,
+          reason:            "Moderate confidence — standard plan with slight caution.",
+          volumeModifier:    0.95,
+          intensityModifier: 1.0,
+        };
+      default:
+        return {
+          conservativeMode:  true,
+          reason:            "Low confidence in prediction — maintaining conservative approach until more data is available.",
+          volumeModifier:    0.85,
+          intensityModifier: 0.90,
+        };
+    }
+  })();
+
+  // Phase 57: if measured forecast accuracy is poor, tighten conservatism
+  if (calibration?.dataReady && calibration.overallAccuracy < 0.65) {
+    return {
+      ...base,
+      conservativeMode:  true,
+      reason:            base.reason + " Measured forecast accuracy below 65% — extra conservatism applied.",
+      volumeModifier:    Math.min(base.volumeModifier, 0.90),
+      intensityModifier: Math.min(base.intensityModifier, 0.95),
+    };
   }
+
+  return base;
 }
