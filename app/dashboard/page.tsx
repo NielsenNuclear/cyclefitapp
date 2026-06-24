@@ -370,6 +370,19 @@ import {
   loadPredictionRegistry,
   type StoredPrediction,
 } from "@/lib/intelligence/calibration/predictionRegistry";
+// ─── Phase 58: Recommendation Effectiveness Engine ───────────────────────────
+import {
+  registerRecommendationEvent,
+  classifyRecommendationType,
+  deriveTriggerFactors,
+} from "@/lib/intelligence/effectiveness/recommendationRegistry";
+import { evaluateRecommendationEffectiveness, checkSafetyBounds, type GuardrailResult } from "@/lib/intelligence/effectiveness/effectivenessEngine";
+import {
+  buildRecommendationProfile,
+  saveRecommendationProfile,
+  type RecommendationProfile as RecEffectivenessProfile,
+} from "@/lib/intelligence/effectiveness/recommendationProfile";
+import { RecommendationEffectivenessCard }                                     from "@/components/intelligence/RecommendationEffectivenessCard";
 import { evaluatePendingPredictions, type EvaluationContext as P57EvalContext } from "@/lib/intelligence/calibration/evaluatePredictions";
 import {
   buildCalibrationProfile,
@@ -883,6 +896,9 @@ export default function DashboardPage() {
   const [predictionCalibration, setPredictionCalibration] = useState<CalibrationProfile57 | undefined>(undefined);
   const [forecastBias,           setForecastBias]          = useState<BiasReport | undefined>(undefined);
   const [confCalibration,        setConfCalibration]       = useState<ConfidenceCalibration | undefined>(undefined);
+  // Phase 58 state
+  const [recEffectiveness,  setRecEffectiveness]  = useState<RecEffectivenessProfile | undefined>(undefined);
+  const [safetyGuardrail,   setSafetyGuardrail]   = useState<GuardrailResult | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -2153,6 +2169,47 @@ export default function DashboardPage() {
     const calibrationProfileVal = buildCalibrationProfile(p57Registry, forecastAccVal, todayStr);
     setPredictionCalibration(calibrationProfileVal);
     saveCalibrationProfile(calibrationProfileVal);
+
+    // ── Phase 58: Recommendation Effectiveness Engine ─────────────────────────
+    // Evaluate past recommendation events (7+ days old) against actual outcomes
+    evaluateRecommendationEffectiveness({
+      today:            todayStr,
+      readinessHistory: fullRdxHistory,
+      recoveryHistory:  getRecoveryScores(),
+      adherenceHistory: adherenceHistoryVal,
+    });
+
+    // Register today's recommendation for future evaluation
+    const recType58 = classifyRecommendationType(
+      trainingDecisionVal.finalVolumeScale,
+      deloadRecVal.needed,
+      lifeContextVal.recommendedMode,
+    );
+    const triggerFactors58 = deriveTriggerFactors(
+      readiness.score,
+      recoveryScoreVal.score,
+      burnoutRiskVal.score,
+      fatigueEntryVal.score,
+      adherenceRiskPre.riskLevel,
+      todaySymptomsVal.length,
+    );
+    registerRecommendationEvent(
+      recType58,
+      triggerFactors58,
+      trainingDecisionVal.finalVolumeScale,
+      lifeContextVal.recommendedMode,
+      readiness.score,
+      recoveryScoreVal.score,
+      todayStr,
+    );
+
+    // Safety guardrail check (observability — flags out-of-bounds volume scales)
+    setSafetyGuardrail(checkSafetyBounds(trainingDecisionVal.finalVolumeScale));
+
+    // Build effectiveness profile
+    const recProfileVal = buildRecommendationProfile(todayStr);
+    setRecEffectiveness(recProfileVal);
+    saveRecommendationProfile(recProfileVal);
   }, [router]);
 
   function handleCheckinComplete(data: CheckinData) {
@@ -2506,6 +2563,7 @@ export default function DashboardPage() {
           bias={forecastBias}
           confidence={confCalibration}
         />
+        <RecommendationEffectivenessCard profile={recEffectiveness} />
         <CalibrationAuditView />
         <CycleIntelligenceCard
           cycleAccuracy={cycleAccuracy}

@@ -89,6 +89,10 @@ export const STORAGE_KEYS = {
   // ── Phase 57: Prediction Calibration & Forecast Accuracy ─────────────────
   PREDICTION_REGISTRY:        "axis_prediction_registry",
   CALIBRATION_PROFILE:        "axis_calibration_profile_v1",
+
+  // ── Phase 58: Recommendation Effectiveness Engine ─────────────────────────
+  REC_EFFECTIVENESS_REGISTRY: "axis_rec_effectiveness_v1",
+  REC_EFFECTIVENESS_PROFILE:  "axis_rec_profile_v1",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
