@@ -33,7 +33,7 @@ export function Step6Stress({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       {/* Stress scale */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#E8E5DC]">
+      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
         <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-1">
           Typical weekly stress level
         </div>
@@ -71,7 +71,7 @@ export function Step6Stress({ data, onChange }: StepProps) {
         />
       </div>
 
-      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#E8E5DC]">
+      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#EAE7DE]">
         <p className="text-[11px] text-[#8A8880] leading-relaxed italic">
           "Stress is a physiological input — elevated chronic stress suppresses recovery and reduces training adaptation. Axis models this explicitly, not as a moral judgment."
         </p>
@@ -171,7 +171,7 @@ export function Step8Cycle({ data, onChange }: StepProps) {
       </div>
 
       {/* Cycle length */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#E8E5DC]">
+      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
         <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">Typical cycle length</div>
         <div className="flex items-center gap-4 justify-center">
           <button
@@ -227,7 +227,7 @@ export function Step8Cycle({ data, onChange }: StepProps) {
 
       {/* Last period date — shown when user wants cycle tracking */}
       {data.trackingPreference !== "none" && data.trackingPreference !== "" && (
-        <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#E8E5DC]">
+        <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
           <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-1">
             First day of last period
           </div>
@@ -282,7 +282,7 @@ export function Step9Symptoms({ data, onChange }: StepProps) {
 
   return (
     <div className="space-y-5">
-      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#E8E5DC]">
+      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#EAE7DE]">
         <p className="text-[11px] text-[#8A8880] leading-relaxed">
           Only select symptoms that affect your training. This is performance-relevant context — not a medical history. Axis uses this to calibrate readiness adjustments, not diagnose conditions.
         </p>

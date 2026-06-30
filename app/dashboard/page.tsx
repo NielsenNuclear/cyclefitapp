@@ -363,7 +363,6 @@ import { generateRecommendationExplanation, saveRecommendationExplanation, type 
 import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          from "@/lib/intelligence/pipelineTrace";
 import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
 import { RecommendationExplanationCard }                                       from "@/components/intelligence/RecommendationExplanationCard";
-import { PipelineTraceViewer }                                                 from "@/components/dev/PipelineTraceViewer";
 // ─── Phase 57: Prediction Calibration & Forecast Accuracy ────────────────────
 import {
   registerPrediction,
@@ -393,7 +392,6 @@ import {
 import { detectForecastBias, type BiasReport }                                 from "@/lib/intelligence/calibration/biasDetection";
 import { calibrateConfidenceLevels, type ConfidenceCalibration }               from "@/lib/intelligence/calibration/confidenceCalibration";
 import { CalibrationIntelligenceCard }                                         from "@/components/intelligence/CalibrationIntelligenceCard";
-import { CalibrationAuditView }                                                from "@/components/dev/CalibrationAuditView";
 // ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
 import { recordSituation, scoreSituationOutcome, findSimilarSituations, type SimilarSituation } from "@/lib/memory/situationMemory";
 import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
@@ -455,6 +453,12 @@ import { GoalRoadmapCard }                                                      
 import { MilestoneCard }                                                        from "@/components/dashboard/MilestoneCard";
 import { ForecastCard }                                                         from "@/components/dashboard/ForecastCard";
 import { TrainingMaturityCard }                                                 from "@/components/dashboard/TrainingMaturityCard";
+import { AccordionSection }                                                     from "@/components/dashboard/AccordionSection";
+import { DailyStatus }                                                          from "@/components/dashboard/DailyStatus";
+import { TodayHighlights }                                                      from "@/components/dashboard/TodayHighlights";
+import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
+import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
+import type { BodyIntelligenceSnapshot }                                        from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -866,6 +870,7 @@ export default function DashboardPage() {
   const [capacityScore,        setCapacityScore]        = useState<CapacityScore | undefined>(undefined);
   const [recoverySufficiency,  setRecoverySufficiency]  = useState<RecoverySufficiency | undefined>(undefined);
   const [unifiedMomentum,      setUnifiedMomentum]      = useState<UnifiedMomentumScore | undefined>(undefined);
+  const [bodySnapshot,         setBodySnapshot]         = useState<BodyIntelligenceSnapshot | undefined>(undefined);
   const [consolidatedMomentum, setConsolidatedMomentum] = useState<ConsolidatedMomentum | undefined>(undefined);
   const [trajectoryScore,      setTrajectoryScore]      = useState<TrajectoryScore | undefined>(undefined);
   const [lifeBalance,          setLifeBalance]          = useState<LifeBalanceReport | undefined>(undefined);
@@ -2533,114 +2538,66 @@ export default function DashboardPage() {
     setExerciseMastery(computeExerciseMastery(getExercisePerformanceHistory(), env));
   }
 
-  if (!recommendation) return null;
+  // Recompute body snapshot whenever key inputs change
+  useEffect(() => {
+    if (!recommendation) return;
+    const snap = computeBodyIntelligenceSnapshot(
+      {
+        todayWorkout:  workout    ?? undefined,
+        recoveryScore: recoveryScore ?? undefined,
+        fatigueEntry:  fatigueEntry  ?? undefined,
+        todaySymptoms: todaySymptoms as SymptomEntry[],
+        cyclePhase:    recommendation.phase.name,
+      },
+      "today",
+      "today",
+    );
+    setBodySnapshot(snap);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workout, recoveryScore, fatigueEntry, todaySymptoms, recommendation?.phase.name]);
+
+  if (!recommendation) {
+    return (
+      <DashboardShell isRecalculating={false}>
+        <div className="px-5 pt-8 pb-6 space-y-4 max-w-2xl mx-auto">
+          <div className="h-28 bg-black/4 rounded-2xl animate-pulse" />
+          <div className="h-36 bg-black/4 rounded-2xl animate-pulse" />
+          <div className="h-52 bg-black/4 rounded-2xl animate-pulse" />
+          <div className="h-36 bg-black/4 rounded-2xl animate-pulse" />
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell isRecalculating={isRecalculating}>
       <DashboardHeader recommendation={recommendation} />
 
-      <div className="px-5 space-y-4 pb-6">
+      <div className="px-5 pb-8 space-y-3 pt-2">
+
+        {/* ── LAYER 1: ALWAYS VISIBLE ───────────────────────────────────── */}
+
         {!checkinComplete && (
-          <DailyCheckIn
-            onComplete={handleCheckinComplete}
-            lowReadinessAlert={(() => {
-              const d = new Date();
-              d.setDate(d.getDate() - 1);
-              const ys = d.toISOString().slice(0, 10);
-              const entry = readinessHistory.find(e => e.date === ys);
-              return !!entry && entry.score <= 45;
-            })()}
-          />
+          <div className="pt-2">
+            <DailyCheckIn
+              onComplete={handleCheckinComplete}
+              lowReadinessAlert={(() => {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                const ys = d.toISOString().slice(0, 10);
+                const entry = readinessHistory.find(e => e.date === ys);
+                return !!entry && entry.score <= 45;
+              })()}
+            />
+          </div>
         )}
-        <PhaseCard phase={recommendation.phase} />
-        <RecommendationExplanationCard
-          explanation={recExplanation}
-          validation={recValidation}
+
+        <DailyStatus
+          readiness={readinessScore ?? undefined}
+          recovery={recoveryScore ?? undefined}
+          phase={recommendation.phase}
         />
-        <PipelineTraceViewer trace={pipelineTrace} />
-        <CalibrationIntelligenceCard
-          calibration={predictionCalibration}
-          bias={forecastBias}
-          confidence={confCalibration}
-        />
-        <RecommendationEffectivenessCard profile={recEffectiveness} />
-        <CalibrationAuditView />
-        <CycleIntelligenceCard
-          cycleAccuracy={cycleAccuracy}
-          performanceProfile={performanceProfile}
-          symptomTimeline={symptomTimeline}
-          ovulationEstimate={ovulationEstimate}
-          cycleHealthReport={cycleHealthReport}
-        />
-        <OvulationEstimateCard estimate={ovulationEstimate} />
-        <TrainingWindowCard    window={primeTrainingWindow} />
-        <RecoveryWindowCard    window={recoveryWindow} />
-        {periodizationStatus && onboardingRef.current && (
-          <PeriodizationCard
-            status={periodizationStatus}
-            goalLabel={getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label}
-            cycleSynergy={cycleSynergySignal}
-            deloadDecision={adaptiveDeloadDecision}
-            forecast={achievementForecast}
-            insight={periodizationInsight}
-          />
-        )}
-        <AdaptiveInsightsCard insights={adaptiveInsights} />
-        <TrainingDecisionCard decision={trainingDecision} prediction={outcomePrediction} />
-        <FatigueCard entry={fatigueEntry} />
-        <ReadinessConfidenceCard confidence={readinessConfidence} />
-        <PredictionAccuracyCard report={predictionAccuracy} />
-        <PersonalizationCard progress={personalizationProgress} />
-        <WhatAxisLearnedCard
-          fingerprint={physiologyFingerprint}
-          patternConfidences={patternConfidences}
-          recoveryCapacity={recoveryCapacity}
-          personalWeights={personalWeights}
-          personalizationProgress={personalizationProgress}
-        />
-        <RecoveryIntelligenceCard
-          recoveryScore={recoveryScore}
-          recoveryTrend={recoveryTrend}
-          recoveryDebt={recoveryDebt}
-          burnoutRisk={burnoutRisk}
-          healthTrend={healthTrend}
-          recoveryPlan={recoveryPlan}
-          symptomEscalations={symptomEscalations}
-          strategyOutcomes={strategyOutcomes}
-        />
-        <RecoveryOptimizationCard
-          effectiveness={recoveryEffectiveness}
-          forecast={recoveryForecast}
-          capacity={recoveryCapacity}
-          debt={recoveryDebt}
-        />
-        <FatigueInsightsCard prediction={fatiguePrediction} />
-        <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
-        <AdaptiveCoachCard
-          daily={dailyGuidance}
-          weekly={weeklyReview}
-          monthly={monthlyReview}
-        />
-        <PerformanceForecastCard
-          potential={performancePotential}
-          trainingRisk={trainingRisk}
-          readinessForecast={readinessForecast}
-          strategyPrediction={strategyPrediction}
-          opportunity={performanceOpportunity}
-          primeWindow={primeTrainingWindow}
-          currentCycleDay={recommendation.phase.cycleDay}
-        />
-        {equipmentProfile && <EquipmentInsightsCard profile={equipmentProfile} usageAnalytics={equipmentUsageAnalytics ?? undefined} />}
-        <CoachViewCard view={coachView} />
-        <WeeklyPlanCard plan={weeklyPlan} />
-        <TrainingBlockCard block={trainingBlock} />
-        <PeriodizedCalendarCard calendar={periodizedCalendar} />
-        <OverloadCard recommendation={overloadRec} />
-        <DeloadAlertCard recommendation={deloadRec} />
-        <RecoveryCapacityCard capacity={recoveryCapacity} />
-        <SymptomSummaryCard symptoms={todaySymptoms} />
-        <CyclePatternsCard  patterns={learnedPatterns} />
-        <UpcomingTrendsCard forecast={cycleForecast} />
+
         <TrainingCard
           training={recommendation.training}
           restDaySignal={
@@ -2649,166 +2606,6 @@ export default function DashboardPage() {
               e => e.category === "cautious" || e.category === "recover"
             )
           }
-        />
-        <FuelingCard
-          fuelTargets={fuelTargets}
-          workoutFueling={workoutFueling}
-          nutritionAdjustments={nutritionAdjustments}
-          nutritionOutcomes={nutritionOutcomes}
-        />
-        {!nutritionCheckinDone && (
-          <NutritionCheckinCard
-            date={new Date().toISOString().slice(0, 10)}
-            onComplete={() => setNutritionCheckinDone(true)}
-          />
-        )}
-        {nutritionTargets && nutritionProfile && (
-          <NutritionIntelligenceCard
-            profile={nutritionProfile}
-            targets={nutritionTargets}
-            periodizationNote={nutritionPeriodNote}
-          />
-        )}
-        {!recoveryCheckinDone && (
-          <RecoveryCheckinCard
-            date={new Date().toISOString().slice(0, 10)}
-            onComplete={() => setRecoveryCheckinDone(true)}
-          />
-        )}
-        {recoveryBank && recoveryOutlook && personalRecovery && (
-          <PersonalRecoveryCard
-            profile={personalRecovery}
-            bank={recoveryBank}
-            outlook={recoveryOutlook}
-          />
-        )}
-        {showRescueSession && rescueWorkout && (
-          <MinimumViableWorkoutCard
-            workout={rescueWorkout}
-            onDismiss={() => setShowRescueSession(false)}
-          />
-        )}
-        {rescueModeState && (
-          <RescueModeCard
-            rescueMode={rescueModeState}
-            onExit={handleExitRescueMode}
-          />
-        )}
-        <AdherenceCard
-          consistency={consistencyScore}
-          risk={adherenceRiskReport}
-          streaks={multiDomainStreaks}
-          formula={successFormula}
-          momentum={momentumScore}
-          lifeEvent={lifeEvent}
-          onLifeEvent={handleLifeEvent}
-          onClearLifeEvent={handleClearLifeEvent}
-        />
-        <MomentumCard momentum={momentumScore} />
-        <PerformanceHubCard
-          quality={trainingQuality}
-          plateaus={plateauReport}
-          personalBests={personalBests}
-          velocity={goalVelocity}
-          adjustments={goalAdjustments}
-          predictors={perfPredictors}
-        />
-        <GoalRoadmapCard
-          roadmap={goalRoadmap}
-          feasibility={goalFeasibility}
-          timeline={timelineUpdate}
-        />
-        <MilestoneCard milestones={milestones} />
-        <ForecastCard
-          forecast={annualForecast}
-          macrocycle={macrocyclePlan}
-          goalConflict={goalConflict}
-        />
-        <TrainingMaturityCard maturity={trainingMaturity} />
-        <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
-        <BurnoutPreventionCard report={lifestyleBurnout} />
-        <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
-        <UpcomingLifeEventsCard events={upcomingLifeEvents} />
-        {/* Phase 40: Personal Physiology Learning */}
-        <PersonalResponseCard
-          phaseResponse={phaseResponse}
-          symptomImpact={symptomImpact}
-          recoveryModel={recoveryResponseProf}
-          confidence={physiologyConf}
-        />
-        <SignalImportanceCard ranking={predictorRanking} equation={personalEquation} />
-        {/* Phase 41: Prediction & Forecast Accuracy */}
-        <ConfidenceDashboardCard confidence={recConfidence} calibration={calibrationReport} drift={driftReport} />
-        <AccuracyTimelineCard accuracy={forecastAccuracy} />
-        {/* Phase 42: Evidence-Based Recommendation */}
-        <ExplainabilityCard evidence={recEvidence} counterfactual={counterfactual} />
-        <UserTrustCard
-          physiologyConf={physiologyConf}
-          accuracy={forecastAccuracy}
-          feedback={feedbackSummary}
-          narrative={adaptiveNarrative}
-        />
-        {/* Phase 43: Outcome Optimization */}
-        <OutcomeOptimizationCard
-          scorecard={outcomeScorecard}
-          leveragePoint={leveragePoint}
-          successPatterns={successPatterns}
-        />
-        {/* Phase 43: Outcome Intelligence (bottleneck + forecast) */}
-        <OutcomeIntelligenceCard
-          successModel={goalSuccessModel}
-          behaviorImpact={behaviorImpact}
-          bottlenecks={bottleneckReport}
-          leveragePoint={leveragePoint}
-          forecast={completionForecast}
-        />
-        {/* Phase 44: Human Performance Operating System */}
-        <ExecutiveSummaryCard
-          capacity={capacityScore}
-          momentum={unifiedMomentum}
-          trajectory={trajectoryScore}
-          insights={unifiedInsights}
-        />
-        <CapacityCard
-          capacity={capacityScore}
-          momentum={unifiedMomentum}
-          forecast={capacityForecast}
-          balance={lifeBalance}
-          sufficiency={recoverySufficiency}
-        />
-        {/* Phase 45: Digital Coaching Memory */}
-        <SituationMemoryCard
-          narrative={p45Narrative}
-          identity={identityModel}
-          similar={similarSituations}
-        />
-        <AdherenceIntelligenceCard
-          patterns={adherencePatterns}
-          missedAnalysis={missedWorkoutAnalysis}
-          riskForecast={nextWorkoutRiskForecast}
-          workoutSize={adaptiveWorkoutSize}
-          habitStrength={habitStrength}
-        />
-        <AthleteDevelopmentCard
-          trainingAge={athleteTrainingAge}
-          resilienceIndex={resilienceIndex}
-          progressionVelocity={progressionVelocity}
-          athleteIdentity={athleteIdentity}
-          milestones={developmentMilestones}
-        />
-        <HabitIntelligenceCard
-          analytics={adherenceAnalytics}
-          patterns={behaviorPatterns}
-          risk={adherenceRisk}
-          profile={adherenceProfile}
-        />
-        <ProgressCard
-          progressionTargets={progressionTargets}
-          exerciseMastery={exerciseMastery}
-          performanceTrends={performanceTrends}
-          plateauInterventions={plateauInterventions}
-          mesocycle={mesocycle}
-          weeklyPrescription={weeklyPrescription}
         />
         {workout && (
           <WorkoutCard
@@ -2835,30 +2632,372 @@ export default function DashboardPage() {
             onComplete={handleFeedbackComplete}
           />
         )}
-        <CoachAccuracyCard      report={accuracyReport} />
-        <PerformanceTrendsCard  summaries={exerciseSummaries} />
-        <ExerciseIntelligenceCard
-          trends={performanceTrends ?? []}
-          trainingProfile={trainingResponse}
-        />
-        <ProgressInsightsCard />
-        {onboardingRef.current && (
-          <GoalProgressCard
-            goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
-            sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
+        {showRescueSession && rescueWorkout && (
+          <MinimumViableWorkoutCard
+            workout={rescueWorkout}
+            onDismiss={() => setShowRescueSession(false)}
           />
         )}
-        <CoachingMemoryCard     items={coachingMemory} />
-        <TrainingSummaryCard    summary={historySummary} />
-        <RecoveryStatusCard  report={loadReport} />
-        <ProgressionCard     profile={progressionProfile} adjustment={coachingAdjustment} />
-        <InsightsCard        report={insightReport} />
-        <NutritionCard nutrition={recommendation.nutrition} />
-        <RecoveryCard recovery={recommendation.recovery} />
-        <RecommendationExplanation
-          points={recommendation.explanationPoints}
-          disclaimer={recommendation.disclaimer}
+        {rescueModeState && (
+          <RescueModeCard
+            rescueMode={rescueModeState}
+            onExit={handleExitRescueMode}
+          />
+        )}
+        <OverloadCard recommendation={overloadRec} />
+        <DeloadAlertCard recommendation={deloadRec} />
+        <RecommendationExplanationCard
+          explanation={recExplanation}
+          validation={recValidation}
         />
+        <TodayHighlights
+          readinessCategory={readinessScore?.category}
+          recoveryCategory={recoveryScore?.category}
+          recoveryTrend={recoveryTrend?.status7d}
+          phaseName={recommendation.phase.name}
+          daysUntilNextPhase={recommendation.phase.daysUntilNextPhase}
+          fatigueZone={fatigueEntry?.zone}
+          momentumDirection={unifiedMomentum?.direction}
+        />
+
+        <BodyStatusCard snapshot={bodySnapshot} />
+
+        {/* ── LAYER 2: EXPANDABLE INTELLIGENCE ──────────────────────────── */}
+        <div className="space-y-2 pt-1">
+
+          <AccordionSection
+            id="recovery"
+            title="Recovery"
+            defaultOpen={true}
+            summary={recoveryScore
+              ? `${recoveryScore.category} · ${recoveryScore.score}/100`
+              : "Track your recovery"}
+          >
+            <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
+            <FatigueCard entry={fatigueEntry} />
+            <RecoveryIntelligenceCard
+              recoveryScore={recoveryScore}
+              recoveryTrend={recoveryTrend}
+              recoveryDebt={recoveryDebt}
+              burnoutRisk={burnoutRisk}
+              healthTrend={healthTrend}
+              recoveryPlan={recoveryPlan}
+              symptomEscalations={symptomEscalations}
+              strategyOutcomes={strategyOutcomes}
+            />
+            <FatigueInsightsCard prediction={fatiguePrediction} />
+            <BurnoutPreventionCard report={lifestyleBurnout} />
+            <RecoveryOptimizationCard
+              effectiveness={recoveryEffectiveness}
+              forecast={recoveryForecast}
+              capacity={recoveryCapacity}
+              debt={recoveryDebt}
+            />
+            <RecoveryCapacityCard capacity={recoveryCapacity} />
+            <RecoveryStatusCard report={loadReport} />
+            {!recoveryCheckinDone && (
+              <RecoveryCheckinCard
+                date={new Date().toISOString().slice(0, 10)}
+                onComplete={() => setRecoveryCheckinDone(true)}
+              />
+            )}
+            {recoveryBank && recoveryOutlook && personalRecovery && (
+              <PersonalRecoveryCard
+                profile={personalRecovery}
+                bank={recoveryBank}
+                outlook={recoveryOutlook}
+              />
+            )}
+          </AccordionSection>
+
+          <AccordionSection
+            id="cycle"
+            title="Cycle Intelligence"
+            summary={`${recommendation.phase.name} · Day ${recommendation.phase.cycleDay}`}
+          >
+            <PhaseCard phase={recommendation.phase} />
+            <SymptomSummaryCard symptoms={todaySymptoms} />
+            <CycleIntelligenceCard
+              cycleAccuracy={cycleAccuracy}
+              performanceProfile={performanceProfile}
+              symptomTimeline={symptomTimeline}
+              ovulationEstimate={ovulationEstimate}
+              cycleHealthReport={cycleHealthReport}
+            />
+            <OvulationEstimateCard estimate={ovulationEstimate} />
+            <TrainingWindowCard    window={primeTrainingWindow} />
+            <RecoveryWindowCard    window={recoveryWindow} />
+            <CyclePatternsCard     patterns={learnedPatterns} />
+            <UpcomingTrendsCard    forecast={cycleForecast} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="nutrition"
+            title="Nutrition"
+            summary={fuelTargets
+              ? fuelTargets.fuelingLevel.replace(/_/g, " ")
+              : "Log check-ins for guidance"}
+          >
+            <FuelingCard
+              fuelTargets={fuelTargets}
+              workoutFueling={workoutFueling}
+              nutritionAdjustments={nutritionAdjustments}
+              nutritionOutcomes={nutritionOutcomes}
+            />
+            {!nutritionCheckinDone && (
+              <NutritionCheckinCard
+                date={new Date().toISOString().slice(0, 10)}
+                onComplete={() => setNutritionCheckinDone(true)}
+              />
+            )}
+            {nutritionTargets && nutritionProfile && (
+              <NutritionIntelligenceCard
+                profile={nutritionProfile}
+                targets={nutritionTargets}
+                periodizationNote={nutritionPeriodNote}
+              />
+            )}
+            <NutritionCard nutrition={recommendation.nutrition} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="progress"
+            title="Progress & Performance"
+            summary={unifiedMomentum?.dataReady
+              ? `Momentum: ${unifiedMomentum.direction}`
+              : "Log workouts to see progress"}
+          >
+            <MomentumCard momentum={momentumScore} />
+            <PerformanceHubCard
+              quality={trainingQuality}
+              plateaus={plateauReport}
+              personalBests={personalBests}
+              velocity={goalVelocity}
+              adjustments={goalAdjustments}
+              predictors={perfPredictors}
+            />
+            <GoalRoadmapCard
+              roadmap={goalRoadmap}
+              feasibility={goalFeasibility}
+              timeline={timelineUpdate}
+            />
+            {onboardingRef.current && (
+              <GoalProgressCard
+                goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
+                sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
+              />
+            )}
+            <MilestoneCard milestones={milestones} />
+            <ForecastCard
+              forecast={annualForecast}
+              macrocycle={macrocyclePlan}
+              goalConflict={goalConflict}
+            />
+            <TrainingMaturityCard maturity={trainingMaturity} />
+            <ProgressCard
+              progressionTargets={progressionTargets}
+              exerciseMastery={exerciseMastery}
+              performanceTrends={performanceTrends}
+              plateauInterventions={plateauInterventions}
+              mesocycle={mesocycle}
+              weeklyPrescription={weeklyPrescription}
+            />
+            <PerformanceTrendsCard  summaries={exerciseSummaries} />
+            <ExerciseIntelligenceCard
+              trends={performanceTrends ?? []}
+              trainingProfile={trainingResponse}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            id="athlete"
+            title="Athlete Development"
+            summary="Long-term training age & athlete profile"
+          >
+            <AthleteDevelopmentCard
+              trainingAge={athleteTrainingAge}
+              resilienceIndex={resilienceIndex}
+              progressionVelocity={progressionVelocity}
+              athleteIdentity={athleteIdentity}
+              milestones={developmentMilestones}
+            />
+            <ProgressInsightsCard />
+            <ProgressionCard profile={progressionProfile} adjustment={coachingAdjustment} />
+            <TrainingSummaryCard summary={historySummary} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="training-plan"
+            title="Training Plan"
+            summary="Weekly plan & periodization"
+          >
+            <AdaptiveCoachCard
+              daily={dailyGuidance}
+              weekly={weeklyReview}
+              monthly={monthlyReview}
+            />
+            <TrainingDecisionCard decision={trainingDecision} prediction={outcomePrediction} />
+            {periodizationStatus && onboardingRef.current && (
+              <PeriodizationCard
+                status={periodizationStatus}
+                goalLabel={getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label}
+                cycleSynergy={cycleSynergySignal}
+                deloadDecision={adaptiveDeloadDecision}
+                forecast={achievementForecast}
+                insight={periodizationInsight}
+              />
+            )}
+            <WeeklyPlanCard plan={weeklyPlan} />
+            <TrainingBlockCard block={trainingBlock} />
+            <PeriodizedCalendarCard calendar={periodizedCalendar} />
+            <AdaptiveInsightsCard insights={adaptiveInsights} />
+            <CoachViewCard view={coachView} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="performance-tracking"
+            title="Performance Tracking"
+            summary="Metrics, coaching history & forecasts"
+          >
+            <CoachAccuracyCard   report={accuracyReport} />
+            <CoachingMemoryCard  items={coachingMemory} />
+            <PerformanceForecastCard
+              potential={performancePotential}
+              trainingRisk={trainingRisk}
+              readinessForecast={readinessForecast}
+              strategyPrediction={strategyPrediction}
+              opportunity={performanceOpportunity}
+              primeWindow={primeTrainingWindow}
+              currentCycleDay={recommendation.phase.cycleDay}
+            />
+            {equipmentProfile && (
+              <EquipmentInsightsCard
+                profile={equipmentProfile}
+                usageAnalytics={equipmentUsageAnalytics ?? undefined}
+              />
+            )}
+          </AccordionSection>
+
+          <AccordionSection
+            id="lifestyle"
+            title="Lifestyle & Adherence"
+            summary={consistencyScore
+              ? `${consistencyScore.composite}/100 consistency`
+              : "Habits & schedule"}
+          >
+            <AdherenceCard
+              consistency={consistencyScore}
+              risk={adherenceRiskReport}
+              streaks={multiDomainStreaks}
+              formula={successFormula}
+              momentum={momentumScore}
+              lifeEvent={lifeEvent}
+              onLifeEvent={handleLifeEvent}
+              onClearLifeEvent={handleClearLifeEvent}
+            />
+            <AdherenceIntelligenceCard
+              patterns={adherencePatterns}
+              missedAnalysis={missedWorkoutAnalysis}
+              riskForecast={nextWorkoutRiskForecast}
+              workoutSize={adaptiveWorkoutSize}
+              habitStrength={habitStrength}
+            />
+            <HabitIntelligenceCard
+              analytics={adherenceAnalytics}
+              patterns={behaviorPatterns}
+              risk={adherenceRisk}
+              profile={adherenceProfile}
+            />
+            <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
+            <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
+            <UpcomingLifeEventsCard events={upcomingLifeEvents} />
+          </AccordionSection>
+
+        </div>
+
+        {/* ── LAYER 3: ADVANCED ANALYTICS ────────────────────────────────── */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center gap-3 px-1">
+            <div className="flex-1 h-px bg-[#EAE7DE]" />
+            <span className="text-[10px] font-semibold text-[#C8C5BC] uppercase tracking-[0.12em]">Advanced</span>
+            <div className="flex-1 h-px bg-[#EAE7DE]" />
+          </div>
+          <AccordionSection
+            id="intelligence"
+            title="Axis Intelligence"
+            summary="Calibration, accuracy, and learning data"
+          >
+            <PersonalizationCard progress={personalizationProgress} />
+            <WhatAxisLearnedCard
+              fingerprint={physiologyFingerprint}
+              patternConfidences={patternConfidences}
+              recoveryCapacity={recoveryCapacity}
+              personalWeights={personalWeights}
+              personalizationProgress={personalizationProgress}
+            />
+            <PersonalResponseCard
+              phaseResponse={phaseResponse}
+              symptomImpact={symptomImpact}
+              recoveryModel={recoveryResponseProf}
+              confidence={physiologyConf}
+            />
+            <SignalImportanceCard ranking={predictorRanking} equation={personalEquation} />
+            <ReadinessConfidenceCard confidence={readinessConfidence} />
+            <PredictionAccuracyCard report={predictionAccuracy} />
+            <CalibrationIntelligenceCard
+              calibration={predictionCalibration}
+              bias={forecastBias}
+              confidence={confCalibration}
+            />
+            <RecommendationEffectivenessCard profile={recEffectiveness} />
+            <ConfidenceDashboardCard confidence={recConfidence} calibration={calibrationReport} drift={driftReport} />
+            <AccuracyTimelineCard accuracy={forecastAccuracy} />
+            <ExplainabilityCard evidence={recEvidence} counterfactual={counterfactual} />
+            <UserTrustCard
+              physiologyConf={physiologyConf}
+              accuracy={forecastAccuracy}
+              feedback={feedbackSummary}
+              narrative={adaptiveNarrative}
+            />
+            <OutcomeOptimizationCard
+              scorecard={outcomeScorecard}
+              leveragePoint={leveragePoint}
+              successPatterns={successPatterns}
+            />
+            <OutcomeIntelligenceCard
+              successModel={goalSuccessModel}
+              behaviorImpact={behaviorImpact}
+              bottlenecks={bottleneckReport}
+              leveragePoint={leveragePoint}
+              forecast={completionForecast}
+            />
+            <ExecutiveSummaryCard
+              capacity={capacityScore}
+              momentum={unifiedMomentum}
+              trajectory={trajectoryScore}
+              insights={unifiedInsights}
+            />
+            <CapacityCard
+              capacity={capacityScore}
+              momentum={unifiedMomentum}
+              forecast={capacityForecast}
+              balance={lifeBalance}
+              sufficiency={recoverySufficiency}
+            />
+            <SituationMemoryCard
+              narrative={p45Narrative}
+              identity={identityModel}
+              similar={similarSituations}
+            />
+            <InsightsCard report={insightReport} />
+            <RecoveryCard recovery={recommendation.recovery} />
+            <RecommendationExplanation
+              points={recommendation.explanationPoints}
+              disclaimer={recommendation.disclaimer}
+            />
+          </AccordionSection>
+        </div>
+
       </div>
     </DashboardShell>
   );

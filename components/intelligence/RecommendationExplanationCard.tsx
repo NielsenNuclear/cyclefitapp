@@ -15,20 +15,22 @@ function ImpactRow({ label, impact }: ImpactRowProps) {
   const bar = Math.min(Math.abs(impact), 20);
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-slate-400 w-40 flex-shrink-0">{label}</span>
+      <span className="text-[12px] text-[#6B6860] w-40 flex-shrink-0">{label}</span>
       <div className="flex items-center gap-1 flex-1">
         {!positive && (
           <div
-            className="h-1.5 rounded bg-rose-500/60"
+            className="h-[3px] rounded bg-[#C0392B]"
             style={{ width: `${bar * 5}%` }}
           />
         )}
-        <span className={`text-xs font-mono font-semibold min-w-[2rem] text-right ${positive ? "text-emerald-400" : "text-rose-400"}`}>
+        <span className={`text-[12px] font-mono font-semibold min-w-[2rem] text-right ${
+          positive ? "text-[#0F6E56]" : "text-[#C0392B]"
+        }`}>
           {positive ? "+" : ""}{impact}%
         </span>
         {positive && (
           <div
-            className="h-1.5 rounded bg-emerald-500/60"
+            className="h-[3px] rounded bg-[#0F6E56]"
             style={{ width: `${bar * 5}%` }}
           />
         )}
@@ -43,15 +45,15 @@ interface Props {
 }
 
 const CONFIDENCE_COLORS = {
-  high:   "text-emerald-400",
-  medium: "text-amber-400",
-  low:    "text-rose-400",
+  high:   "text-[#0F6E56]",
+  medium: "text-[#854F0B]",
+  low:    "text-[#C0392B]",
 };
 
 const CONFIDENCE_LABELS = {
-  high:   "High",
-  medium: "Medium",
-  low:    "Low",
+  high:   "High confidence",
+  medium: "Moderate confidence",
+  low:    "Low confidence",
 };
 
 export function RecommendationExplanationCard({ explanation, validation }: Props) {
@@ -62,45 +64,52 @@ export function RecommendationExplanationCard({ explanation, validation }: Props
   const deltaPercent = Math.round((explanation.finalVolumeScale - 1) * 100);
   const direction    = deltaPercent > 2 ? "up" : deltaPercent < -2 ? "down" : "steady";
 
+  const chipClass =
+    direction === "up"   ? "bg-[#E1F5EE] text-[#085041]"
+    : direction === "down" ? "bg-[#FDF3F2] text-[#9B2015]"
+    : "bg-[#F1EFE8] text-[#5C5850]";
+
   return (
-    <div className="bg-slate-800/60 rounded-2xl p-4 space-y-4">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-4 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-200">Why today's plan?</h3>
+        <h3 className="text-[15px] font-semibold text-[#1C1B18]">Why today's plan?</h3>
         <div className="flex items-center gap-2">
-          <span className={`text-xs font-medium ${CONFIDENCE_COLORS[explanation.confidenceLevel]}`}>
-            {CONFIDENCE_LABELS[explanation.confidenceLevel]} confidence
+          <span className={`text-[12px] font-medium ${CONFIDENCE_COLORS[explanation.confidenceLevel]}`}>
+            {CONFIDENCE_LABELS[explanation.confidenceLevel]}
           </span>
           {validation && !validation.valid && (
-            <span className="text-xs text-amber-400">⚠</span>
+            <span className="text-[12px] text-[#854F0B]">⚠</span>
           )}
         </div>
       </div>
 
       {/* Volume direction chip */}
       <div className="flex items-center gap-2">
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-          direction === "up"     ? "bg-emerald-900/40 text-emerald-300"
-          : direction === "down" ? "bg-rose-900/40 text-rose-300"
-          : "bg-slate-700 text-slate-300"
+        <span className={`text-[12px] px-2.5 py-0.5 rounded-full font-medium border ${chipClass} ${
+          direction === "up"   ? "border-[#A8DFC8]"
+          : direction === "down" ? "border-[#F5C5C0]"
+          : "border-[#EAE7DE]"
         }`}>
           Volume {direction === "up" ? `+${deltaPercent}%` : direction === "down" ? `${deltaPercent}%` : "steady"}
         </span>
       </div>
 
       {/* Summary */}
-      <p className="text-xs text-slate-300 leading-relaxed">
+      <p className="text-[13px] text-[#5C5850] leading-relaxed">
         {explanation.explanationSummary}
       </p>
 
       {/* Primary drivers */}
       {explanation.primaryDrivers.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Primary factors</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#9B9690]">
+            Primary factors
+          </p>
           {explanation.primaryDrivers.map((d, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="text-slate-500 text-xs">•</span>
-              <span className="text-xs text-slate-300">{d}</span>
+              <span className="text-[#C8C5BC] text-[12px]">•</span>
+              <span className="text-[12px] text-[#5C5850]">{d}</span>
             </div>
           ))}
         </div>
@@ -109,28 +118,30 @@ export function RecommendationExplanationCard({ explanation, validation }: Props
       {/* Expand toggle */}
       <button
         onClick={() => setExpanded(x => !x)}
-        className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+        className="text-[12px] text-[#9B9690] hover:text-[#534AB7] transition-colors"
       >
-        {expanded ? "Hide breakdown ↑" : "Show signal breakdown ↓"}
+        {expanded ? "Hide breakdown ↑" : "What influenced this ↓"}
       </button>
 
       {/* Expanded: per-signal impacts */}
       {expanded && (
-        <div className="space-y-2 pt-1 border-t border-slate-700/40">
-          <p className="text-xs text-slate-500 uppercase tracking-wide pt-1">Signal breakdown</p>
-          <ImpactRow label="Readiness"          impact={explanation.readinessImpact} />
-          <ImpactRow label="Recovery"           impact={explanation.recoveryImpact} />
-          <ImpactRow label="Cycle phase"        impact={explanation.cycleImpact} />
-          <ImpactRow label="Adherence risk"     impact={explanation.adherenceImpact} />
-          <ImpactRow label="Symptoms & fatigue" impact={explanation.symptomImpact} />
-          <ImpactRow label="Prediction uncertainty" impact={explanation.uncertaintyImpact} />
-          <ImpactRow label="Training momentum"  impact={explanation.momentumImpact} />
+        <div className="space-y-2 pt-1 border-t border-black/6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#9B9690] pt-1">
+            Signal breakdown
+          </p>
+          <ImpactRow label="Readiness"           impact={explanation.readinessImpact} />
+          <ImpactRow label="Recovery"            impact={explanation.recoveryImpact} />
+          <ImpactRow label="Cycle phase"         impact={explanation.cycleImpact} />
+          <ImpactRow label="Adherence risk"      impact={explanation.adherenceImpact} />
+          <ImpactRow label="Symptoms & fatigue"  impact={explanation.symptomImpact} />
+          <ImpactRow label="Forecast confidence" impact={explanation.uncertaintyImpact} />
+          <ImpactRow label="Training momentum"   impact={explanation.momentumImpact} />
 
           {/* Total */}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-700/40">
-            <span className="text-xs text-slate-400">Net adjustment</span>
-            <span className={`text-xs font-semibold font-mono ${
-              deltaPercent >= 0 ? "text-emerald-400" : "text-rose-400"
+          <div className="flex items-center justify-between pt-2 border-t border-black/6">
+            <span className="text-[12px] text-[#6B6860]">Total volume change</span>
+            <span className={`text-[12px] font-semibold font-mono ${
+              deltaPercent >= 0 ? "text-[#0F6E56]" : "text-[#C0392B]"
             }`}>
               {deltaPercent >= 0 ? "+" : ""}{deltaPercent}%
             </span>
@@ -138,11 +149,11 @@ export function RecommendationExplanationCard({ explanation, validation }: Props
         </div>
       )}
 
-      {/* Validation warnings (dev-facing but shown subtly) */}
+      {/* Validation warnings */}
       {validation && !validation.valid && expanded && (
-        <div className="space-y-1 pt-1 border-t border-amber-900/30">
+        <div className="space-y-1 pt-1 border-t border-[#F5C5C0]">
           {validation.warnings.map(w => (
-            <p key={w.code} className="text-xs text-amber-400/70">
+            <p key={w.code} className="text-[12px] text-[#854F0B]">
               ⚠ {w.message}
             </p>
           ))}

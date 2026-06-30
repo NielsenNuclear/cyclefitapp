@@ -237,7 +237,7 @@ function CoachingCard({ card, index }: { card: CoachCard; index: number }) {
 
   return (
     <div
-      className={`relative bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border-l-[3px] ${accentStyles[card.badgeColor]} transition-all duration-300 hover:shadow-[0_8px_32px_rgba(83,74,183,0.10)] hover:-translate-y-0.5`}
+      className={`relative bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border-l-[3px] ${accentStyles[card.badgeColor]} transition-all duration-300 hover:shadow-[0_8px_32px_rgba(83,74,183,0.10)] hover:-translate-y-0.5`}
       style={{ animationDelay: `${index * 120}ms` }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -527,7 +527,7 @@ export default function HomePage() {
 
           {/* Hero readiness card — floats right on desktop */}
           <div className={`mt-12 lg:mt-0 lg:absolute lg:top-0 lg:right-0 lg:w-72 animate-fadeIn delay-500 ${heroVisible ? "" : "opacity-0"}`}>
-            <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
+            <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
 
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
@@ -586,7 +586,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Feature pills strip ──────────────────────────────── */}
-      <section className="py-6 px-5 border-y border-[#E8E5DC] bg-[#F5F3EE] overflow-hidden">
+      <section className="py-6 px-5 border-y border-[#EAE7DE] bg-[#F5F3EE] overflow-hidden">
         <div className="flex gap-2 flex-wrap max-w-6xl mx-auto justify-center">
           {FEATURE_PILLS.map((pill) => (
             <span key={pill} className="feature-pill text-[11px] font-medium text-[#5F5E5A] px-3 py-1.5 rounded-full bg-white border border-[#E0DDD4] cursor-default">
@@ -612,7 +612,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* What it's NOT */}
-            <div className="bg-[#FAF9F6] rounded-2xl border border-[#E8E5DC] p-6">
+            <div className="bg-[#FAF9F6] rounded-2xl border border-[#EAE7DE] p-6">
               <div className="text-[11px] font-semibold text-[#854F0B] uppercase tracking-wider mb-4">What Axis is not</div>
               {[
                 "A period tracker with workout suggestions",
@@ -631,7 +631,7 @@ export default function HomePage() {
             </div>
 
             {/* What it IS */}
-            <div className="bg-white rounded-2xl border border-[#E8E5DC] p-6 shadow-[0_2px_20px_rgba(83,74,183,0.04)]">
+            <div className="bg-white rounded-2xl border border-[#EAE7DE] p-6 shadow-[0_2px_20px_rgba(83,74,183,0.04)]">
               <div className="text-[11px] font-semibold text-[#0F6E56] uppercase tracking-wider mb-4">What Axis is</div>
               {[
                 "A multi-signal adaptive coaching engine",
@@ -653,7 +653,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Adaptive coaching preview ────────────────────────── */}
-      <section className="py-20 px-5 bg-[#F5F3EE] border-y border-[#E8E5DC]">
+      <section className="py-20 px-5 bg-[#F5F3EE] border-y border-[#EAE7DE]">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-14">
 
@@ -677,7 +677,7 @@ export default function HomePage() {
                   { icon: <IconLeaf />, title: "Nutrition shifts with physiology", body: "Luteal-phase caloric needs are higher. Caloric restriction during this phase worsens mood — Axis never recommends it." },
                   { icon: <IconZap />, title: "Recovery is a performance lever", body: "Rest days are recommended, not apologised for. The coaching system treats recovery as training." },
                 ].map(({ icon, title, body }) => (
-                  <div key={title} className="flex items-start gap-3 p-3.5 bg-white rounded-xl border border-[#E8E5DC]">
+                  <div key={title} className="flex items-start gap-3 p-3.5 bg-white rounded-xl border border-[#EAE7DE]">
                     <div className="w-8 h-8 rounded-lg bg-[#EEEDFE] flex items-center justify-center text-[#534AB7] flex-shrink-0">
                       {icon}
                     </div>
@@ -730,7 +730,7 @@ export default function HomePage() {
       </section>
 
       {/* ── How it works ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 px-5 bg-[#F5F3EE] border-y border-[#E8E5DC]">
+      <section id="how-it-works" className="py-20 px-5 bg-[#F5F3EE] border-y border-[#EAE7DE]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-widest mb-3">The method</div>
@@ -750,7 +750,7 @@ export default function HomePage() {
               { num: "04", label: "Nutrition",   body: "Macro targets, micronutrients, timing", color: "#FAEEDA", textColor: "#854F0B" },
               { num: "05", label: "Adaptive AI", body: "Combines all signals into a readiness score", color: "#EEEDFE", textColor: "#534AB7" },
             ].map(({ num, label, body, color, textColor }) => (
-              <div key={num} className="bg-white rounded-2xl border border-[#E8E5DC] p-5 hover:shadow-[0_4px_24px_rgba(83,74,183,0.07)] transition-shadow">
+              <div key={num} className="bg-white rounded-2xl border border-[#EAE7DE] p-5 hover:shadow-[0_4px_24px_rgba(83,74,183,0.07)] transition-shadow">
                 <div className="text-[11px] font-semibold mb-3" style={{ color: textColor }}>{num}</div>
                 <div
                   className="w-8 h-8 rounded-lg mb-3 flex items-center justify-center text-[11px] font-bold"
@@ -825,7 +825,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="text-[11px] font-semibold text-[#534AB7] uppercase tracking-widest mb-4">The science</div>
           <blockquote
-            className="text-[clamp(1.1rem,3vw,1.5rem)] font-light text-[#E8E5DC] leading-relaxed italic mb-6"
+            className="text-[clamp(1.1rem,3vw,1.5rem)] font-light text-[#EAE7DE] leading-relaxed italic mb-6"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             "Women should not be forced into static training systems designed around average physiology.
@@ -836,7 +836,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer className="py-10 px-5 border-t border-[#E8E5DC]">
+      <footer className="py-10 px-5 border-t border-[#EAE7DE]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-[#534AB7] flex items-center justify-center">

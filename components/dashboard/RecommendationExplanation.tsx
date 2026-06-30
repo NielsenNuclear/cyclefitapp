@@ -57,7 +57,7 @@ export function RecommendationExplanation({ points, disclaimer }: Recommendation
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white shadow-[0_1px_12px_rgba(0,0,0,0.04)] overflow-hidden">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white shadow-[0_1px_12px_rgba(0,0,0,0.04)] overflow-hidden">
 
       {/* Toggle header */}
       <button

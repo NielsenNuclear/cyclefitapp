@@ -7,9 +7,9 @@ interface Props {
 }
 
 const LEVEL_COLOR: Record<string, string> = {
-  high:   "text-emerald-400",
-  medium: "text-sky-400",
-  low:    "text-amber-400",
+  high:   "text-[#0F6E56]",
+  medium: "text-[#1B4FA0]",
+  low:    "text-[#854F0B]",
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -51,24 +51,24 @@ function ConfidenceRing({ score, level }: { score: number; level: string }) {
 export function ReadinessConfidenceCard({ confidence }: Props) {
   if (!confidence) return null;
 
-  const levelColor = LEVEL_COLOR[confidence.confidenceLevel] ?? "text-white";
+  const levelColor = LEVEL_COLOR[confidence.confidenceLevel] ?? "text-[#1C1B18]";
   const levelLabel = LEVEL_LABEL[confidence.confidenceLevel] ?? confidence.confidenceLevel;
   const levelNote  = LEVEL_NOTE[confidence.confidenceLevel]  ?? "";
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Readiness Confidence</h3>
+        <h3 className="text-sm font-semibold text-[#1C1B18]">Readiness Confidence</h3>
         <span className={`text-xs font-semibold ${levelColor}`}>{levelLabel}</span>
       </div>
 
       <div className="flex items-center gap-4">
         <ConfidenceRing score={confidence.confidence} level={confidence.confidenceLevel} />
         <div className="flex-1 space-y-1">
-          <div className="text-sm font-semibold text-white">
+          <div className="text-sm font-semibold text-[#1C1B18]">
             Readiness {confidence.readinessScore}
           </div>
-          <p className="text-[11px] text-white/45 leading-relaxed">{levelNote}</p>
+          <p className="text-[11px] text-[#9B9690] leading-relaxed">{levelNote}</p>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export function ReadinessConfidenceCard({ confidence }: Props) {
           {confidence.factors.map((f, i) => (
             <div key={i} className="flex gap-2 items-center">
               <div className={`w-1.5 h-1.5 rounded-full ${levelColor.replace("text-", "bg-")} flex-shrink-0`} />
-              <span className="text-[11px] text-white/50">{f}</span>
+              <span className="text-[11px] text-[#6B6860]">{f}</span>
             </div>
           ))}
         </div>

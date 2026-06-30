@@ -30,7 +30,7 @@ function BankBar({ bank }: { bank: RecoveryBank }) {
           </span>
         </div>
       </div>
-      <div className="h-2 bg-[#E8E5DC] rounded-full overflow-hidden">
+      <div className="h-2 bg-[#EAE7DE] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width, backgroundColor: cfg.color }}
@@ -109,7 +109,7 @@ interface PersonalRecoveryCardProps {
 
 export function PersonalRecoveryCard({ profile, bank, outlook }: PersonalRecoveryCardProps) {
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
 
       {/* Header */}
       <div className="px-4 py-3 bg-[#EAF8EF] border-b border-[#C3E8D0]">

@@ -85,7 +85,7 @@ export function PeriodizedCalendarCard({ calendar }: PeriodizedCalendarCardProps
   if (!calendar) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Upcoming 4 weeks</CardLabel>
 
       <div>

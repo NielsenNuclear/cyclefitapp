@@ -746,7 +746,7 @@ function PrepSection({ label, defaultOpen, warmup, items, recovery }: PrepSectio
   const subtitle = totalMin ? `~${totalMin} min` : undefined;
 
   return (
-    <div className="mb-3 border border-[#E8E5DC] rounded-xl overflow-hidden">
+    <div className="mb-3 border border-[#EAE7DE] rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
@@ -1113,7 +1113,7 @@ export function WorkoutCard({
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between mb-3">
         <CardLabel>Today's Workout</CardLabel>
         {mode === "active" && (

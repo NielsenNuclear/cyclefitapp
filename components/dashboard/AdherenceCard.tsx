@@ -21,10 +21,10 @@ interface Props {
 }
 
 const TIER_COLOR: Record<string, string> = {
-  consistent:   "text-emerald-400",
-  building:     "text-sky-400",
-  inconsistent: "text-amber-400",
-  at_risk:      "text-rose-400",
+  consistent:   "text-[#0F6E56]",
+  building:     "text-[#1B4FA0]",
+  inconsistent: "text-[#854F0B]",
+  at_risk:      "text-[#C0392B]",
 };
 
 const TIER_LABEL: Record<string, string> = {
@@ -35,9 +35,9 @@ const TIER_LABEL: Record<string, string> = {
 };
 
 const RISK_COLOR: Record<string, string> = {
-  low:    "text-emerald-400",
-  medium: "text-amber-400",
-  high:   "text-rose-400",
+  low:    "text-[#0F6E56]",
+  medium: "text-[#854F0B]",
+  high:   "text-[#C0392B]",
 };
 
 const MOMENTUM_ICON: Record<string, string> = {
@@ -48,10 +48,10 @@ const MOMENTUM_ICON: Record<string, string> = {
 };
 
 const MOMENTUM_COLOR: Record<string, string> = {
-  strong:    "text-emerald-400",
-  improving: "text-sky-400",
-  flat:      "text-white/50",
-  declining: "text-rose-400",
+  strong:    "text-[#0F6E56]",
+  improving: "text-[#1B4FA0]",
+  flat:      "text-[#6B6860]",
+  declining: "text-[#C0392B]",
 };
 
 const DURATION_OPTIONS = [3, 7, 14] as const;
@@ -101,13 +101,13 @@ export function AdherenceCard({
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Adherence Intelligence</h3>
+        <h3 className="text-sm font-semibold text-[#1C1B18]">Adherence Intelligence</h3>
         <button
           onClick={() => setShowLifePicker(v => !v)}
-          className="text-[11px] text-white/40 hover:text-white/70 border border-white/10 rounded-full px-3 py-1 transition-colors"
+          className="text-[11px] text-[#9B9690] hover:text-[#1C1B18] border border-[#EAE7DE] rounded-full px-3 py-1 transition-colors"
         >
           Life happened
         </button>
@@ -115,15 +115,15 @@ export function AdherenceCard({
 
       {/* Life event picker */}
       {showLifePicker && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
-          <p className="text-xs text-white/60">What's going on?</p>
+        <div className="bg-[#F1EFE8] border border-[#EAE7DE] rounded-xl p-4 space-y-3">
+          <p className="text-xs text-[#5C5850]">What's going on?</p>
           <div className="flex flex-wrap gap-2">
             {LIFE_EVENT_TYPES.map(t => (
               <button key={t} onClick={() => setSelectedEvent(t)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                   selectedEvent === t
-                    ? "bg-violet-500/30 border-violet-400/60 text-violet-200"
-                    : "bg-white/5 border-white/15 text-white/60 hover:bg-white/10"
+                    ? "bg-[#EEEDFE] border-[#C4C0EE] text-[#3C3489]"
+                    : "bg-[#F1EFE8] border-[#EAE7DE] text-[#5C5850] hover:bg-[#E8E5DE]"
                 }`}>
                 {LIFE_EVENT_LABELS[t]}
               </button>
@@ -131,14 +131,14 @@ export function AdherenceCard({
           </div>
           {selectedEvent && (
             <>
-              <p className="text-[11px] text-white/50">For how long?</p>
+              <p className="text-[11px] text-[#6B6860]">For how long?</p>
               <div className="flex gap-2">
                 {DURATION_OPTIONS.map(d => (
                   <button key={d} onClick={() => setSelectedDays(d)}
                     className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${
                       selectedDays === d
-                        ? "bg-violet-500/30 border-violet-400/60 text-violet-200"
-                        : "bg-white/5 border-white/15 text-white/60 hover:bg-white/10"
+                        ? "bg-[#EEEDFE] border-[#C4C0EE] text-[#3C3489]"
+                        : "bg-[#F1EFE8] border-[#EAE7DE] text-[#5C5850] hover:bg-[#E8E5DE]"
                     }`}>
                     {d} days
                   </button>
@@ -157,18 +157,18 @@ export function AdherenceCard({
       {lifeEvent && (
         <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-3 flex items-start gap-3">
           <div className="flex-1">
-            <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-widest mb-0.5">
+            <div className="text-[10px] text-[#854F0B] font-semibold uppercase tracking-widest mb-0.5">
               {LIFE_EVENT_LABELS[lifeEvent.type]} Mode
             </div>
-            <p className="text-[11px] text-white/60 leading-relaxed">
+            <p className="text-[11px] text-[#5C5850] leading-relaxed">
               {lifeEvent.adjustments.expectationNote}
             </p>
-            <div className="text-[10px] text-white/30 mt-1">
+            <div className="text-[10px] text-[#C8C5BC] mt-1">
               {lifeEvent.daysRemaining} day{lifeEvent.daysRemaining !== 1 ? "s" : ""} remaining
             </div>
           </div>
           <button onClick={onClearLifeEvent}
-            className="text-white/30 hover:text-white/60 text-lg leading-none">×</button>
+            className="text-[#C8C5BC] hover:text-[#5C5850] text-lg leading-none">×</button>
         </div>
       )}
 
@@ -187,7 +187,7 @@ export function AdherenceCard({
             <div className={`text-[11px] ${RISK_COLOR[risk.level]}`}>
               Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}
               {risk.level !== "low" && risk.reasons[0] && (
-                <span className="text-white/35 ml-1">— {risk.reasons[0]}</span>
+                <span className="text-[#9B9690] ml-1">— {risk.reasons[0]}</span>
               )}
             </div>
           )}
@@ -202,9 +202,9 @@ export function AdherenceCard({
           { label: "Recovery",  val: consistency.recovery   },
           { label: "Check-ins", val: consistency.checkins   },
         ].map(({ label, val }) => (
-          <div key={label} className="bg-white/5 rounded-xl py-2 px-1">
-            <div className="text-sm font-semibold text-white">{val}</div>
-            <div className="text-[9px] text-white/40 mt-0.5">{label}</div>
+          <div key={label} className="bg-[#F1EFE8] rounded-xl py-2 px-1">
+            <div className="text-sm font-semibold text-[#1C1B18]">{val}</div>
+            <div className="text-[9px] text-[#9B9690] mt-0.5">{label}</div>
           </div>
         ))}
       </div>
@@ -221,12 +221,12 @@ export function AdherenceCard({
             .filter(s => s.d.current > 0 || s.d.longest > 0)
             .slice(0, 4)
             .map(({ label, d }) => (
-              <div key={label} className="bg-white/5 rounded-xl px-3 py-2">
+              <div key={label} className="bg-[#F1EFE8] rounded-xl px-3 py-2">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-[10px] text-white/40">{label}</span>
-                  <span className="text-[10px] text-white/25">best {d.longest}</span>
+                  <span className="text-[10px] text-[#9B9690]">{label}</span>
+                  <span className="text-[10px] text-[#C8C5BC]">best {d.longest}</span>
                 </div>
-                <div className="text-sm font-semibold text-white mt-0.5">{d.current} days</div>
+                <div className="text-sm font-semibold text-[#1C1B18] mt-0.5">{d.current} days</div>
               </div>
             ))}
         </div>
@@ -235,27 +235,27 @@ export function AdherenceCard({
       {/* Success formula */}
       {formula && formula.readyToPersonalise && formula.topConditions.length > 0 && (
         <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 space-y-2">
-          <div className="text-[10px] text-violet-400 font-semibold uppercase tracking-widest">
+          <div className="text-[10px] text-[#534AB7] font-semibold uppercase tracking-widest">
             Your success formula
           </div>
           <div className="space-y-1">
             {formula.topConditions.map(c => (
               <div key={c.factor} className="flex items-center gap-2">
-                <span className="text-emerald-400 text-xs">✓</span>
-                <span className="text-xs text-white/70">{c.label}</span>
-                <span className="text-[10px] text-white/30 ml-auto">
+                <span className="text-[#0F6E56] text-xs">✓</span>
+                <span className="text-xs text-[#1C1B18]">{c.label}</span>
+                <span className="text-[10px] text-[#C8C5BC] ml-auto">
                   {Math.round(c.completionRateWhen * 100)}%
                 </span>
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-white/50 leading-relaxed">{formula.insight}</p>
+          <p className="text-[11px] text-[#6B6860] leading-relaxed">{formula.insight}</p>
         </div>
       )}
 
       {/* Focus this week */}
       {consistency && (
-        <div className="text-[11px] text-white/40 text-center pt-1">
+        <div className="text-[11px] text-[#9B9690] text-center pt-1">
           {consistency.tier === "at_risk"
             ? "Focus: show up at least twice this week, no matter the session length."
             : consistency.tier === "inconsistent"

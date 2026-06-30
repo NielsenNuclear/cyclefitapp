@@ -132,7 +132,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
         <div className="max-w-lg mx-auto space-y-4">
 
           {/* Score + badge */}
-          <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 flex items-center gap-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 flex items-center gap-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <BuildingRing size={96} />
             <div className="flex-1">
               <div className="text-[11px] text-[#8A8880] mb-1.5">
@@ -155,7 +155,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
           </div>
 
           {/* Readiness weight model */}
-          <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">
               Your readiness model weights
             </div>
@@ -172,7 +172,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
           </div>
 
           {/* Goals */}
-          <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Training goals</div>
             <div className="flex flex-wrap gap-2">
               {data.goals.map(g => (
@@ -185,7 +185,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
 
           {/* Nutrition + recovery */}
           <div className="grid grid-cols-1 gap-3">
-            <div className="bg-white rounded-xl border border-[#E8E5DC] p-4 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <div className="bg-white rounded-xl border border-[#EAE7DE] p-4 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
               <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-lg bg-[#E1F5EE] flex items-center justify-center text-[#0F6E56] flex-shrink-0">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -200,7 +200,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#E8E5DC] p-4 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
+            <div className="bg-white rounded-xl border border-[#EAE7DE] p-4 shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
               <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-lg bg-[#EEEDFE] flex items-center justify-center text-[#534AB7] flex-shrink-0">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -216,13 +216,13 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
           </div>
 
           {/* Phase strategy */}
-          <div className="p-4 bg-[#FAF9F6] rounded-xl border border-[#E8E5DC]">
+          <div className="p-4 bg-[#FAF9F6] rounded-xl border border-[#EAE7DE]">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-2">Physiological context strategy</div>
             <p className="text-[12px] text-[#6B6860] leading-relaxed">{profile.phaseStrategy}</p>
           </div>
 
           {/* Key signals */}
-          <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Key signals in your model</div>
             <div className="flex flex-wrap gap-2">
               {profile.keySignals.map((s, i) => (

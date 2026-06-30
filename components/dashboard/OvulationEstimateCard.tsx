@@ -36,7 +36,7 @@ export function OvulationEstimateCard({ estimate }: OvulationEstimateCardProps) 
   const conf = CONFIDENCE_CONFIG[confidence];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Estimated ovulation window</CardLabel>
 
       <div className="flex items-center gap-2 mb-3">

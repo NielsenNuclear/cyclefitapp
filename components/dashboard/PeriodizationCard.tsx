@@ -27,7 +27,7 @@ function BlockProgressBar({ progress, phase }: { progress: number; phase: string
   const color = PHASE_COLORS[phase as keyof typeof PHASE_COLORS] ?? "#534AB7";
   const pct   = Math.round(Math.min(1, Math.max(0, progress)) * 100);
   return (
-    <div className="relative h-2 bg-[#E8E5DC] rounded-full overflow-hidden">
+    <div className="relative h-2 bg-[#EAE7DE] rounded-full overflow-hidden">
       <div
         className="h-full rounded-full transition-all duration-500"
         style={{ width: `${pct}%`, backgroundColor: color }}
@@ -102,7 +102,7 @@ export function PeriodizationCard({
   const phaseColor = PHASE_COLORS[status.phase];
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center justify-between"
@@ -190,7 +190,7 @@ export function PeriodizationCard({
             </div>
 
             {/* Progress bar */}
-            <div className="relative h-2 bg-[#E8E5DC] rounded-full overflow-hidden mb-1.5">
+            <div className="relative h-2 bg-[#EAE7DE] rounded-full overflow-hidden mb-1.5">
               <div
                 className="h-full bg-[#534AB7] rounded-full transition-all duration-500"
                 style={{ width: `${forecast.progressPercent}%` }}

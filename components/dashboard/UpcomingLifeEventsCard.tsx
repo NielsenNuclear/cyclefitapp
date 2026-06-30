@@ -10,10 +10,10 @@ interface Props {
 }
 
 const MODE_COLOR: Record<WorkoutMode, string> = {
-  full:               "text-emerald-400",
-  condensed:          "text-sky-400",
-  minimum_effective:  "text-amber-400",
-  recovery:           "text-rose-400",
+  full:               "text-[#0F6E56]",
+  condensed:          "text-[#1B4FA0]",
+  minimum_effective:  "text-[#854F0B]",
+  recovery:           "text-[#C0392B]",
 };
 
 function daysLabel(daysUntil: number, isActive: boolean): string {
@@ -27,10 +27,10 @@ export function UpcomingLifeEventsCard({ events }: Props) {
   if (!events || events.length === 0) return null;
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Upcoming Life Events</h3>
-        <span className="text-[10px] text-white/30">{events.length} scheduled</span>
+        <h3 className="text-sm font-semibold text-[#1C1B18]">Upcoming Life Events</h3>
+        <span className="text-[10px] text-[#C8C5BC]">{events.length} scheduled</span>
       </div>
 
       <div className="space-y-3">
@@ -43,30 +43,30 @@ export function UpcomingLifeEventsCard({ events }: Props) {
           return (
             <div
               key={event.id}
-              className={`rounded-xl p-3 space-y-1.5 ${event.isActive ? "bg-amber-500/10 border border-amber-500/20" : "bg-white/5"}`}
+              className={`rounded-xl p-3 space-y-1.5 border ${event.isActive ? "bg-[#FAEEDA] border-[#E4C88A]" : "bg-[#F1EFE8] border-[#EAE7DE]"}`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-white">{event.label}</span>
-                <span className={`text-[10px] ${event.isActive ? "text-amber-400" : "text-white/35"}`}>
+                <span className="text-xs font-semibold text-[#1C1B18]">{event.label}</span>
+                <span className={`text-[10px] ${event.isActive ? "text-[#854F0B]" : "text-[#9B9690]"}`}>
                   {label}
                 </span>
               </div>
 
               <div className="flex items-center gap-3 text-[10px]">
-                <span className="text-white/30">{event.startDate} → {event.endDate}</span>
+                <span className="text-[#C8C5BC]">{event.startDate} → {event.endDate}</span>
               </div>
 
               <div className="flex items-center gap-2 pt-0.5">
-                <span className="text-[10px] text-white/30">Axis adjusts to</span>
+                <span className="text-[10px] text-[#C8C5BC]">Axis adjusts to</span>
                 <span className={`text-[10px] font-semibold ${modeColor}`}>{modeCfg.label}</span>
-                <span className="text-[10px] text-white/25">· {Math.round(event.adjustments.volumeScale * 100)}% volume</span>
+                <span className="text-[10px] text-[#C8C5BC]">· {Math.round(event.adjustments.volumeScale * 100)}% volume</span>
               </div>
             </div>
           );
         })}
       </div>
 
-      <p className="text-[11px] text-white/35 text-center">
+      <p className="text-[11px] text-[#9B9690] text-center">
         Axis has pre-adjusted your training plan around these events.
       </p>
     </div>

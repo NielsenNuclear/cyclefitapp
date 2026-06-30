@@ -13,10 +13,10 @@ export function SkipReasonCard({ date: _date, onComplete, onDismiss }: Props) {
   const [selected, setSelected] = useState<SkipReason | null>(null);
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div>
-        <h3 className="text-sm font-semibold text-white">Why did you skip?</h3>
-        <p className="text-[11px] text-white/45 mt-0.5">
+        <h3 className="text-sm font-semibold text-[#1C1B18]">Why did you skip?</h3>
+        <p className="text-[11px] text-[#9B9690] mt-0.5">
           This helps Axis learn when to offer you a shorter session.
         </p>
       </div>
@@ -28,8 +28,8 @@ export function SkipReasonCard({ date: _date, onComplete, onDismiss }: Props) {
             onClick={() => setSelected(reason)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
               selected === reason
-                ? "bg-violet-500/30 border-violet-400/60 text-violet-200"
-                : "bg-white/5 border-white/15 text-white/60 hover:bg-white/10 hover:text-white/80"
+                ? "bg-[#EEEDFE] border-[#C4C0EE] text-[#3C3489]"
+                : "bg-[#F1EFE8] border-[#EAE7DE] text-[#5C5850] hover:bg-[#E8E5DE] hover:text-[#1C1B18]"
             }`}
           >
             {reason}
@@ -49,7 +49,7 @@ export function SkipReasonCard({ date: _date, onComplete, onDismiss }: Props) {
         </button>
         <button
           onClick={onDismiss}
-          className="px-4 py-2.5 rounded-xl text-sm text-white/50 hover:text-white/70 transition-colors"
+          className="px-4 py-2.5 rounded-xl text-sm text-[#6B6860] hover:text-[#1C1B18] transition-colors"
         >
           Skip
         </button>

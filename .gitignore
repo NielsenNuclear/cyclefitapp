@@ -43,3 +43,9 @@ next-env.d.ts
 
 # claude code session data
 .claude/
+
+# Body model source and working files (large binaries — use pipeline to regenerate)
+uploads_files_*
+assets/body/source/
+assets/body/working/
+assets/body/export/

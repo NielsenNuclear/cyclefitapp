@@ -23,7 +23,7 @@ function StrategyChip({ item, selected, onToggle }: ChipProps) {
         "px-3 py-1.5 rounded-xl border text-[11px] font-medium transition-colors",
         selected
           ? "bg-[#EEF1FD] border-[#534AB7] text-[#3C3489]"
-          : "bg-[#F9F8F4] border-[#E8E5DC] text-[#6B6560]",
+          : "bg-[#F9F8F4] border-[#EAE7DE] text-[#6B6560]",
       ].join(" ")}
       title={item.description}
     >
@@ -63,7 +63,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
 
   if (saved) {
     return (
-      <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm px-4 py-3">
+      <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm px-4 py-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-1">
           Recovery Check-in
         </p>
@@ -84,7 +84,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
   const lifestyleItems = RECOVERY_STRATEGY_CATALOG.filter(s => s.category === "lifestyle");
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
       <div className="px-4 py-3 border-b border-[#F0EDE4]">
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
           Recovery Check-in

@@ -14,10 +14,10 @@ const TREND_ICON: Record<AccuracyTrend, string>  = {
 };
 
 const TREND_COLOR: Record<AccuracyTrend, string> = {
-  improving:    "text-emerald-400",
-  stable:       "text-sky-400",
-  declining:    "text-rose-400",
-  insufficient: "text-white/25",
+  improving:    "text-[#0F6E56]",
+  stable:       "text-[#1B4FA0]",
+  declining:    "text-[#C0392B]",
+  insufficient: "text-[#C8C5BC]",
 };
 
 const ACC_BAR = (acc: number) =>
@@ -36,10 +36,10 @@ export function AccuracyTimelineCard({ accuracy }: Props) {
   ] as const;
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Forecast Accuracy</h3>
-        <span className="text-sm font-semibold text-white">{accuracy.overall}%</span>
+        <h3 className="text-sm font-semibold text-[#1C1B18]">Forecast Accuracy</h3>
+        <span className="text-sm font-semibold text-[#1C1B18]">{accuracy.overall}%</span>
       </div>
 
       <div className="space-y-3">
@@ -50,25 +50,25 @@ export function AccuracyTimelineCard({ accuracy }: Props) {
           return (
             <div key={label} className="space-y-1">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-white/55">{label}</span>
+                <span className="text-[#5C5850]">{label}</span>
                 <div className="flex items-center gap-2">
                   <span className={`${trendColor} text-[10px]`}>{trendIcon}</span>
-                  <span className="text-white/35">{data.accuracy}%</span>
+                  <span className="text-[#9B9690]">{data.accuracy}%</span>
                 </div>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-white/8">
+              <div className="w-full h-1.5 rounded-full bg-black/8">
                 <div
                   className={`h-1.5 rounded-full transition-all ${ACC_BAR(data.accuracy)}`}
                   style={{ width: `${data.accuracy}%` }}
                 />
               </div>
-              <div className="text-[9px] text-white/25">{data.sampleSize} observations</div>
+              <div className="text-[9px] text-[#C8C5BC]">{data.sampleSize} observations</div>
             </div>
           );
         })}
       </div>
 
-      <p className="text-[10px] text-white/30 text-center">
+      <p className="text-[10px] text-[#C8C5BC] text-center">
         Accuracy improves as Axis observes more outcomes over time.
       </p>
     </div>

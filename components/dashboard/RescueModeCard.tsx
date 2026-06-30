@@ -21,12 +21,12 @@ export function RescueModeCard({ rescueMode, onExit }: Props) {
           <div className="text-[10px] text-rose-400 font-semibold uppercase tracking-widest mb-0.5">
             Rescue Mode Active
           </div>
-          <h3 className="text-sm font-semibold text-white">Protecting Your Momentum</h3>
-          <p className="text-[11px] text-white/45 mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining</p>
+          <h3 className="text-sm font-semibold text-[#1C1B18]">Protecting Your Momentum</h3>
+          <p className="text-[11px] text-[#9B9690] mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining</p>
         </div>
         <button
           onClick={onExit}
-          className="text-[11px] text-white/40 hover:text-white/70 border border-white/15 rounded-full px-3 py-1 transition-colors flex-shrink-0"
+          className="text-[11px] text-[#9B9690] hover:text-[#5C5850] border border-[#EAE7DE] rounded-full px-3 py-1 transition-colors flex-shrink-0"
         >
           Exit mode
         </button>
@@ -34,11 +34,11 @@ export function RescueModeCard({ rescueMode, onExit }: Props) {
 
       {/* Progress bar */}
       <div className="space-y-1">
-        <div className="text-[10px] text-white/35 flex justify-between">
+        <div className="text-[10px] text-[#9B9690] flex justify-between">
           <span>Started</span>
           <span>Day {7 - daysRemaining + 1} of 7</span>
         </div>
-        <div className="w-full h-1.5 rounded-full bg-white/10">
+        <div className="w-full h-1.5 rounded-full bg-black/8">
           <div
             className="h-1.5 rounded-full bg-rose-400 transition-all"
             style={{ width: `${progress}%` }}
@@ -54,14 +54,14 @@ export function RescueModeCard({ rescueMode, onExit }: Props) {
           { label: "Nutrition",    value: adjustments.nutritionFocus                 },
           { label: "Recovery",     value: `${adjustments.recoveryHabits} habit / day` },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white/5 border border-white/8 rounded-xl px-3 py-2.5">
-            <div className="text-[10px] text-white/40 mb-0.5">{label}</div>
-            <div className="text-xs font-medium text-white">{value}</div>
+          <div key={label} className="bg-[#F1EFE8] border border-[#EAE7DE] rounded-xl px-3 py-2.5">
+            <div className="text-[10px] text-[#9B9690] mb-0.5">{label}</div>
+            <div className="text-xs font-medium text-[#1C1B18]">{value}</div>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] text-white/45 leading-relaxed text-center">
+      <p className="text-[11px] text-[#9B9690] leading-relaxed text-center">
         Rescue mode reduces volume and expectations so you stay in the habit without burning out further.
         Axis will gradually restore normal load once momentum returns.
       </p>

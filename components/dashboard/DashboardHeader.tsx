@@ -4,7 +4,6 @@ import type { DailyRecommendation } from "@/types/recommendation";
 
 interface DashboardHeaderProps {
   recommendation: DailyRecommendation;
-  userName?: string;
 }
 
 function getGreeting(): string {
@@ -34,7 +33,7 @@ const BADGE_STYLES: Record<string, { bg: string; text: string; dot: string }> = 
   Recover:  { bg: "bg-[#EEF0F2]",  text: "text-[#3D4451]",  dot: "bg-[#6B7280]"  },
 };
 
-export function DashboardHeader({ recommendation, userName = "Emma" }: DashboardHeaderProps) {
+export function DashboardHeader({ recommendation }: DashboardHeaderProps) {
   const greeting  = getGreeting();
   const context   = getMotivationalContext(recommendation);
 
@@ -61,8 +60,7 @@ export function DashboardHeader({ recommendation, userName = "Emma" }: Dashboard
               className="text-[clamp(1.6rem,5vw,2.2rem)] font-light text-[#1C1B18] leading-tight mb-1.5"
               style={{ fontFamily: "'Lora', Georgia, serif" }}
             >
-              {greeting},{" "}
-              <span className="italic">{userName}.</span>
+              {greeting}.
             </h1>
             <p className="text-[13px] text-[#6B6860] leading-relaxed">{context}</p>
           </div>

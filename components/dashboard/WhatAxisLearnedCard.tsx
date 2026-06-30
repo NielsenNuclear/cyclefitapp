@@ -55,10 +55,10 @@ export function WhatAxisLearnedCard({
 
   const tier         = personalizationProgress.tier;
   const tierColor    =
-    tier === "Highly Personalized" ? "text-violet-400" :
-    tier === "Personalized"        ? "text-teal-400"   :
-    tier === "Learning"            ? "text-amber-400"  :
-    "text-zinc-500";
+    tier === "Highly Personalized" ? "text-[#534AB7]" :
+    tier === "Personalized"        ? "text-[#0F6E56]"   :
+    tier === "Learning"            ? "text-[#854F0B]"  :
+    "text-[#9B9690]";
 
   const hasStrengthDays  = fingerprint && fingerprint.bestStrengthDays.length > 0
     && fingerprint.entryCount >= 30;
@@ -71,9 +71,9 @@ export function WhatAxisLearnedCard({
   if (!hasAnything) return null;
 
   return (
-    <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold text-base">What Axis Has Learned</h2>
+        <h2 className="text-[15px] font-semibold text-[#1C1B18]">What Axis Has Learned</h2>
         <span className={`text-xs font-medium ${tierColor}`}>{tier}</span>
       </div>
 
@@ -81,11 +81,11 @@ export function WhatAxisLearnedCard({
         {/* Best performance window */}
         {hasStrengthDays && (
           <div className="space-y-0.5">
-            <p className="text-zinc-400 text-xs uppercase tracking-wide">Peak performance window</p>
-            <p className="text-white text-sm">
+            <p className="text-[#6B6860] text-xs uppercase tracking-wide">Peak performance window</p>
+            <p className="text-[13px] text-[#1C1B18]">
               {cycleOrdinal(fingerprint!.bestStrengthDays)} of your cycle
             </p>
-            <p className="text-zinc-500 text-xs">
+            <p className="text-[#9B9690] text-xs">
               Based on {fingerprint!.entryCount} tracked sessions
             </p>
           </div>
@@ -94,22 +94,22 @@ export function WhatAxisLearnedCard({
         {/* Challenging recovery days */}
         {hasRecoveryDays && (
           <div className="space-y-0.5">
-            <p className="text-zinc-400 text-xs uppercase tracking-wide">Lower readiness window</p>
-            <p className="text-white text-sm">
+            <p className="text-[#6B6860] text-xs uppercase tracking-wide">Lower readiness window</p>
+            <p className="text-[13px] text-[#1C1B18]">
               {cycleOrdinal(fingerprint!.worstRecoveryDays)} of your cycle
             </p>
-            <p className="text-zinc-500 text-xs">Lighter sessions tend to work better here</p>
+            <p className="text-[#9B9690] text-xs">Lighter sessions tend to work better here</p>
           </div>
         )}
 
         {/* Reliable symptom patterns */}
         {reliablePatterns.length > 0 && (
           <div className="space-y-1">
-            <p className="text-zinc-400 text-xs uppercase tracking-wide">Consistent symptom patterns</p>
+            <p className="text-[#6B6860] text-xs uppercase tracking-wide">Consistent symptom patterns</p>
             {reliablePatterns.map(p => (
               <div key={p.patternId} className="flex items-start justify-between gap-2">
-                <p className="text-white text-sm">{p.symptomName}</p>
-                <span className="text-zinc-500 text-xs whitespace-nowrap">
+                <p className="text-[13px] text-[#1C1B18]">{p.symptomName}</p>
+                <span className="text-[#9B9690] text-xs whitespace-nowrap">
                   {Math.round(p.confidence * 100)}% of cycles · {p.phase.replace(" Phase", "")}
                 </span>
               </div>
@@ -120,9 +120,9 @@ export function WhatAxisLearnedCard({
         {/* Dominant readiness predictor */}
         {dominantFactor && (
           <div className="space-y-0.5">
-            <p className="text-zinc-400 text-xs uppercase tracking-wide">Strongest readiness signal</p>
-            <p className="text-white text-sm capitalize">{dominantFactor}</p>
-            <p className="text-zinc-500 text-xs">
+            <p className="text-[#6B6860] text-xs uppercase tracking-wide">Strongest readiness signal</p>
+            <p className="text-[13px] text-[#1C1B18] capitalize">{dominantFactor}</p>
+            <p className="text-[#9B9690] text-xs">
               Most predictive of your day-to-day readiness score
             </p>
           </div>
@@ -131,11 +131,11 @@ export function WhatAxisLearnedCard({
         {/* Recovery capacity */}
         {recoveryCapacity && recoveryCapacity.confidence !== "early" && (
           <div className="space-y-0.5">
-            <p className="text-zinc-400 text-xs uppercase tracking-wide">Recovery capacity</p>
-            <p className="text-white text-sm">
+            <p className="text-[#6B6860] text-xs uppercase tracking-wide">Recovery capacity</p>
+            <p className="text-[13px] text-[#1C1B18]">
               {capacityLabel[recoveryCapacity.level] ?? recoveryCapacity.level}
             </p>
-            <p className="text-zinc-500 text-xs">
+            <p className="text-[#9B9690] text-xs">
               {recoveryCapacity.confidence === "established" ? "Established" : "Growing"} pattern
               · {recoveryCapacity.dataPoints} sessions tracked
             </p>

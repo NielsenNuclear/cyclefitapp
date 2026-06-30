@@ -77,7 +77,7 @@ export function WorkoutFeedbackCard({ date, onComplete }: WorkoutFeedbackCardPro
 
   if (submitted) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] px-5 py-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)] flex items-center gap-3">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] px-5 py-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)] flex items-center gap-3">
         <div className="w-7 h-7 rounded-full bg-[#E1F5EE] border border-[#A3DCCA] flex items-center justify-center flex-shrink-0">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
@@ -109,7 +109,7 @@ export function WorkoutFeedbackCard({ date, onComplete }: WorkoutFeedbackCardPro
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Session feedback</CardLabel>
 
       {/* Session RPE */}

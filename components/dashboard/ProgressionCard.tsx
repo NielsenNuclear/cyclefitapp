@@ -90,7 +90,7 @@ interface ProgressionCardProps {
 export function ProgressionCard({ profile, adjustment }: ProgressionCardProps) {
   if (!profile) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Adaptive Coaching</CardLabel>
         <p className="text-[12px] text-[#9B9690] leading-relaxed">
           Log your first workout to activate the progression engine.
@@ -102,7 +102,7 @@ export function ProgressionCard({ profile, adjustment }: ProgressionCardProps) {
   const style = ACTION_STYLES[profile.recommendedAction];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between mb-4">
         <CardLabel>Adaptive Coaching</CardLabel>
         <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${style.badge}`}>

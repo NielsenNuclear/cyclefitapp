@@ -59,7 +59,7 @@ export function TrainingCard({
   const badge = BADGE_CONFIG[training.badge] ?? BADGE_CONFIG.Maintain;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Training</CardLabel>
 
       {/* Rest-day signal banner */}
@@ -123,7 +123,7 @@ export function TrainingCard({
 
 export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendation }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Nutrition</CardLabel>
 
       <h3
@@ -188,7 +188,7 @@ export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendatio
 
 export function RecoveryCard({ recovery }: { recovery: RecoveryRecommendation }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Recovery</CardLabel>
 
       <h3

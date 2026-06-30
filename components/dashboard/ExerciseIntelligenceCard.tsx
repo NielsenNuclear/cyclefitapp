@@ -85,9 +85,9 @@ function ResponseProfileSection({ profile }: ResponseProfileSectionProps) {
         Training DNA · {profile.totalSessions} sessions
       </p>
       <div className="flex flex-wrap gap-1.5">
-        {chips.map(label => (
+        {chips.map((label, i) => (
           <span
-            key={label}
+            key={i}
             className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EEF1FD] text-[#3C3489]"
           >
             {label}
@@ -116,7 +116,7 @@ export function ExerciseIntelligenceCard({ trends, trainingProfile }: ExerciseIn
   if (withData.length === 0 && !trainingProfile) return null;
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
 
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#F0EDE4]">

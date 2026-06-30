@@ -33,7 +33,7 @@ interface TrainingSummaryCardProps {
 export function TrainingSummaryCard({ summary }: TrainingSummaryCardProps) {
   if (!summary || summary.totalWorkouts === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Training Summary</CardLabel>
         <p className="text-[12px] text-[#9B9690] leading-relaxed">
           No workouts logged yet. Complete a session to start tracking your progress.
@@ -45,7 +45,7 @@ export function TrainingSummaryCard({ summary }: TrainingSummaryCardProps) {
   const completionPct = Math.round(summary.completionRate * 100);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Training Summary</CardLabel>
 
       <div className="grid grid-cols-3 divide-x divide-[#F0EDE4]">

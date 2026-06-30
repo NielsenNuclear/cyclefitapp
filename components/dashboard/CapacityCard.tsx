@@ -15,10 +15,10 @@ interface Props {
 }
 
 const SUFFICIENCY_BOX: Record<string, string> = {
-  over_trained:   "bg-rose-500/10 border-rose-500/20 text-rose-400",
-  strained:       "bg-amber-500/10 border-amber-500/20 text-amber-400",
-  balanced:       "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
-  under_engaged:  "bg-sky-500/10 border-sky-500/20 text-sky-400",
+  over_trained:   "bg-rose-500/10 border-rose-500/20 text-[#C0392B]",
+  strained:       "bg-amber-500/10 border-amber-500/20 text-[#854F0B]",
+  balanced:       "bg-emerald-500/10 border-emerald-500/20 text-[#0F6E56]",
+  under_engaged:  "bg-sky-500/10 border-sky-500/20 text-[#1B4FA0]",
 };
 
 const TIER_RING: Record<string, string> = {
@@ -30,18 +30,18 @@ const TIER_RING: Record<string, string> = {
 };
 
 const TIER_TEXT: Record<string, string> = {
-  peak:     "text-emerald-400",
-  ready:    "text-sky-400",
-  moderate: "text-amber-400",
+  peak:     "text-[#0F6E56]",
+  ready:    "text-[#1B4FA0]",
+  moderate: "text-[#854F0B]",
   limited:  "text-orange-400",
-  rest:     "text-rose-400",
+  rest:     "text-[#C0392B]",
 };
 
 const PILLAR_BAR = (score: number) =>
   score >= 75 ? "bg-emerald-500" : score >= 55 ? "bg-sky-500" : score >= 35 ? "bg-amber-500" : "bg-rose-500";
 
 const MOMENTUM_ICON: Record<string, string> = { building: "↑", stable: "→", fading: "↓", insufficient: "—" };
-const MOMENTUM_COLOR: Record<string, string> = { building: "text-emerald-400", stable: "text-sky-400", fading: "text-rose-400", insufficient: "text-white/25" };
+const MOMENTUM_COLOR: Record<string, string> = { building: "text-[#0F6E56]", stable: "text-[#1B4FA0]", fading: "text-[#C0392B]", insufficient: "text-[#C8C5BC]" };
 
 export function CapacityCard({ capacity, momentum, forecast, balance, sufficiency }: Props) {
   if (!capacity) return null;
@@ -49,11 +49,11 @@ export function CapacityCard({ capacity, momentum, forecast, balance, sufficienc
   const CIRCUMFERENCE = 2 * Math.PI * 36;
   const dashOffset    = CIRCUMFERENCE * (1 - capacity.score / 100);
   const ringColor     = TIER_RING[capacity.tier] ?? "stroke-white/30";
-  const textColor     = TIER_TEXT[capacity.tier] ?? "text-white";
+  const textColor     = TIER_TEXT[capacity.tier] ?? "text-[#1C1B18]";
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
-      <h3 className="text-sm font-semibold text-white">Performance Capacity</h3>
+    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <h3 className="text-sm font-semibold text-[#1C1B18]">Performance Capacity</h3>
 
       {/* Ring + score */}
       <div className="flex items-center gap-5">
@@ -68,13 +68,13 @@ export function CapacityCard({ capacity, momentum, forecast, balance, sufficienc
         </svg>
         <div className="flex-1 space-y-1">
           <div className={`text-base font-semibold capitalize ${textColor}`}>{capacity.tier.replace("_", " ")}</div>
-          <p className="text-[11px] text-white/45 leading-relaxed">{capacity.headline}</p>
+          <p className="text-[11px] text-[#9B9690] leading-relaxed">{capacity.headline}</p>
           {momentum?.dataReady && (
             <div className="flex items-center gap-1.5 pt-1">
-              <span className={`text-sm font-semibold ${MOMENTUM_COLOR[momentum.direction] ?? "text-white/25"}`}>
+              <span className={`text-sm font-semibold ${MOMENTUM_COLOR[momentum.direction] ?? "text-[#C8C5BC]"}`}>
                 {MOMENTUM_ICON[momentum.direction]}
               </span>
-              <span className="text-[10px] text-white/35">{momentum.description}</span>
+              <span className="text-[10px] text-[#9B9690]">{momentum.description}</span>
             </div>
           )}
         </div>
@@ -89,22 +89,22 @@ export function CapacityCard({ capacity, momentum, forecast, balance, sufficienc
           { label: "Lifestyle",  value: capacity.components.lifestyle  },
         ].map(({ label, value }) => (
           <div key={label} className="flex items-center gap-3">
-            <span className="text-[10px] text-white/40 w-16 flex-shrink-0">{label}</span>
-            <div className="flex-1 h-1.5 rounded-full bg-white/8">
+            <span className="text-[10px] text-[#9B9690] w-16 flex-shrink-0">{label}</span>
+            <div className="flex-1 h-1.5 rounded-full bg-black/8">
               <div className={`h-1.5 rounded-full ${PILLAR_BAR(value)}`} style={{ width: `${value}%` }} />
             </div>
-            <span className="text-[10px] text-white/30 w-6 text-right">{value}</span>
+            <span className="text-[10px] text-[#C8C5BC] w-6 text-right">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Forecast */}
       {forecast?.dataReady && (
-        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/8">
+        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#EAE7DE]">
           {[forecast.day3, forecast.day7].map(d => (
-            <div key={d.daysAhead} className="bg-white/5 rounded-xl py-2.5 px-2 text-center">
-              <div className="text-sm font-semibold text-white">{d.projected}</div>
-              <div className="text-[9px] text-white/30 mt-0.5">{d.daysAhead === 3 ? "3-day" : "7-day"} forecast</div>
+            <div key={d.daysAhead} className="bg-[#F1EFE8] rounded-xl py-2.5 px-2 text-center">
+              <div className="text-sm font-semibold text-[#1C1B18]">{d.projected}</div>
+              <div className="text-[9px] text-[#C8C5BC] mt-0.5">{d.daysAhead === 3 ? "3-day" : "7-day"} forecast</div>
             </div>
           ))}
         </div>
@@ -113,13 +113,13 @@ export function CapacityCard({ capacity, momentum, forecast, balance, sufficienc
       {/* Balance warning */}
       {balance && !balance.isBalanced && balance.weakestPillar && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
-          <div className="text-[10px] text-amber-400 font-semibold">{balance.message}</div>
+          <div className="text-[10px] text-[#854F0B] font-semibold">{balance.message}</div>
         </div>
       )}
 
       {/* Recovery sufficiency (44E) */}
       {sufficiency?.dataReady && (
-        <div className={`border rounded-xl px-3 py-2 ${SUFFICIENCY_BOX[sufficiency.status] ?? "bg-white/5 border-white/10 text-white/40"}`}>
+        <div className={`border rounded-xl px-3 py-2 ${SUFFICIENCY_BOX[sufficiency.status] ?? "bg-[#F1EFE8] border-[#EAE7DE] text-[#9B9690]"}`}>
           <div className="text-[10px] font-semibold capitalize">
             Recovery: {sufficiency.status.replace("_", " ")}
           </div>

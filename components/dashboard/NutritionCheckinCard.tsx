@@ -20,7 +20,7 @@ function Toggle({ label, value, onChange }: ToggleProps) {
         "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-[12px] font-medium transition-colors",
         value
           ? "bg-[#EAF8EF] border-[#A8ECC1] text-[#1A7A3E]"
-          : "bg-[#F9F8F4] border-[#E8E5DC] text-[#6B6560]",
+          : "bg-[#F9F8F4] border-[#EAE7DE] text-[#6B6560]",
       ].join(" ")}
     >
       <span>{label}</span>
@@ -60,7 +60,7 @@ export function NutritionCheckinCard({ date, onComplete }: Props) {
   if (saved) {
     const count = [hitProtein, hitHydration, hitVeggies].filter(Boolean).length;
     return (
-      <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm px-4 py-3">
+      <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm px-4 py-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-1">
           Nutrition Check-in
         </p>
@@ -75,7 +75,7 @@ export function NutritionCheckinCard({ date, onComplete }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
       <div className="px-4 py-3 border-b border-[#F0EDE4]">
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
           Nutrition Check-in

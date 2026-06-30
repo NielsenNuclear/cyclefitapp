@@ -36,7 +36,7 @@ export function OptionCard({
         ${padding}
         ${selected
           ? `${a.border} ${a.bg} shadow-[0_0_0_1px_${a.border}]`
-          : "border-[#E8E5DC] bg-white hover:border-[#C8C5BC] hover:bg-[#FAFAF8]"
+          : "border-[#EAE7DE] bg-white hover:border-[#C8C5BC] hover:bg-[#FAFAF8]"
         }
       `}
     >
@@ -157,7 +157,7 @@ export function ScaleSlider({
           <span className="text-[12px] text-[#8A8880]">{highLabel}</span>
         </div>
       )}
-      <div className="relative h-1.5 bg-[#E8E5DC] rounded-full">
+      <div className="relative h-1.5 bg-[#EAE7DE] rounded-full">
         <div
           className="absolute left-0 top-0 h-full rounded-full transition-all duration-150"
           style={{ width: `${pct}%`, background: color }}
@@ -205,7 +205,7 @@ export function NumberStepper({
   return (
     <div className="flex flex-col items-center gap-2">
       {label && <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider">{label}</div>}
-      <div className="flex items-center gap-4 bg-[#F5F3EE] rounded-2xl px-4 py-3 border border-[#E8E5DC]">
+      <div className="flex items-center gap-4 bg-[#F5F3EE] rounded-2xl px-4 py-3 border border-[#EAE7DE]">
         <button
           type="button"
           onClick={() => onChange(Math.max(min, value - step))}
@@ -241,7 +241,7 @@ interface SegmentedControlProps {
 
 export function SegmentedControl({ options, value, onChange }: SegmentedControlProps) {
   return (
-    <div className="flex bg-[#F5F3EE] rounded-xl p-1 border border-[#E8E5DC] gap-1">
+    <div className="flex bg-[#F5F3EE] rounded-xl p-1 border border-[#EAE7DE] gap-1">
       {options.map(opt => (
         <button
           key={opt.value}
@@ -277,7 +277,7 @@ export function StepContinueButton({ onClick, disabled = false, label, isLast = 
       disabled={disabled}
       className={`w-full py-3.5 rounded-full text-[14px] font-semibold flex items-center justify-center gap-2 transition-all duration-200
         ${disabled
-          ? "bg-[#E8E5DC] text-[#B0AEA6] cursor-not-allowed"
+          ? "bg-[#EAE7DE] text-[#B0AEA6] cursor-not-allowed"
           : "bg-[#1C1B18] text-white hover:bg-[#2C2B28] shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.18)] hover:-translate-y-0.5"
         }`}
     >

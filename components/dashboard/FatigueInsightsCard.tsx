@@ -51,7 +51,7 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
 
   if (entryCount < 3) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
           Recovery Intelligence
         </div>
@@ -76,7 +76,7 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
   const loadLabel = avgLoad >= 4 ? "High" : avgLoad >= 2 ? "Moderate" : "Low";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">

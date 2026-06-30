@@ -37,7 +37,7 @@ interface RecoveryStatusCardProps {
 export function RecoveryStatusCard({ report }: RecoveryStatusCardProps) {
   if (!report) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Recovery Status</CardLabel>
         <p className="text-[12px] text-[#9B9690]">Building your training load profile…</p>
       </div>
@@ -45,7 +45,7 @@ export function RecoveryStatusCard({ report }: RecoveryStatusCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Recovery Status</CardLabel>
 
       {/* Status badge + trend */}

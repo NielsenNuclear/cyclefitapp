@@ -1,0 +1,289 @@
+{
+  "blendFile": "C:\\Users\\ryann\\cyclefit\\cyclefitapp\\assets\\body\\working\\AxisFemale.blend",
+  "objects": [
+    {
+      "name": "Body",
+      "type": "MESH",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vertexCount": 18004,
+      "faceCount": 18002,
+      "uvMaps": [
+        "UVMap"
+      ],
+      "materials": [
+        "Body"
+      ],
+      "vertexGroups": [],
+      "hasShapeKeys": true,
+      "worldBbox": {
+        "min": [
+          -0.623372495174408,
+          -0.15340884029865265,
+          0.0019352518720552325
+        ],
+        "max": [
+          0.6233239769935608,
+          0.13267192244529724,
+          1.7444002628326416
+        ],
+        "center": [
+          -2.4259090423583984e-05,
+          -0.010368458926677704,
+          0.8731677573523484
+        ]
+      }
+    },
+    {
+      "name": "Eyebrows",
+      "type": "MESH",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vertexCount": 826,
+      "faceCount": 822,
+      "uvMaps": [],
+      "materials": [
+        "Body"
+      ],
+      "vertexGroups": [],
+      "hasShapeKeys": false,
+      "worldBbox": {
+        "min": [
+          -0.05502602830529213,
+          -0.10125915706157684,
+          1.6432677507400513
+        ],
+        "max": [
+          0.05502471700310707,
+          -0.07117430865764618,
+          1.658416986465454
+        ],
+        "center": [
+          -6.556510925292969e-07,
+          -0.08621673285961151,
+          1.6508423686027527
+        ]
+      }
+    },
+    {
+      "name": "Eyelashes",
+      "type": "MESH",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vertexCount": 112,
+      "faceCount": 110,
+      "uvMaps": [],
+      "materials": [
+        "Body"
+      ],
+      "vertexGroups": [],
+      "hasShapeKeys": false,
+      "worldBbox": {
+        "min": [
+          -0.05179014056921005,
+          -0.09257961809635162,
+          1.6329972743988037
+        ],
+        "max": [
+          0.05178983509540558,
+          -0.08023518323898315,
+          1.641936182975769
+        ],
+        "center": [
+          -1.5273690223693848e-07,
+          -0.08640740066766739,
+          1.6374667286872864
+        ]
+      }
+    },
+    {
+      "name": "Eyes",
+      "type": "MESH",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vertexCount": 804,
+      "faceCount": 840,
+      "uvMaps": [
+        "map1"
+      ],
+      "materials": [
+        "Body"
+      ],
+      "vertexGroups": [],
+      "hasShapeKeys": false,
+      "worldBbox": {
+        "min": [
+          -0.044676072895526886,
+          -0.0885918140411377,
+          1.6206092834472656
+        ],
+        "max": [
+          0.044676072895526886,
+          -0.05933767929673195,
+          1.6481993198394775
+        ],
+        "center": [
+          0.0,
+          -0.07396474666893482,
+          1.6344043016433716
+        ]
+      }
+    },
+    {
+      "name": "Hair",
+      "type": "MESH",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vertexCount": 56217,
+      "faceCount": 110110,
+      "uvMaps": [],
+      "materials": [
+        "Body"
+      ],
+      "vertexGroups": [],
+      "hasShapeKeys": false,
+      "worldBbox": {
+        "min": [
+          -0.0809832289814949,
+          -0.09186723083257675,
+          1.5645605325698853
+        ],
+        "max": [
+          0.08086521178483963,
+          0.10131464153528214,
+          1.7817257642745972
+        ],
+        "center": [
+          -5.900859832763672e-05,
+          0.004723705351352692,
+          1.6731431484222412
+        ]
+      }
+    },
+    {
+      "name": "Light_Back",
+      "type": "LIGHT",
+      "visible": true,
+      "parent": null,
+      "location": [
+        -0.3148260712623596,
+        1.5525974035263062,
+        1.622143268585205
+      ],
+      "scale": [
+        3.4965038299560547,
+        5.2669901847839355,
+        2.1830224990844727
+      ]
+    },
+    {
+      "name": "Light_Bounce",
+      "type": "LIGHT",
+      "visible": true,
+      "parent": null,
+      "location": [
+        -0.508905827999115,
+        -1.3941540718078613,
+        0.3016743063926697
+      ],
+      "scale": [
+        1.4892410039901733,
+        2.2433316707611084,
+        0.9297991991043091
+      ]
+    },
+    {
+      "name": "Light_Key",
+      "type": "LIGHT",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.4191237688064575,
+        -0.6280735731124878,
+        2.84924578666687
+      ],
+      "scale": [
+        1.0393352508544922,
+        1.4119764566421509,
+        1.1503276824951172
+      ]
+    },
+    {
+      "name": "renderCamera",
+      "type": "CAMERA",
+      "visible": true,
+      "parent": null,
+      "location": [
+        0.24285878241062164,
+        -6.246669292449951,
+        0.6887869238853455
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "Body",
+      "usePBR": true
+    },
+    {
+      "name": "Dots Stroke",
+      "usePBR": true
+    }
+  ],
+  "vertexGroups": {}
+}

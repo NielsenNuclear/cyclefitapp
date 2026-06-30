@@ -220,7 +220,7 @@ export function Step5Sleep({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       {/* Hours slider */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#E8E5DC]">
+      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
         <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">Average sleep per night</div>
         <NumberStepper
           value={data.sleepHours}

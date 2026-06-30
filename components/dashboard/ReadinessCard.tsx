@@ -154,7 +154,7 @@ interface ReadinessCardProps {
 export function ReadinessCard({ score, trend, history }: ReadinessCardProps) {
   if (!score) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Readiness</CardLabel>
         <p className="text-[12px] text-[#9B9690] leading-relaxed mt-3">
           Complete your first check-in to activate the readiness engine.
@@ -176,7 +176,7 @@ export function ReadinessCard({ score, trend, history }: ReadinessCardProps) {
     .slice(0, 3);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5DC] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
 
       {/* Header row */}
       <div className="flex items-center justify-between mb-4">

@@ -21,7 +21,7 @@ function MacroBar({ label, value, unit, color, max }: MacroBarProps) {
         <span className="text-[11px] text-[#6B6560]">{label}</span>
         <span className="text-[11px] font-semibold text-[#1C1B18]">{value}{unit}</span>
       </div>
-      <div className="h-1.5 bg-[#E8E5DC] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[#EAE7DE] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full"
           style={{ width: `${pct}%`, backgroundColor: color }}
@@ -57,7 +57,7 @@ export function NutritionIntelligenceCard({
   if (profile.sampleDays === 0 && profile.confidence === "early") return null;
 
   return (
-    <div className="rounded-2xl border border-[#E8E5DC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
 
       {/* Header */}
       <div className="px-4 py-3 bg-[#EEF1FD] border-b border-[#DDD9F5]">

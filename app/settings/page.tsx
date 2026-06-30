@@ -31,7 +31,7 @@ interface ConfirmDialogProps {
 function ConfirmDialog({ title, body, confirmLabel, danger = false, onConfirm, onCancel }: ConfirmDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-white rounded-2xl border border-[#E8E5DC] shadow-2xl p-6 space-y-4">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-[#EAE7DE] shadow-2xl p-6 space-y-4">
         <div className="text-[15px] font-semibold text-[#1C1B18]">{title}</div>
         <p className="text-[13px] text-[#6B6860] leading-relaxed whitespace-pre-line">{body}</p>
         <div className="flex gap-3 pt-1">
@@ -63,7 +63,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section>
       <div className="text-[11px] font-semibold uppercase tracking-widest text-[#8A8880] mb-3 px-1">{title}</div>
-      <div className="bg-white rounded-2xl border border-[#E8E5DC] overflow-hidden divide-y divide-[#F0EDE4]">
+      <div className="bg-white rounded-2xl border border-[#EAE7DE] overflow-hidden divide-y divide-[#F0EDE4]">
         {children}
       </div>
     </section>
@@ -244,8 +244,7 @@ export default function SettingsPage() {
 
         {/* App info */}
         <Section title="About">
-          <Row label="Version"        right={<InfoValue>{APP_VERSION}</InfoValue>} />
-          <Row label="Engine"         right={<InfoValue>{ENGINE_VERSION}</InfoValue>} />
+          <Row label="Version"          right={<InfoValue>{APP_VERSION}</InfoValue>} />
           <Row label="Exercise library" right={<InfoValue>{EXERCISE_COUNT} exercises</InfoValue>} />
         </Section>
       </main>
