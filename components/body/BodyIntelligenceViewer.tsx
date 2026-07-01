@@ -1,37 +1,35 @@
 "use client";
 
 /**
- * BodyIntelligenceViewer — Phase 59
+ * BodyIntelligenceViewer — Phase 59 / redesigned layout
  *
- * Main entry point for the Body Intelligence System.
- * Owns: Canvas, 60/40 responsive layout, hook wiring.
+ * Three-column layout:
+ *   Left  (248 px) — readiness summary, muscle status, visualization selector
+ *   Center (flex)  — large 3D canvas with floating overlay strip
+ *   Right  (320 px) — region details panel (slides in on selection)
  *
- * Renderer selection (set NEXT_PUBLIC_BODY_MODEL_URL to activate GLTF):
- *   GLTF model → GltfBody (rendering/GltfBody.tsx)          — Phase 59+
- *   Placeholder → PlaceholderBody (rendering/PlaceholderBody.tsx) — fallback
+ * Renderer selection (NEXT_PUBLIC_BODY_MODEL_URL controls which loads):
+ *   set → GltfBody (AxisFemale.glb)
+ *   unset → PlaceholderBody (procedural geometry fallback)
  *
- * Separation of concerns:
- *   Data        → useBodyState
- *   Interaction → useBodyInteraction
- *   Colors      → OverlaySystem
- *   Geometry    → GltfBody | PlaceholderBody (same BodyRendererProps contract)
- *   Camera      → CameraController
- *   Lighting    → SceneLighting
- *   Panel       → DetailPanel
+ * Logic layers are untouched: BodyStateEngine, OverlaySystem, CameraController,
+ * useBodyState, useBodyInteraction, ExerciseIntelligencePanel.
  */
 
 import { useState, useMemo, lazy, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
-import * as THREE from "three";
+import { Canvas }                             from "@react-three/fiber";
+import * as THREE                             from "three";
 
 import type { VisualizationLayer, MuscleRecord, BodySnapshot } from "@/lib/bodyIntelligence/BodyStateEngine";
-import { useBodyState }               from "./hooks/useBodyState";
-import { useBodyInteraction }         from "./hooks/useBodyInteraction";
+import { useBodyState }       from "./hooks/useBodyState";
+import { useBodyInteraction } from "./hooks/useBodyInteraction";
 import { MUSCLE_ANCHORS, BODY_BOUNDS } from "./rendering/PlaceholderBody";
-import { SceneLighting }              from "./viewer/SceneLighting";
-import { CameraController }           from "./viewer/CameraController";
-import { DetailPanel }                from "./panels/DetailPanel";
-import { LAYER_META }                 from "./rendering/OverlaySystem";
+import { SceneLighting }      from "./viewer/SceneLighting";
+import { CameraController }   from "./viewer/CameraController";
+import { LeftSidebar }        from "./panels/LeftSidebar";
+import { RegionDetailsPanel } from "./panels/RegionDetailsPanel";
+import { OverlaySelector }    from "./panels/OverlaySelector";
+import { LAYER_META }         from "./rendering/OverlaySystem";
 
 const MODEL_URL = process.env.NEXT_PUBLIC_BODY_MODEL_URL ?? "";
 
@@ -48,26 +46,26 @@ const GltfBody = lazy(() =>
 function LoadingSpinner() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-      <div className="w-10 h-10 rounded-full border-2 border-[#534AB7] border-t-transparent animate-spin" />
-      <div className="text-[12px] text-[#9B9690]">Loading…</div>
+      <div className="w-8 h-8 rounded-full border-2 border-[#534AB7] border-t-transparent animate-spin" />
+      <div className="text-[11px] text-[#9B9690]">Loading…</div>
     </div>
   );
 }
 
 function ControlsHint() {
   return (
-    <div className="absolute bottom-3 inset-x-0 flex justify-center pointer-events-none">
+    <div className="absolute top-4 inset-x-0 flex justify-center pointer-events-none">
       <div
-        className="text-white/65 text-[10px] px-3 py-1.5 rounded-full"
-        style={{ background: "rgba(28,27,24,0.40)", backdropFilter: "blur(6px)" }}
+        className="text-white/70 text-[10px] px-3 py-1.5 rounded-full tracking-wide"
+        style={{ background: "rgba(28,27,24,0.32)", backdropFilter: "blur(8px)" }}
       >
-        Drag · Scroll · Click muscle · Double-click to reset
+        Drag · Scroll · Click region · Double-click to reset
       </div>
     </div>
   );
 }
 
-// ─── Scene root (inside <Canvas>) ────────────────────────────────────────────
+// ─── Scene (inside Canvas) ────────────────────────────────────────────────────
 
 interface SceneProps {
   muscleMap:       Map<string, MuscleRecord>;
@@ -111,19 +109,27 @@ function BodyScene({
 
 // ─── Mobile bottom sheet ──────────────────────────────────────────────────────
 
-interface SheetProps { isOpen: boolean; onDismiss: () => void; children: React.ReactNode; }
+interface SheetProps {
+  isOpen:    boolean;
+  onDismiss: () => void;
+  children:  React.ReactNode;
+}
 
 function BottomSheet({ isOpen, onDismiss, children }: SheetProps) {
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 bg-black/20 z-30 lg:hidden" aria-hidden="true" onClick={onDismiss} />
+        <div
+          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
+          aria-hidden="true"
+          onClick={onDismiss}
+        />
       )}
       <div
         className={`
           fixed inset-x-0 bottom-0 z-40 lg:hidden
-          bg-[#FAF9F5] rounded-t-3xl border-t border-[#EAE7DE] shadow-2xl
-          max-h-[72vh] flex flex-col
+          bg-[#FAF9F5] rounded-t-3xl shadow-2xl
+          max-h-[76vh] flex flex-col
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-y-0" : "translate-y-full"}
         `}
@@ -137,6 +143,36 @@ function BottomSheet({ isOpen, onDismiss, children }: SheetProps) {
         <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
       </div>
     </>
+  );
+}
+
+// ─── Mobile layer pill bar ────────────────────────────────────────────────────
+
+function MobilePillBar({
+  layer,
+  onChange,
+}: {
+  layer:    VisualizationLayer;
+  onChange: (l: VisualizationLayer) => void;
+}) {
+  return (
+    <div className="flex-shrink-0 bg-white border-t border-[#EAE7DE] px-4 py-2.5 overflow-x-auto scrollbar-none">
+      <div className="flex gap-2 w-max">
+        {LAYER_META.map(m => (
+          <button
+            key={m.id}
+            onClick={() => onChange(m.id)}
+            className={`flex-shrink-0 text-[11px] font-medium px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#534AB7] ${
+              layer === m.id
+                ? "bg-[#534AB7] border-[#534AB7] text-white"
+                : "border-[#EAE7DE] text-[#6B6860] hover:bg-[#F5F3EE]"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -168,16 +204,15 @@ export function BodyIntelligenceViewer({
   const { selected, hoveredId, selectedId, onHover, onSelect, onDeselect } =
     useBodyInteraction(muscleMap);
 
-  // Layer
+  // Visualization layer
   const [layer, setLayer] = useState<VisualizationLayer>(defaultLayer);
 
-  // GLTF bounds / anchors — updated once after the GLTF model loads
+  // GLTF bounds / anchor positions (updated once after model loads)
   const [gltfBounds,  setGltfBounds]  = useState<THREE.Box3>(() => BODY_BOUNDS.clone());
   const [gltfAnchors, setGltfAnchors] = useState<Map<string, THREE.Vector3> | null>(null);
 
   const bodyBounds = MODEL_URL ? gltfBounds : BODY_BOUNDS;
 
-  // Focus target — uses GLTF world positions when available, else anchor table
   const focusTarget = useMemo<THREE.Vector3 | null>(() => {
     if (!selectedId) return null;
     if (gltfAnchors) return gltfAnchors.get(selectedId) ?? null;
@@ -186,13 +221,24 @@ export function BodyIntelligenceViewer({
   }, [selectedId, gltfAnchors]);
 
   return (
-    <div className={`flex flex-col h-full bg-[#FAF9F5] overflow-hidden ${className}`}>
+    <div className={`flex h-full bg-[#FAF9F5] overflow-hidden ${className}`}>
 
-      {/* ── 60/40 split ──────────────────────────────────────────────────── */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+      {/* ── Left sidebar (desktop) ──────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex flex-col w-[248px] flex-shrink-0 border-r border-[#EAE7DE]/60 bg-[#FDFCF9]"
+        aria-label="Body intelligence sidebar"
+      >
+        <LeftSidebar
+          snapshot={snapshot}
+          layer={layer}
+          onLayerChange={setLayer}
+        />
+      </aside>
 
-        {/* 3D viewport */}
-        <div className="flex-[3] relative min-w-0">
+      {/* ── Center: canvas + floating overlay controls ───────────────────────── */}
+      <div className="flex-1 relative min-w-0 flex flex-col">
+        {/* Canvas */}
+        <div className="flex-1 relative min-h-0">
           {isLoading && !snapshot && <LoadingSpinner />}
 
           <Suspense fallback={null}>
@@ -222,47 +268,48 @@ export function BodyIntelligenceViewer({
           </Suspense>
 
           <ControlsHint />
+
+          {/* Floating overlay selector strip — desktop only */}
+          <div className="hidden lg:flex absolute bottom-6 inset-x-0 justify-center pointer-events-none px-4">
+            <div
+              className="pointer-events-auto flex items-center rounded-2xl border border-[#EAE7DE]/70 px-3 py-2 shadow-[0_4px_24px_rgba(28,27,24,0.10)]"
+              style={{
+                background: "rgba(253,252,249,0.88)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <OverlaySelector layer={layer} onChange={setLayer} variant="horizontal" />
+            </div>
+          </div>
         </div>
 
-        {/* Detail panel — always visible on desktop */}
-        <div className="hidden lg:flex flex-[2] flex-col border-l border-[#EAE7DE] min-w-[280px] max-w-[420px] overflow-hidden">
-          <DetailPanel
-            snapshot={snapshot}
-            layer={layer}
-            onLayerChange={setLayer}
-            selected={selected}
-            onDeselect={onDeselect}
-          />
-        </div>
+        {/* Mobile: layer pills */}
+        {!selectedId && (
+          <div className="lg:hidden">
+            <MobilePillBar layer={layer} onChange={setLayer} />
+          </div>
+        )}
       </div>
 
-      {/* Mobile: layer switcher pills (when no muscle selected) */}
-      {!selectedId && (
-        <div className="lg:hidden flex-shrink-0 border-t border-[#EAE7DE] bg-white px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-none">
-          {LAYER_META.map(m => (
-            <button
-              key={m.id}
-              onClick={() => setLayer(m.id)}
-              className={`flex-shrink-0 text-[11px] font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                layer === m.id
-                  ? "bg-[#534AB7] border-[#534AB7] text-white"
-                  : "border-[#EAE7DE] text-[#6B6860] hover:bg-[#F5F3EE]"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Mobile: detail panel as bottom sheet */}
-      <BottomSheet isOpen={!!selectedId} onDismiss={onDeselect}>
-        <DetailPanel
-          snapshot={snapshot}
-          layer={layer}
-          onLayerChange={setLayer}
+      {/* ── Right panel (desktop) ───────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex flex-col w-[320px] flex-shrink-0 border-l border-[#EAE7DE]/60 bg-[#FDFCF9]"
+        aria-label="Region details"
+      >
+        <RegionDetailsPanel
           selected={selected}
           onDeselect={onDeselect}
+          layer={layer}
+        />
+      </aside>
+
+      {/* ── Mobile: region detail bottom sheet ──────────────────────────────── */}
+      <BottomSheet isOpen={!!selectedId} onDismiss={onDeselect}>
+        <RegionDetailsPanel
+          selected={selected}
+          onDeselect={onDeselect}
+          layer={layer}
         />
       </BottomSheet>
     </div>
