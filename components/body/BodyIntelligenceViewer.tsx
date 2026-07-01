@@ -29,14 +29,24 @@ import { CameraController }   from "./viewer/CameraController";
 import { LeftSidebar }        from "./panels/LeftSidebar";
 import { RegionDetailsPanel } from "./panels/RegionDetailsPanel";
 import { OverlaySelector }    from "./panels/OverlaySelector";
+import { BodyDebugPanel }     from "./panels/BodyDebugPanel";
+import type { BodyDebugState } from "./panels/BodyDebugPanel";
 import { LAYER_META }         from "./rendering/OverlaySystem";
 
 const MODEL_URL = process.env.NEXT_PUBLIC_BODY_MODEL_URL ?? "";
+
+// Show debug panel in development. Set to false to hide permanently.
+const DEBUG = process.env.NODE_ENV === "development";
 
 // Lazy — keeps R3F + Three.js out of the SSR bundle
 const PlaceholderBody = lazy(() =>
   import("./rendering/PlaceholderBody").then(m => ({ default: m.PlaceholderBody })),
 );
+// HybridBody: GLTF visual skin + overlay-patch interaction (single-mesh GLBs)
+const HybridBody = lazy(() =>
+  import("./rendering/HybridBody").then(m => ({ default: m.HybridBody })),
+);
+// GltfBody: native per-mesh interaction (requires muscle_* named nodes in GLB)
 const GltfBody = lazy(() =>
   import("./rendering/GltfBody").then(m => ({ default: m.GltfBody })),
 );
@@ -78,6 +88,7 @@ interface SceneProps {
   onSelect:        (id: string | null) => void;
   onBoundsReady?:  (bounds: THREE.Box3) => void;
   onAnchorsReady?: (anchors: Map<string, THREE.Vector3>) => void;
+  onDebugMeshNames?: (names: string[]) => void;
 }
 
 function BodyScene({
@@ -85,6 +96,7 @@ function BodyScene({
   focusTarget, bodyBounds,
   onHover, onSelect,
   onBoundsReady, onAnchorsReady,
+  onDebugMeshNames,
 }: SceneProps) {
   const rendererProps = { muscleMap, layer, hoveredId, selectedId, onHover, onSelect };
   return (
@@ -93,11 +105,14 @@ function BodyScene({
       <CameraController bodyBounds={bodyBounds} focusTarget={focusTarget} focusRadius={0.28} />
       <Suspense fallback={null}>
         {MODEL_URL ? (
-          <GltfBody
+          // HybridBody: GLTF visual skin + overlay-patch interaction.
+          // Switch to GltfBody here when the GLB has muscle_* named nodes.
+          <HybridBody
             {...rendererProps}
             modelUrl={MODEL_URL}
             onBoundsReady={onBoundsReady}
             onAnchorsReady={onAnchorsReady}
+            onDebugInfo={info => onDebugMeshNames?.(info.meshNames)}
           />
         ) : (
           <PlaceholderBody {...rendererProps} />
@@ -201,7 +216,7 @@ export function BodyIntelligenceViewer({
   }, [snapshot]);
 
   // Interaction
-  const { selected, hoveredId, selectedId, onHover, onSelect, onDeselect } =
+  const { hovered, selected, hoveredId, selectedId, onHover, onSelect, onDeselect } =
     useBodyInteraction(muscleMap);
 
   // Visualization layer
@@ -211,6 +226,9 @@ export function BodyIntelligenceViewer({
   const [gltfBounds,  setGltfBounds]  = useState<THREE.Box3>(() => BODY_BOUNDS.clone());
   const [gltfAnchors, setGltfAnchors] = useState<Map<string, THREE.Vector3> | null>(null);
 
+  // Debug: mesh names reported by HybridBody on load
+  const [debugMeshNames, setDebugMeshNames] = useState<string[]>([]);
+
   const bodyBounds = MODEL_URL ? gltfBounds : BODY_BOUNDS;
 
   const focusTarget = useMemo<THREE.Vector3 | null>(() => {
@@ -219,6 +237,19 @@ export function BodyIntelligenceViewer({
     const a = MUSCLE_ANCHORS.find(x => x.muscleId === selectedId);
     return a ? new THREE.Vector3(...a.position) : null;
   }, [selectedId, gltfAnchors]);
+
+  // Build debug state
+  const debugState = useMemo<BodyDebugState>(() => ({
+    mode:        MODEL_URL ? "hybrid" : "placeholder",
+    hoveredId,
+    selectedId,
+    hovered:     hoveredId  ? (muscleMap.get(hoveredId)  ?? null) : null,
+    selected:    selectedId ? (muscleMap.get(selectedId) ?? null) : null,
+    layer,
+    meshNames:   debugMeshNames,
+    anchorCount: MUSCLE_ANCHORS.length,
+    muscleCount: muscleMap.size,
+  }), [hoveredId, selectedId, layer, debugMeshNames, muscleMap]);
 
   return (
     <div className={`flex h-full bg-[#FAF9F5] overflow-hidden ${className}`}>
@@ -260,14 +291,18 @@ export function BodyIntelligenceViewer({
                   bodyBounds={bodyBounds}
                   onHover={onHover}
                   onSelect={onSelect}
-                  onBoundsReady={MODEL_URL ? setGltfBounds  : undefined}
+                  onBoundsReady={MODEL_URL ? setGltfBounds   : undefined}
                   onAnchorsReady={MODEL_URL ? setGltfAnchors : undefined}
+                  onDebugMeshNames={MODEL_URL ? setDebugMeshNames : undefined}
                 />
               )}
             </Canvas>
           </Suspense>
 
           <ControlsHint />
+
+          {/* Debug panel (dev only — Shift+D to toggle) */}
+          {DEBUG && <BodyDebugPanel state={debugState} />}
 
           {/* Floating overlay selector strip — desktop only */}
           <div className="hidden lg:flex absolute bottom-6 inset-x-0 justify-center pointer-events-none px-4">
