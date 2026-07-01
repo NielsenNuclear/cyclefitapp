@@ -27,20 +27,16 @@ import {
   saveExercisePerformances,
   type ExercisePerformance,
 } from "@/lib/progression/exerciseHistory";
+import type { SetRecord }     from "@/components/workout/types";
+import { WorkoutProgress }    from "@/components/workout/WorkoutProgress";
+import { ExerciseCard }       from "@/components/workout/ExerciseCard";
+import { RestTimerOverlay }   from "@/components/workout/RestTimerOverlay";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type WorkoutMode = "idle" | "active" | "done";
 
-// Per-set logging model (28H) — replaces the old single-row ActualData approach
-interface SetRecord {
-  targetReps: string;   // prescribed (display only)
-  completed:  boolean;
-  actualReps: string;   // editable by user
-  weight?:    number;   // kg
-  rpe?:       number;   // only shown when exercise has a prescribed RPE
-}
-
+// Per-set initialiser — SetRecord type lives in @/components/workout/types
 function defaultSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
   return Array.from({ length: ex.sets }, () => ({
     targetReps: ex.reps,
@@ -54,14 +50,6 @@ function defaultSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
 function parseReps(repsStr: string): number {
   const n = parseInt(repsStr, 10);
   return isNaN(n) ? 0 : n;
-}
-
-function parseRestSeconds(rest: string): number {
-  const min = rest.match(/(\d+)\s*min/);
-  const sec = rest.match(/(\d+)\s*sec/);
-  if (min) return parseInt(min[1], 10) * 60;
-  if (sec) return parseInt(sec[1], 10);
-  return 60;
 }
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
@@ -539,185 +527,6 @@ function CoachingSection({ exerciseName }: { exerciseName: string }) {
   );
 }
 
-// ─── Rest timer (28J M-2) ────────────────────────────────────────────────────
-
-function RestTimer({
-  totalSeconds,
-  onDismiss,
-}: {
-  totalSeconds: number;
-  onDismiss:    () => void;
-}) {
-  const [remaining, setRemaining] = useState(totalSeconds);
-
-  useEffect(() => {
-    if (remaining <= 0) { onDismiss(); return; }
-    const id = setTimeout(() => setRemaining(r => r - 1), 1000);
-    return () => clearTimeout(id);
-  }, [remaining, onDismiss]);
-
-  const pct  = Math.max(0, remaining / totalSeconds);
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
-  const display = mins > 0
-    ? `${mins}:${String(secs).padStart(2, "0")}`
-    : `${secs}s`;
-
-  return (
-    <div className="mt-2 flex items-center gap-3 px-2.5 py-2 bg-[#F3F2FD] rounded-lg border border-[#C9C5EE]">
-      <div className="relative w-8 h-8 flex-shrink-0">
-        <svg viewBox="0 0 32 32" className="w-full h-full -rotate-90">
-          <circle cx="16" cy="16" r="13" fill="none" stroke="#E0DDD4" strokeWidth="3" />
-          <circle
-            cx="16" cy="16" r="13" fill="none"
-            stroke="#534AB7" strokeWidth="3"
-            strokeDasharray={`${2 * Math.PI * 13}`}
-            strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct)}`}
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-      <div className="flex-1">
-        <div className="text-[9px] font-bold uppercase tracking-widest text-[#6B5ECC]">Rest</div>
-        <div className="text-[14px] font-bold text-[#3C3489] leading-none">{display}</div>
-      </div>
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="text-[10px] font-semibold text-[#9B9690] hover:text-[#534AB7] transition-colors px-2 py-1"
-      >
-        Skip
-      </button>
-    </div>
-  );
-}
-
-// ─── Active exercise row — per-set checkboxes (28H) ──────────────────────────
-
-function ActiveExerciseRow({
-  ex,
-  sets,
-  onChange,
-}: {
-  ex:       WorkoutExercise;
-  sets:     SetRecord[];
-  onChange: (sets: SetRecord[]) => void;
-}) {
-  const inputCls =
-    "text-center text-[11px] font-medium text-[#1C1B18] bg-[#F5F3EE] border border-[#E0DDD4] rounded-lg px-1 py-1.5 focus:outline-none focus:border-[#534AB7] focus:bg-white transition-colors w-full";
-
-  const [restingAfterSet, setRestingAfterSet] = useState<number | null>(null);
-  const restDuration = parseRestSeconds(ex.rest);
-
-  function updateSet(i: number, patch: Partial<SetRecord>) {
-    const next = sets.map((s, idx) => idx === i ? { ...s, ...patch } : s);
-    onChange(next);
-    // Start rest timer when a set is newly checked off (not unchecked)
-    if (patch.completed === true && !sets[i].completed) {
-      const isLastSet = i === sets.length - 1 && next.every(s => s.completed);
-      if (!isLastSet) setRestingAfterSet(i);
-    }
-    if (patch.completed === false) setRestingAfterSet(null);
-  }
-
-  const doneCount = sets.filter(s => s.completed).length;
-
-  return (
-    <div className="py-3 border-b border-[#F0EDE4] last:border-0">
-      {/* Exercise header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-[12px] font-semibold text-[#1C1B18]">{ex.name}</div>
-        <div className="text-[10px] text-[#9B9690]">{doneCount}/{ex.sets} sets</div>
-      </div>
-
-      {/* Column headers */}
-      <div className="grid grid-cols-[1.5rem_2rem_1fr_3rem_2.5rem] gap-1.5 mb-1 px-0.5">
-        <span />
-        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">Set</span>
-        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">Reps</span>
-        <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">kg</span>
-        {ex.rpe !== undefined && (
-          <span className="text-[8px] font-bold uppercase tracking-wider text-[#9B9690] text-center">RPE</span>
-        )}
-      </div>
-
-      {/* Per-set rows */}
-      <div className="space-y-1.5">
-        {sets.map((set, i) => (
-          <div
-            key={i}
-            className={`grid grid-cols-[1.5rem_2rem_1fr_3rem_2.5rem] gap-1.5 items-center px-0.5 transition-opacity ${
-              set.completed ? "opacity-60" : ""
-            }`}
-          >
-            {/* Checkbox */}
-            <button
-              type="button"
-              onClick={() => updateSet(i, { completed: !set.completed })}
-              className={`w-5 h-5 rounded border flex items-center justify-center text-[10px] font-bold transition-colors ${
-                set.completed
-                  ? "bg-[#534AB7] border-[#534AB7] text-white"
-                  : "border-[#C5C1B7] text-transparent hover:border-[#534AB7]"
-              }`}
-            >
-              ✓
-            </button>
-
-            {/* Set number */}
-            <span className="text-[10px] font-semibold text-[#9B9690] text-center">{i + 1}</span>
-
-            {/* Reps */}
-            <input
-              type="text"
-              value={set.actualReps}
-              onChange={e => updateSet(i, { actualReps: e.target.value })}
-              className={inputCls}
-              placeholder={set.targetReps}
-            />
-
-            {/* Weight */}
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              value={set.weight ?? ""}
-              onChange={e => updateSet(i, {
-                weight: e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)),
-              })}
-              placeholder="—"
-              className={inputCls}
-            />
-
-            {/* RPE (only if exercise has RPE target) */}
-            {ex.rpe !== undefined && (
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={set.rpe ?? ""}
-                onChange={e => updateSet(i, {
-                  rpe: e.target.value === "" ? undefined : Math.min(10, Math.max(1, Number(e.target.value))),
-                })}
-                placeholder="—"
-                className={inputCls}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Rest timer — appears after checking a set, hides when all sets done */}
-      {restingAfterSet !== null && (
-        <RestTimer
-          key={restingAfterSet}
-          totalSeconds={restDuration}
-          onDismiss={() => setRestingAfterSet(null)}
-        />
-      )}
-    </div>
-  );
-}
-
 // ─── Timer helpers ────────────────────────────────────────────────────────────
 
 function formatTime(seconds: number): string {
@@ -895,6 +704,7 @@ export function WorkoutCard({
 
   const [overallDifficulty, setOverallDifficulty] = useState(5);
   const [finishedDuration, setFinishedDuration]   = useState(0);
+  const [restTimer, setRestTimer]                 = useState<{ totalSeconds: number; exerciseName: string } | null>(null);
 
   // Tick the timer while active
   useEffect(() => {
@@ -1116,11 +926,6 @@ export function WorkoutCard({
     <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between mb-3">
         <CardLabel>Today's Workout</CardLabel>
-        {mode === "active" && (
-          <span className="text-[11px] font-semibold text-[#534AB7]">
-            ● {formatTime(elapsedSeconds)}
-          </span>
-        )}
       </div>
 
       <EnvironmentSelector
@@ -1180,32 +985,46 @@ export function WorkoutCard({
         </div>
       )}
 
-      {/* Exercise list — idle: prescription view; active: logging rows */}
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-1">
-        {mode === "active" ? "Log your sets" : `Exercises · ${exercises.length} movements`}
-      </div>
+      {/* Exercise list — idle: prescription view; active: premium logging view */}
+      {mode !== "active" && (
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-1">
+          Exercises · {exercises.length} movements
+        </div>
+      )}
 
-      <div>
-        {mode === "active"
-          ? exercises.map((ex, i) => (
-              <ActiveExerciseRow
-                key={i}
-                ex={ex}
-                sets={actuals[i] ?? defaultSets(ex)}
-                onChange={sets => setActuals(prev => ({ ...prev, [i]: sets }))}
-              />
-            ))
-          : exercises.map((ex, i) => (
-              <ExerciseRow
-                key={i}
-                ex={ex}
-                exerciseIdx={i}
-                environment={environment}
-                onSwap={handleSwap}
-              />
-            ))
-        }
-      </div>
+      {mode === "active" ? (
+        <>
+          <WorkoutProgress
+            exercises={exercises}
+            actuals={actuals}
+            elapsedSeconds={elapsedSeconds}
+            workoutName={workout.workoutName}
+          />
+          {exercises.map((ex, i) => (
+            <ExerciseCard
+              key={i}
+              ex={ex}
+              sets={actuals[i] ?? defaultSets(ex)}
+              onChange={sets => setActuals(prev => ({ ...prev, [i]: sets }))}
+              onRestStart={(totalSeconds, exerciseName) =>
+                setRestTimer({ totalSeconds, exerciseName })
+              }
+            />
+          ))}
+        </>
+      ) : (
+        <div>
+          {exercises.map((ex, i) => (
+            <ExerciseRow
+              key={i}
+              ex={ex}
+              exerciseIdx={i}
+              environment={environment}
+              onSwap={handleSwap}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Overall difficulty — only shown in active mode */}
       {mode === "active" && (
@@ -1252,6 +1071,15 @@ export function WorkoutCard({
       <div className="mt-4">
         <CompletionSection />
       </div>
+
+      {/* Floating rest timer — fixed, appears after completing a non-final set */}
+      {restTimer && mode === "active" && (
+        <RestTimerOverlay
+          totalSeconds={restTimer.totalSeconds}
+          exerciseName={restTimer.exerciseName}
+          onDismiss={() => setRestTimer(null)}
+        />
+      )}
     </div>
   );
 }
