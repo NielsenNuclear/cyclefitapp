@@ -463,6 +463,18 @@ import type { BodyIntelligenceSnapshot }                                        
 import { ExplainableRecommendation }                                            from "@/components/intelligence/ExplainableRecommendation";
 import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
 import { PredictionCard }                                                       from "@/components/intelligence/PredictionCard";
+// ─── Phase 62: Athlete Profile & Longitudinal Intelligence ───────────────────
+import { buildAthleteProfile, type AthleteProfile }                            from "@/lib/athlete/athleteProfile";
+import { AthleteProfileCard }                                                   from "@/components/athlete/AthleteProfileCard";
+import { LongitudinalTimelineCard }                                             from "@/components/athlete/LongitudinalTimelineCard";
+// ─── Phase 63: Insight Discovery & Performance Analytics ─────────────────────
+import { computeExerciseAnalytics, type ExerciseAnalyticsReport }              from "@/lib/insights/exerciseAnalytics";
+import { computeTrainingEfficiency, type TrainingEfficiencyReport }            from "@/lib/insights/trainingEfficiency";
+import { computeCorrelations as computeSignalCorrelations, type CorrelationReport } from "@/lib/insights/correlationEngine";
+import { buildInsightDiscoveryReport, type InsightDiscoveryReport }            from "@/lib/insights/insightDiscovery";
+import { InsightDiscoveryCard }                                                 from "@/components/insights/InsightDiscoveryCard";
+import { ExerciseAnalyticsCard }                                                from "@/components/insights/ExerciseAnalyticsCard";
+import { CorrelationExplorerCard }                                              from "@/components/insights/CorrelationExplorerCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -908,6 +920,13 @@ export default function DashboardPage() {
   // Phase 58 state
   const [recEffectiveness,  setRecEffectiveness]  = useState<RecEffectivenessProfile | undefined>(undefined);
   const [safetyGuardrail,   setSafetyGuardrail]   = useState<GuardrailResult | undefined>(undefined);
+  // Phase 62 state
+  const [athleteProfile,       setAthleteProfile]       = useState<AthleteProfile | undefined>(undefined);
+  // Phase 63 state
+  const [exerciseAnalytics,    setExerciseAnalytics]    = useState<ExerciseAnalyticsReport | undefined>(undefined);
+  const [trainingEfficiency,   setTrainingEfficiency]   = useState<TrainingEfficiencyReport | undefined>(undefined);
+  const [correlationReport,    setCorrelationReport]    = useState<CorrelationReport | undefined>(undefined);
+  const [insightDiscovery,     setInsightDiscovery]     = useState<InsightDiscoveryReport | undefined>(undefined);
 
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
@@ -2135,6 +2154,37 @@ export default function DashboardPage() {
 
     setDevelopmentMilestones(detectMilestones(totalWkts, multiDomainStreaksVal, todayStr));
 
+    // ── Phase 62: Athlete Profile & Longitudinal Intelligence ────────────────
+    const athleteProfileVal = buildAthleteProfile(
+      rawHistory,
+      getRecoveryScores(),
+      fullRdxHistory,
+      readiness.score,
+      recoveryScoreVal.score,
+    );
+    setAthleteProfile(athleteProfileVal);
+
+    // ── Phase 63: Insight Discovery & Performance Analytics ──────────────────
+    const exerciseAnalyticsVal = computeExerciseAnalytics(rawHistory);
+    setExerciseAnalytics(exerciseAnalyticsVal);
+
+    const efficiencyVal = computeTrainingEfficiency(rawHistory, getRecoveryScores(), fullRdxHistory);
+    setTrainingEfficiency(efficiencyVal);
+
+    const correlationVal = computeSignalCorrelations(rawHistory, getRecoveryScores(), fullRdxHistory);
+    setCorrelationReport(correlationVal);
+
+    const insightVal = buildInsightDiscoveryReport(
+      rawHistory,
+      getRecoveryScores(),
+      fullRdxHistory,
+      athleteProfileVal.adaptationInsights,
+      correlationVal.signals,
+      exerciseAnalyticsVal.exercises,
+      efficiencyVal,
+    );
+    setInsightDiscovery(insightVal);
+
     // ── Phase 57: Prediction Calibration & Forecast Accuracy ─────────────────
     // OBSERVABILITY ONLY — Only measure, evaluate, report. No model changes.
 
@@ -2835,6 +2885,8 @@ export default function DashboardPage() {
               athleteIdentity={athleteIdentity}
               milestones={developmentMilestones}
             />
+            {athleteProfile && <AthleteProfileCard profile={athleteProfile} />}
+            {athleteProfile && <LongitudinalTimelineCard events={athleteProfile.timeline} />}
             <ProgressInsightsCard />
             <ProgressionCard profile={progressionProfile} adjustment={coachingAdjustment} />
             <TrainingSummaryCard summary={historySummary} />
@@ -2891,6 +2943,16 @@ export default function DashboardPage() {
                 usageAnalytics={equipmentUsageAnalytics ?? undefined}
               />
             )}
+          </AccordionSection>
+
+          <AccordionSection
+            id="insights-analytics"
+            title="Insights & Analytics"
+            summary="Discovered patterns, exercise intelligence &amp; correlations"
+          >
+            {insightDiscovery && <InsightDiscoveryCard report={insightDiscovery} />}
+            {exerciseAnalytics && <ExerciseAnalyticsCard report={exerciseAnalytics} />}
+            {correlationReport && <CorrelationExplorerCard report={correlationReport} />}
           </AccordionSection>
 
           <AccordionSection
