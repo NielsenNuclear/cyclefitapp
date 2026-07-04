@@ -459,6 +459,10 @@ import { TodayHighlights }                                                      
 import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
 import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
 import type { BodyIntelligenceSnapshot }                                        from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
+// ─── Phase 60: Explainable Intelligence Experience ───────────────────────────
+import { ExplainableRecommendation }                                            from "@/components/intelligence/ExplainableRecommendation";
+import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
+import { PredictionCard }                                                       from "@/components/intelligence/PredictionCard";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -2650,6 +2654,12 @@ export default function DashboardPage() {
           explanation={recExplanation}
           validation={recValidation}
         />
+        <ExplainableRecommendation
+          training={recommendation.training}
+          explanation={recExplanation ?? null}
+          evidence={recEvidence ?? null}
+          confidence={recConfidence ?? null}
+        />
         <TodayHighlights
           readinessCategory={readinessScore?.category}
           recoveryCategory={recoveryScore?.category}
@@ -2729,6 +2739,10 @@ export default function DashboardPage() {
             <RecoveryWindowCard    window={recoveryWindow} />
             <CyclePatternsCard     patterns={learnedPatterns} />
             <UpcomingTrendsCard    forecast={cycleForecast} />
+            <PredictionCard
+              forecasts={cycleForecast?.readinessDays ?? []}
+              todayDayOfWeek={new Date().getDay()}
+            />
           </AccordionSection>
 
           <AccordionSection
@@ -2851,6 +2865,7 @@ export default function DashboardPage() {
             <TrainingBlockCard block={trainingBlock} />
             <PeriodizedCalendarCard calendar={periodizedCalendar} />
             <AdaptiveInsightsCard insights={adaptiveInsights} />
+            <AdaptiveInsightsPanel insights={adaptiveInsights} />
             <CoachViewCard view={coachView} />
           </AccordionSection>
 
