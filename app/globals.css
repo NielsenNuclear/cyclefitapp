@@ -1,26 +1,239 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── Phase 61: Axis Design System 2.0 ────────────────────────────────────────
+ *
+ * All design tokens live here. Tailwind v4 reads @theme to generate utilities:
+ *   --color-surface  →  bg-surface / text-surface / border-surface
+ *   --shadow-card    →  shadow-card
+ *   --radius-xl      →  (standard Tailwind rounded-xl covers this)
+ *
+ * TypeScript mirror: lib/design/tokens.ts (for inline styles, Three.js, SVG)
+ * ─────────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
+  --color-canvas:          #FAF9F5;   /* app background */
+  --color-surface:         #FFFFFF;   /* card background */
+  --color-surface-raised:  #FDFCF9;   /* sidebar / elevated surface */
+  --color-surface-subtle:  #F5F3EE;   /* secondary fills, disabled states */
+  --color-surface-hover:   #F1EFE8;   /* hover state background */
+
+  /* ── Text ─────────────────────────────────────────────────────────────── */
+  --color-ink:             #1C1B18;   /* primary text */
+  --color-ink-secondary:   #5C5850;   /* secondary text */
+  --color-ink-muted:       #9B9690;   /* muted/label text */
+  --color-ink-faint:       #C5C1B7;   /* placeholder / very light */
+
+  /* ── Borders ──────────────────────────────────────────────────────────── */
+  --color-border:          #EAE7DE;   /* default border */
+  --color-border-strong:   #D8D4CC;   /* stronger border / separator */
+
+  /* ── Brand (Axis purple) ──────────────────────────────────────────────── */
+  --color-brand:           #534AB7;   /* primary action */
+  --color-brand-dark:      #3C3489;   /* hover / active */
+  --color-brand-light:     #6B63C8;   /* lighter variant */
+  --color-brand-bg:        #F0EEF8;   /* very light purple background */
+  --color-brand-bg-mid:    #EEEDFE;   /* slightly deeper bg */
+  --color-brand-border:    #C9C5EE;   /* purple border */
+  --color-brand-text:      #3C3489;   /* text on brand-bg */
+
+  /* ── Success / Recovery ───────────────────────────────────────────────── */
+  --color-success:         #0F6E56;
+  --color-success-bg:      #E1F5EE;
+  --color-success-border:  #A3DCCA;
+  --color-success-text:    #085041;
+
+  /* ── Caution / Warning ────────────────────────────────────────────────── */
+  --color-caution:         #854F0B;
+  --color-caution-bg:      #FDF6EC;
+  --color-caution-border:  #E8C98A;
+  --color-caution-text:    #633806;
+
+  /* ── Error / Danger ───────────────────────────────────────────────────── */
+  --color-danger:          #C0390B;
+  --color-danger-bg:       #FDE8E8;
+  --color-danger-border:   #F5BCBC;
+
+  /* ── Info / Blue ──────────────────────────────────────────────────────── */
+  --color-info:            #1B4FA0;
+  --color-info-bg:         #E3EFFE;
+  --color-info-border:     #A8C4F0;
+  --color-info-text:       #1B4FA0;
+
+  /* ── Neutral status ───────────────────────────────────────────────────── */
+  --color-neutral:         #6B7280;
+  --color-neutral-bg:      #EEF0F2;
+  --color-neutral-border:  #CBD0D8;
+  --color-neutral-text:    #3D4451;
+
+  /* ── Semantic domain colors ───────────────────────────────────────────── */
+  --color-cycle:           #C05BA8;
+  --color-cycle-bg:        #F9F0FA;
+  --color-cycle-border:    #D8A5DC;
+  --color-cycle-text:      #6B2A72;
+
+  --color-nutrition:       #B25E1B;
+  --color-nutrition-bg:    #FDF6EC;
+
+  --color-performance:     #534AB7;
+  --color-recovery:        #0F6E56;
+
+  /* ── Shadows ──────────────────────────────────────────────────────────── */
+  --shadow-none:    none;
+  --shadow-subtle:  0 1px 4px rgba(28, 27, 24, 0.04);
+  --shadow-card:    0 1px 12px rgba(28, 27, 24, 0.06);
+  --shadow-float:   0 8px 32px rgba(28, 27, 24, 0.10);
+  --shadow-modal:   0 20px 60px rgba(28, 27, 24, 0.18);
+
+  /* ── Animation durations ──────────────────────────────────────────────── */
+  --duration-fast:    100ms;
+  --duration-normal:  200ms;
+  --duration-slow:    300ms;
+  --duration-slower:  500ms;
+
+  /* ── Animation easings ────────────────────────────────────────────────── */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+
+  /* ── Font families ────────────────────────────────────────────────────── */
+  --font-sans:    "DM Sans", "Inter", "Helvetica Neue", system-ui, sans-serif;
+  --font-serif:   "Lora", Georgia, serif;
+  --font-mono:    "JetBrains Mono", "Fira Mono", "Consolas", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base styles ─────────────────────────────────────────────────────────────
+ * Set canvas background, font, and antialiasing at the root so all pages
+ * inherit it without each page repeating inline styles.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+html {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography helpers ──────────────────────────────────────────────────────
+ * Semantic classes for each level of the type hierarchy.
+ * Use these instead of arbitrary text-[Npx] font-* combos.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.type-display {
+  font-size: 2.25rem;   /* 36px */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.type-page-title {
+  font-size: 1.5rem;    /* 24px */
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.type-section-title {
+  font-size: 1.125rem;  /* 18px */
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.type-card-title {
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.type-metric-xl {
+  font-size: 2.5rem;    /* 40px */
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-metric {
+  font-size: 1.75rem;   /* 28px */
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-metric-sm {
+  font-size: 1.25rem;   /* 20px */
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-body {
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.type-body-md {
+  font-size: 0.875rem;  /* 14px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.type-caption {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.type-micro {
+  font-size: 0.625rem;  /* 10px */
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────────────────
+ * Consistent brand-colored focus ring for keyboard navigation.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar cleanup ───────────────────────────────────────────────────────
+ * Thin, neutral scrollbars on surfaces that scroll.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
 }
