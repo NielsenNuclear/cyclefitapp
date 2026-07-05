@@ -78,6 +78,7 @@ The `research/` directory uses a 14-folder taxonomy. Each folder has a `README.m
 | `12-wearables-biomarkers` | Wearables & Biomarkers | HRV, temperature, wearable validity |
 | `13-digital-health` | Digital Health & Femtech | Femtech evidence, DTx regulation, health data privacy |
 | `14-research-gaps` | Research Gaps & Methodological Critiques | Known evidence gaps, methodological weaknesses, Axis design decisions under uncertainty |
+| `15-perimenopause` | Perimenopause | Perimenopause/menopause training, body composition, symptom management |
 
 Primary bibliography: `research/axis-library.bib` (BibTeX) and `research/axis-library.json` (CSL-JSON mirror).
 Citation standards: `research/CITATION_STANDARDS.md`.

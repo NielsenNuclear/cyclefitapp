@@ -1,0 +1,1931 @@
+{
+  "generated": "2026-07-05",
+  "collections": [
+    "Menstrual Physiology",
+    "Exercise Performance",
+    "Resistance Training",
+    "Endurance Training",
+    "Recovery and Fatigue",
+    "Nutrition",
+    "Hormonal Contraception",
+    "Female Athlete Health",
+    "Systematic Reviews",
+    "Meta-Analyses",
+    "App Design & Behavior Change",
+    "Wearables & Tracking",
+    "Digital Health",
+    "Research Gaps",
+    "Perimenopause"
+  ],
+  "focus_categories": {
+    "1": "Adaptive training for women",
+    "2": "Lack of data on training specifics for women",
+    "3": "Nutritional guidance around the menstrual cycle",
+    "4": "Adaptive training for the menstrual cycle",
+    "5": "Impacts of the cycle on performance + mitigations",
+    "6": "Training with the cycle in mind",
+    "7": "Energy and perceived energy during the cycle"
+  },
+  "count": 65,
+  "doi_to_verify": [
+    "kuikman2023",
+    "ekenros2022",
+    "bruinvels2021strava",
+    "bruinvels2022transitions",
+    "martin2018",
+    "bull2019",
+    "costello2014",
+    "jansedejonge2019",
+    "meignie2022",
+    "hagstrom2021",
+    "nattiv2007",
+    "desouza2014fatc",
+    "gibbs2013",
+    "carmichael2023sleep",
+    "carmichael2021nr",
+    "mcnamara2022",
+    "carmichael2021track",
+    "schaumberg2017",
+    "burden2015iron"
+  ],
+  "authors_via_doi": [
+    "mlphase2025",
+    "flowingdata2025",
+    "tempreg2020"
+  ],
+  "books": [
+    "sims2016roar",
+    "sims2022nextlevel"
+  ],
+  "references": [
+    {
+      "key": "mcnulty2020",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "The Effects of Menstrual Cycle Phase on Exercise Performance in Eumenorrheic Women: A Systematic Review and Meta-Analysis",
+      "authors": [
+        "McNulty, Kelly L",
+        "Elliott-Sale, Kirsty J",
+        "Dolan, Eimear",
+        "Swinton, Paul A",
+        "Ansdell, Paul",
+        "Goodall, Stuart",
+        "Thomas, Kevin",
+        "Hicks, Kirsty M"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2020,
+      "volume": "50",
+      "issue": "10",
+      "pages": "1813-1827",
+      "doi": "10.1007/s40279-020-01319-3",
+      "doi_status": "seen",
+      "folders": [
+        "Meta-Analyses",
+        "Exercise Performance"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Central anchor: pooled effect of MC phase on performance is trivial; large between-study variance. Grounds the 'weak/inconsistent phase effect' thesis."
+    },
+    {
+      "key": "elliottsale2020oc",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "The Effects of Oral Contraceptives on Exercise Performance in Women: A Systematic Review and Meta-analysis",
+      "authors": [
+        "Elliott-Sale, Kirsty J",
+        "McNulty, Kelly L",
+        "Ansdell, Paul",
+        "Goodall, Stuart",
+        "Hicks, Kirsty M",
+        "Thomas, Kevin",
+        "Swinton, Paul A",
+        "Dolan, Eimear"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2020,
+      "volume": "50",
+      "issue": "10",
+      "pages": "1785-1812",
+      "doi": "10.1007/s40279-020-01317-5",
+      "doi_status": "seen",
+      "folders": [
+        "Meta-Analyses",
+        "Hormonal Contraception"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Companion MA: OC use may trivially reduce performance vs. natural cycle; most studies low quality/underpowered."
+    },
+    {
+      "key": "colensosemple2023",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Current evidence shows no influence of women's menstrual cycle phase on acute strength performance or adaptations to resistance exercise training",
+      "authors": [
+        "Colenso-Semple, Lauren M",
+        "D'Souza, Alysha C",
+        "Elliott-Sale, Kirsty J",
+        "Phillips, Stuart M"
+      ],
+      "journal": "Frontiers in Sports and Active Living",
+      "year": 2023,
+      "volume": "5",
+      "issue": "",
+      "pages": "1054542",
+      "doi": "10.3389/fspor.2023.1054542",
+      "doi_status": "seen",
+      "folders": [
+        "Systematic Reviews",
+        "Resistance Training"
+      ],
+      "focus": [
+        1,
+        4
+      ],
+      "note": "Argues phase does not meaningfully affect acute strength or RT adaptation; critiques methodology of pro-phase studies."
+    },
+    {
+      "key": "elorduy2025",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Evaluation the Impact of Hormonal Fluctuations During the Menstrual Cycle on the Performance of Female Athletes - Systematic Review",
+      "authors": [
+        "Elorduy-Terrado, Ainize",
+        "Torres-Luque, Gema",
+        "Radesca, Krizia",
+        "Munoz-Andradas, Guillermo",
+        "Saenz-Bravo, Marisa",
+        "Dominguez-Balmaseda, Diego"
+      ],
+      "journal": "Muscles",
+      "year": 2025,
+      "volume": "4",
+      "issue": "2",
+      "pages": "15",
+      "doi": "10.3390/muscles4020015",
+      "doi_status": "seen",
+      "folders": [
+        "Systematic Reviews",
+        "Exercise Performance"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Recent SR (n=13 studies, 152 athletes); reports inconsistent phase effects. NOTE: MDPI publisher - flag for publisher-vetting per inclusion rules."
+    },
+    {
+      "key": "meignie2021",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "The Effects of Menstrual Cycle Phase on Elite Athlete Performance: A Critical and Systematic Review",
+      "authors": [
+        "Meignie, Alice",
+        "Duclos, Martine",
+        "Carling, Christopher",
+        "Orhant, Emmanuel",
+        "Provost, Peggy",
+        "Toussaint, Jean-Francois",
+        "Antero, Juliana"
+      ],
+      "journal": "Frontiers in Physiology",
+      "year": 2021,
+      "volume": "12",
+      "issue": "",
+      "pages": "654585",
+      "doi": "10.3389/fphys.2021.654585",
+      "doi_status": "seen",
+      "folders": [
+        "Systematic Reviews",
+        "Exercise Performance"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Critical SR focused on elite athletes; author order to confirm on import."
+    },
+    {
+      "key": "wikstromfrisen2017",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Effects on power, strength and lean body mass of menstrual/oral contraceptive cycle based resistance training",
+      "authors": [
+        "Wikstrom-Frisen, Lisbeth",
+        "Boraxbekk, Carl-Johan",
+        "Henriksson-Larsen, Karin"
+      ],
+      "journal": "Journal of Sports Medicine and Physical Fitness",
+      "year": 2017,
+      "volume": "57",
+      "issue": "1-2",
+      "pages": "43-52",
+      "doi": "10.23736/S0022-4707.16.05848-5",
+      "doi_status": "seen",
+      "folders": [
+        "Resistance Training",
+        "Hormonal Contraception"
+      ],
+      "focus": [
+        4
+      ],
+      "note": "MANDATORY pro-phase counter-anchor: reports follicular-phase-based training superior. Engaged directly; methodological limits (BBT-only phase ID) noted in rebuttals."
+    },
+    {
+      "key": "sung2014",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Effects of follicular versus luteal phase-based strength training in young women",
+      "authors": [
+        "Sung, Eunsook",
+        "Han, Ahreum",
+        "Hinrichs, Timo",
+        "Vorgerd, Matthias",
+        "Manchado, Carmen",
+        "Platen, Petra"
+      ],
+      "journal": "SpringerPlus",
+      "year": 2014,
+      "volume": "3",
+      "issue": "",
+      "pages": "668",
+      "doi": "10.1186/2193-1801-3-668",
+      "doi_status": "seen",
+      "folders": [
+        "Resistance Training"
+      ],
+      "focus": [
+        4
+      ],
+      "note": "MANDATORY pro-phase counter-anchor: follicular-phase training gave greater strength/hypertrophy in a within-subject leg design."
+    },
+    {
+      "key": "kissow2022",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Effects of Follicular and Luteal Phase-Based Menstrual Cycle Resistance Training on Muscle Strength and Mass",
+      "authors": [
+        "Kissow, Julie",
+        "Jacobsen, Kamilla J",
+        "Gunnarsson, Thomas P",
+        "Jessen, Soren",
+        "Hostrup, Morten"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2022,
+      "volume": "52",
+      "issue": "12",
+      "pages": "2813-2819",
+      "doi": "10.1007/s40279-022-01679-y",
+      "doi_status": "seen",
+      "folders": [
+        "Resistance Training"
+      ],
+      "focus": [
+        4
+      ],
+      "note": "MANDATORY counter-anchor: found no benefit of phase-based over regular training; contradicts Sung/Wikstrom-Frisen with tighter design."
+    },
+    {
+      "key": "sakamaki2016",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Effects of Menstrual Phase-Dependent Resistance Training Frequency on Muscular Hypertrophy and Strength",
+      "authors": [
+        "Sakamaki-Sunaga, Mika",
+        "Min, Seokki",
+        "Kamemoto, Kayoko",
+        "Okamoto, Takanobu"
+      ],
+      "journal": "Journal of Strength and Conditioning Research",
+      "year": 2016,
+      "volume": "30",
+      "issue": "6",
+      "pages": "1727-1734",
+      "doi": "10.1519/JSC.0000000000001250",
+      "doi_status": "seen",
+      "folders": [
+        "Resistance Training"
+      ],
+      "focus": [
+        4
+      ],
+      "note": "Null result: no effect of phase-dependent training frequency on hypertrophy. Balances the pro-phase anchors."
+    },
+    {
+      "key": "ekberg2023",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Does the Menstrual Cycle Influence Aerobic Capacity in Endurance-Trained Women?",
+      "authors": [
+        "Ekberg, Simon",
+        "Morseth, Bente",
+        "Larsen, Karin B",
+        "Wikstrom-Frisen, Lisbeth"
+      ],
+      "journal": "Research Quarterly for Exercise and Sport",
+      "year": 2023,
+      "volume": "95",
+      "issue": "",
+      "pages": "609-616",
+      "doi": "10.1080/02701367.2023.2291473",
+      "doi_status": "seen",
+      "folders": [
+        "Endurance Training"
+      ],
+      "focus": [
+        1,
+        5
+      ],
+      "note": "Endurance-specific: aerobic capacity across phases in trained women."
+    },
+    {
+      "key": "oosthuyse2023",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "Understanding the female athlete: molecular mechanisms underpinning menstrual phase differences in exercise metabolism",
+      "authors": [
+        "Oosthuyse, Tanja",
+        "Strauss, Juliette A",
+        "Hackney, Anthony C"
+      ],
+      "journal": "European Journal of Applied Physiology",
+      "year": 2023,
+      "volume": "123",
+      "issue": "",
+      "pages": "423-450",
+      "doi": "10.1007/s00421-022-05090-3",
+      "doi_status": "seen",
+      "folders": [
+        "Endurance Training",
+        "Nutrition"
+      ],
+      "focus": [
+        3,
+        5
+      ],
+      "note": "Mechanistic review of substrate metabolism across the cycle; underpins any nutrition-timing rationale."
+    },
+    {
+      "key": "mattu2020",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Menstrual and oral contraceptive cycle phases do not affect submaximal and maximal exercise responses",
+      "authors": [
+        "Mattu, Anmol T",
+        "Iannetta, Danilo",
+        "MacInnis, Martin J",
+        "Doyle-Baker, Patricia K",
+        "Murias, Juan M"
+      ],
+      "journal": "Scandinavian Journal of Medicine & Science in Sports",
+      "year": 2020,
+      "volume": "30",
+      "issue": "",
+      "pages": "472-484",
+      "doi": "10.1111/sms.13590",
+      "doi_status": "seen",
+      "folders": [
+        "Endurance Training",
+        "Exercise Performance"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Well-controlled null: no phase effect on sub-/maximal responses."
+    },
+    {
+      "key": "issn2023female",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "International society of sports nutrition position stand: nutritional concerns of the female athlete",
+      "authors": [
+        "Sims, Stacy T",
+        "Kerksick, Chad M",
+        "Smith-Ryan, Abbie E",
+        "Janse de Jonge, Xanne A K",
+        "Hirsch, Katie R",
+        "Arent, Shawn M"
+      ],
+      "journal": "Journal of the International Society of Sports Nutrition",
+      "year": 2023,
+      "volume": "20",
+      "issue": "1",
+      "pages": "2204066",
+      "doi": "10.1080/15502783.2023.2204066",
+      "doi_status": "seen",
+      "folders": [
+        "Nutrition",
+        "Female Athlete Health"
+      ],
+      "focus": [
+        3
+      ],
+      "note": "ISSN position stand. Author list truncated (et al.) - confirm on import. Notably endorses individualized tracking over rigid phase prescription."
+    },
+    {
+      "key": "kuikman2023",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Fueling the Female Athlete: Auditing Her Representation in Studies of Acute Carbohydrate Intake for Exercise",
+      "authors": [
+        "Kuikman, Megan A",
+        "Smith, Ella S",
+        "McKay, Alannah K A",
+        "Ackerman, Kathryn E",
+        "Harris, Rachel",
+        "Elliott-Sale, Kirsty J",
+        "Stellingwerff, Trent",
+        "Burke, Louise M"
+      ],
+      "journal": "Medicine & Science in Sports & Exercise",
+      "year": 2023,
+      "volume": "55",
+      "issue": "3",
+      "pages": "569-580",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Nutrition",
+        "Research Gaps"
+      ],
+      "focus": [
+        2,
+        3
+      ],
+      "note": "Audit of female representation in carbohydrate-intake research; nutrition + evidence-gap."
+    },
+    {
+      "key": "smith2022supp",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Auditing the Representation of Female Versus Male Athletes in Sports Science and Sports Medicine Research: Evidence-Based Performance Supplements",
+      "authors": [
+        "Smith, Ella S",
+        "McKay, Alannah K A",
+        "Kuikman, Megan",
+        "Ackerman, Kathryn E",
+        "Harris, Rachel",
+        "Elliott-Sale, Kirsty J",
+        "Stellingwerff, Trent",
+        "Burke, Louise M"
+      ],
+      "journal": "Nutrients",
+      "year": 2022,
+      "volume": "14",
+      "issue": "5",
+      "pages": "953",
+      "doi": "10.3390/nu14050953",
+      "doi_status": "seen",
+      "folders": [
+        "Nutrition",
+        "Research Gaps"
+      ],
+      "focus": [
+        2,
+        3
+      ],
+      "note": "Supplement-research audit. MDPI - flag for publisher vetting."
+    },
+    {
+      "key": "mountjoy2014",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "The IOC consensus statement: beyond the Female Athlete Triad - Relative Energy Deficiency in Sport (RED-S)",
+      "authors": [
+        "Mountjoy, Margo",
+        "Sundgot-Borgen, Jorunn",
+        "Burke, Louise",
+        "Carter, Susan",
+        "Constantini, Naama",
+        "Lebrun, Constance"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2014,
+      "volume": "48",
+      "issue": "7",
+      "pages": "491-497",
+      "doi": "10.1136/bjsports-2014-093502",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "seminal": true,
+      "note": "Seminal RED-S consensus (pre-15yr, retained as foundational). Author list truncated."
+    },
+    {
+      "key": "mountjoy2018",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update",
+      "authors": [
+        "Mountjoy, Margo",
+        "Sundgot-Borgen, Jorunn K",
+        "Burke, Louise M",
+        "Ackerman, Kathryn E",
+        "Blauwet, Cheri",
+        "Constantini, Naama"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2018,
+      "volume": "52",
+      "issue": "11",
+      "pages": "687-697",
+      "doi": "10.1136/bjsports-2018-099193",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "note": "2018 RED-S update. Author list truncated."
+    },
+    {
+      "key": "mountjoy2023",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "2023 International Olympic Committee's (IOC) consensus statement on Relative Energy Deficiency in Sport (REDs)",
+      "authors": [
+        "Mountjoy, Margo",
+        "Ackerman, Kathryn E",
+        "Bailey, David M",
+        "Burke, Louise M",
+        "Constantini, Naama",
+        "Hackney, Anthony C"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2023,
+      "volume": "57",
+      "issue": "17",
+      "pages": "1073-1097",
+      "doi": "10.1136/bjsports-2023-106994",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "note": "Current REDs consensus; updated conceptual + physiological models. Author list truncated."
+    },
+    {
+      "key": "loucks2011",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "Energy availability in athletes",
+      "authors": [
+        "Loucks, Anne B",
+        "Kiens, Bente",
+        "Wright, Hattie H"
+      ],
+      "journal": "Journal of Sports Sciences",
+      "year": 2011,
+      "volume": "29",
+      "issue": "Suppl 1",
+      "pages": "S7-S15",
+      "doi": "10.1080/02640414.2011.588958",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health",
+        "Nutrition"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "seminal": true,
+      "note": "Seminal energy-availability review (pre-15yr, retained as foundational)."
+    },
+    {
+      "key": "heikura2018",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Low Energy Availability Is Difficult to Assess but Outcomes Have Large Impact on Bone Injury Rates in Elite Distance Athletes",
+      "authors": [
+        "Heikura, Ida A",
+        "Uusitalo, Arja L T",
+        "Stellingwerff, Trent",
+        "Bergland, Dan",
+        "Mero, Antti A",
+        "Burke, Louise M"
+      ],
+      "journal": "International Journal of Sport Nutrition and Exercise Metabolism",
+      "year": 2018,
+      "volume": "28",
+      "issue": "4",
+      "pages": "403-411",
+      "doi": "10.1123/ijsnem.2017-0313",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health",
+        "Nutrition"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "note": "Links low energy availability to bone-injury outcomes in elite athletes."
+    },
+    {
+      "key": "carson2023",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Identifying latent classes of Relative Energy Deficiency in Sport (REDs) consequences in a sample of collegiate female cross country runners",
+      "authors": [
+        "Carson, Tiffany L",
+        "West, Brady T",
+        "Sonneville, Kendrin",
+        "Zernicke, Ronald F",
+        "Clarke, Philippa",
+        "Harlow, Sioban",
+        "Karvonen-Gutierrez, Carrie"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2023,
+      "volume": "57",
+      "issue": "3",
+      "pages": "153-159",
+      "doi": "10.1136/bjsports-2021-104083",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "Empirical REDs consequence clustering in female runners."
+    },
+    {
+      "key": "desouza2010",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "High prevalence of subtle and severe menstrual disturbances in exercising women: confirmation using daily hormone measures",
+      "authors": [
+        "De Souza, Mary Jane",
+        "Toombs, Rebecca J",
+        "Scheid, Jennifer L"
+      ],
+      "journal": "Human Reproduction",
+      "year": 2010,
+      "volume": "25",
+      "issue": "2",
+      "pages": "491-503",
+      "doi": "10.1093/humrep/dep411",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health",
+        "Menstrual Physiology"
+      ],
+      "focus": [
+        7
+      ],
+      "seminal": true,
+      "note": "Seminal: menstrual disturbances common in exercising women (pre-15yr, retained). Author list truncated."
+    },
+    {
+      "key": "bruinvels2016",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "The Prevalence and Impact of Heavy Menstrual Bleeding (Menorrhagia) in Elite and Non-Elite Athletes",
+      "authors": [
+        "Bruinvels, Georgie",
+        "Burden, Richard",
+        "Brown, Nicola",
+        "Richards, Toby",
+        "Pedlar, Charles"
+      ],
+      "journal": "PLoS ONE",
+      "year": 2016,
+      "volume": "11",
+      "issue": "2",
+      "pages": "e0149881",
+      "doi": "10.1371/journal.pone.0149881",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health",
+        "Menstrual Physiology"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "Heavy menstrual bleeding prevalence/impact in athletes; symptom burden evidence."
+    },
+    {
+      "key": "oester2024",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Inconsistencies in the perceived impact of the menstrual cycle on sport performance and in the prevalence of menstrual cycle symptoms: A scoping review of the literature",
+      "authors": [
+        "Oester, Chelsea",
+        "Norris, Dean",
+        "Scott, Dawn",
+        "Pedlar, Charles",
+        "Bruinvels, Georgie",
+        "Lovell, Ric"
+      ],
+      "journal": "Journal of Science and Medicine in Sport",
+      "year": 2024,
+      "volume": "27",
+      "issue": "6",
+      "pages": "373-384",
+      "doi": "10.1016/j.jsams.2024.02.012",
+      "doi_status": "seen",
+      "folders": [
+        "Systematic Reviews",
+        "Recovery and Fatigue"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "Key perceived-impact review: 2.8-100% report negative impact; symptoms, not phase per se, drive perception."
+    },
+    {
+      "key": "ekenros2022",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Perceived impact of the menstrual cycle and hormonal contraceptives on physical exercise and performance in 1,086 athletes from 57 sports",
+      "authors": [
+        "Ekenros, Linda",
+        "von Rosen, Philip",
+        "Solli, Guro Strom",
+        "Sandbakk, Oyvind",
+        "Holmberg, Hans-Christer",
+        "Hirschberg, Angelica Linden",
+        "Friden, Cecilia"
+      ],
+      "journal": "Frontiers in Physiology",
+      "year": 2022,
+      "volume": "13",
+      "issue": "",
+      "pages": "954760",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Recovery and Fatigue",
+        "Wearables & Tracking"
+      ],
+      "focus": [
+        6,
+        7
+      ],
+      "note": "Large survey (n=1,086): symptoms relate to perceived performance; only 18% factor cycle into planning."
+    },
+    {
+      "key": "bruinvels2021strava",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Prevalence and frequency of menstrual cycle symptoms are associated with availability to train and compete: a study of 6,812 exercising women recruited using the Strava exercise app",
+      "authors": [
+        "Bruinvels, Georgie",
+        "Goldsmith, Esther",
+        "Blagrove, Richard",
+        "Simpkin, Andrew",
+        "Lewis, Nathan",
+        "Morton, Katie"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2021,
+      "volume": "55",
+      "issue": "8",
+      "pages": "438-443",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Wearables & Tracking",
+        "Recovery and Fatigue"
+      ],
+      "focus": [
+        6,
+        7
+      ],
+      "note": "Large app-recruited cohort (n=6,812): symptom burden linked to reduced availability to train/compete. Author list truncated."
+    },
+    {
+      "key": "bruinvels2022transitions",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "Menstrual Cycle: The Importance of Both the Phases and the Transitions Between Phases on Training and Performance",
+      "authors": [
+        "Bruinvels, Georgie",
+        "Hackney, Anthony C",
+        "Pedlar, Charles R"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2022,
+      "volume": "52",
+      "issue": "7",
+      "pages": "1457-1460",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Menstrual Physiology",
+        "Exercise Performance"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Argues transitions between phases (not just phases) matter for individualized planning."
+    },
+    {
+      "key": "antero2023",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Menstrual cycle and hormonal contraceptive phases' effect on elite rowers' training, performance and wellness",
+      "authors": [
+        "Antero, Juliana",
+        "Golovkine, Steven",
+        "Niffoi, Louis",
+        "Meignie, Alice",
+        "Chassard, Tom",
+        "Delarochelambert, Quentin"
+      ],
+      "journal": "Frontiers in Physiology",
+      "year": 2023,
+      "volume": "14",
+      "issue": "",
+      "pages": "1110526",
+      "doi": "10.3389/fphys.2023.1110526",
+      "doi_status": "seen",
+      "folders": [
+        "Wearables & Tracking",
+        "Exercise Performance"
+      ],
+      "focus": [
+        6,
+        7
+      ],
+      "note": "Longitudinal elite-rower monitoring of cycle/HC effects on wellness + performance. Author list truncated."
+    },
+    {
+      "key": "martin2018",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Period Prevalence and Perceived Side Effects of Hormonal Contraceptive Use and the Menstrual Cycle in Elite Athletes",
+      "authors": [
+        "Martin, Daniel",
+        "Sale, Craig",
+        "Cooper, Simon B",
+        "Elliott-Sale, Kirsty J"
+      ],
+      "journal": "International Journal of Sports Physiology and Performance",
+      "year": 2018,
+      "volume": "13",
+      "issue": "7",
+      "pages": "926-932",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Hormonal Contraception",
+        "Recovery and Fatigue"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "HC prevalence + perceived side effects in elite athletes."
+    },
+    {
+      "key": "creinin2004",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "How regular is regular? An analysis of menstrual cycle regularity",
+      "authors": [
+        "Creinin, Mitchell D",
+        "Keverline, Sharon",
+        "Meyn, Leslie A"
+      ],
+      "journal": "Contraception",
+      "year": 2004,
+      "volume": "70",
+      "issue": "4",
+      "pages": "289-292",
+      "doi": "10.1016/j.contraception.2004.04.012",
+      "doi_status": "seen",
+      "folders": [
+        "Menstrual Physiology"
+      ],
+      "focus": [
+        1
+      ],
+      "seminal": true,
+      "note": "Seminal: quantifies cycle irregularity, undermining the fixed-28-day assumption (pre-15yr, retained)."
+    },
+    {
+      "key": "bull2019",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Real-world menstrual cycle characteristics of more than 600,000 menstrual cycles",
+      "authors": [
+        "Bull, Jonathan R",
+        "Rowland, Simon P",
+        "Scherwitzl, Elina Berglund",
+        "Scherwitzl, Raoul",
+        "Danielsson, Kristina Gemzell",
+        "Harper, Joyce"
+      ],
+      "journal": "npj Digital Medicine",
+      "year": 2019,
+      "volume": "2",
+      "issue": "",
+      "pages": "83",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Wearables & Tracking",
+        "Menstrual Physiology"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "App-derived large-scale data on real cycle variability; supports individualized tracking over population assumptions."
+    },
+    {
+      "key": "costello2014",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "Where are all the female participants in Sports and Exercise Medicine research?",
+      "authors": [
+        "Costello, Joseph T",
+        "Bieuzen, Francois",
+        "Bleakley, Chris M"
+      ],
+      "journal": "European Journal of Sport Science",
+      "year": 2014,
+      "volume": "14",
+      "issue": "8",
+      "pages": "847-851",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Seminal quantification of female underrepresentation (the original 'sex data gap' paper)."
+    },
+    {
+      "key": "cowley2021",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "'Invisible Sportswomen': The Sex Data Gap in Sport and Exercise Science Research",
+      "authors": [
+        "Cowley, Emma S",
+        "Olenick, Alyssa A",
+        "McNulty, Kelly L",
+        "Ross, Emma Z"
+      ],
+      "journal": "Women in Sport and Physical Activity Journal",
+      "year": 2021,
+      "volume": "29",
+      "issue": "2",
+      "pages": "146-151",
+      "doi": "10.1123/wspaj.2021-0028",
+      "doi_status": "seen",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Flagship follow-up to Costello: only 6% of studies female-only; 34% of participants female across 12.5M."
+    },
+    {
+      "key": "jansedejonge2019",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "Methodological Recommendations for Menstrual Cycle Research in Sports and Exercise",
+      "authors": [
+        "Janse de Jonge, Xanne",
+        "Thompson, Belinda",
+        "Han, Aaron"
+      ],
+      "journal": "Medicine & Science in Sports & Exercise",
+      "year": 2019,
+      "volume": "51",
+      "issue": "12",
+      "pages": "2610-2617",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Gold-standard methods guide for MC research; defines phase-verification standards."
+    },
+    {
+      "key": "elliottsale2021meth",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "Methodological Considerations for Studies in Sport and Exercise Science with Women as Participants: A Working Guide for Standards of Practice for Research on Women",
+      "authors": [
+        "Elliott-Sale, Kirsty J",
+        "Minahan, Clare L",
+        "de Jonge, Xanne A K Janse",
+        "Ackerman, Kathryn E",
+        "Sipila, Sarianna",
+        "Constantini, Naama W",
+        "Lebrun, Constance M",
+        "Hackney, Anthony C"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2021,
+      "volume": "51",
+      "issue": "5",
+      "pages": "843-861",
+      "doi": "10.1007/s40279-021-01435-8",
+      "doi_status": "seen",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Standards-of-practice guide for female-participant research; core methods citation."
+    },
+    {
+      "key": "burden2021",
+      "type": "article",
+      "tier": "T2",
+      "grade": "METH",
+      "title": "Elite female athlete research: stop searching for the 'magic P'",
+      "authors": [
+        "Burden, Richard J",
+        "Shill, Alexander L",
+        "Bishop, Nicolette C"
+      ],
+      "journal": "Experimental Physiology",
+      "year": 2021,
+      "volume": "106",
+      "issue": "10",
+      "pages": "2029-2030",
+      "doi": "10.1113/EP089884",
+      "doi_status": "seen",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Commentary against over-reliance on phase p-values; argues for individualized approaches."
+    },
+    {
+      "key": "meignie2022",
+      "type": "article",
+      "tier": "T2",
+      "grade": "METH",
+      "title": "Dealing with menstrual cycle in sport: stop finding excuses to exclude women from research",
+      "authors": [
+        "Meignie, Alice",
+        "Toussaint, Jean-Francois",
+        "Antero, Juliana"
+      ],
+      "journal": "European Journal of Applied Physiology",
+      "year": 2022,
+      "volume": "122",
+      "issue": "",
+      "pages": "",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Commentary countering the use of cycle complexity as a reason to exclude women."
+    },
+    {
+      "key": "hagstrom2021",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "Sex Bias in Cohorts Included in Sports Medicine Research",
+      "authors": [
+        "Hagstrom, Amanda D",
+        "Yuwono, Nicole",
+        "Warton, Kristina",
+        "Ford, Caroline E"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2021,
+      "volume": "51",
+      "issue": "9",
+      "pages": "1799-1804",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Quantifies male-skewed cohorts in sports-medicine research."
+    },
+    {
+      "key": "mujika2019",
+      "type": "article",
+      "tier": "T2",
+      "grade": "METH",
+      "title": "Sport Science on Women, Women in Sport Science",
+      "authors": [
+        "Mujika, Inigo",
+        "Taipale, Ritva S"
+      ],
+      "journal": "International Journal of Sports Physiology and Performance",
+      "year": 2019,
+      "volume": "14",
+      "issue": "8",
+      "pages": "1013-1014",
+      "doi": "10.1123/ijspp.2019-0514",
+      "doi_status": "seen",
+      "folders": [
+        "Research Gaps"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "Editorial framing the female evidence gap and the researcher-gender dimension."
+    },
+    {
+      "key": "isenmann2023",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Resistance training alters body composition in middle-aged women depending on menopause - A 20-week control trial",
+      "authors": [
+        "Isenmann, Eduard",
+        "Kaluza, Dominik",
+        "Havers, Tim",
+        "Elbeshausen, Ana",
+        "Geisler, Stephan",
+        "Hofmann, Katharina",
+        "Flenker, Ulrich",
+        "Diel, Patrick",
+        "Gavanda, Simon"
+      ],
+      "journal": "BMC Women's Health",
+      "year": 2023,
+      "volume": "23",
+      "issue": "",
+      "pages": "526",
+      "doi": "10.1186/s12905-023-02671-y",
+      "doi_status": "seen",
+      "folders": [
+        "Perimenopause",
+        "Resistance Training"
+      ],
+      "focus": [
+        1
+      ],
+      "note": "RT effects on body composition differ pre- vs post-menopause; hypertrophy seen only pre-menopause."
+    },
+    {
+      "key": "svensen2025",
+      "type": "article",
+      "tier": "T2",
+      "grade": "RCT",
+      "title": "A Novel Low-Impact Resistance Exercise Program Increases Strength and Balance in Females Irrespective of Menopause Status",
+      "authors": [
+        "Svensen, Emma",
+        "Koscien, Charlotte P",
+        "Alamdari, Nima",
+        "Wall, Benjamin T",
+        "Stephens, Francis B"
+      ],
+      "journal": "Medicine & Science in Sports & Exercise",
+      "year": 2025,
+      "volume": "57",
+      "issue": "3",
+      "pages": "501-513",
+      "doi": "10.1249/MSS.0000000000003586",
+      "doi_status": "seen",
+      "folders": [
+        "Perimenopause",
+        "Resistance Training"
+      ],
+      "focus": [
+        1
+      ],
+      "note": "RT improves strength/balance regardless of menopause status; practical for the perimenopause track."
+    },
+    {
+      "key": "nattiv2007",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "American College of Sports Medicine position stand. The female athlete triad",
+      "authors": [
+        "Nattiv, Aurelia",
+        "Loucks, Anne B",
+        "Manore, Melinda M",
+        "Sanborn, Charlotte F",
+        "Sundgot-Borgen, Jorunn",
+        "Warren, Michelle P"
+      ],
+      "journal": "Medicine & Science in Sports & Exercise",
+      "year": 2007,
+      "volume": "39",
+      "issue": "10",
+      "pages": "1867-1882",
+      "doi": "",
+      "doi_status": "to-verify",
+      "seminal": true,
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        3,
+        7
+      ],
+      "note": "Seminal ACSM position stand defining the Female Athlete Triad continuum (pre-15yr, retained as foundational)."
+    },
+    {
+      "key": "desouza2014fatc",
+      "type": "article",
+      "tier": "T1",
+      "grade": "CS",
+      "title": "2014 Female Athlete Triad Coalition Consensus Statement on Treatment and Return to Play of the Female Athlete Triad",
+      "authors": [
+        "De Souza, Mary Jane",
+        "Nattiv, Aurelia",
+        "Joy, Elizabeth"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2014,
+      "volume": "48",
+      "issue": "4",
+      "pages": "289",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        7
+      ],
+      "seminal": true,
+      "note": "Triad Coalition clinical consensus on treatment/return-to-play (pre-15yr, retained). Author list truncated."
+    },
+    {
+      "key": "gibbs2013",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Prevalence of individual and combined components of the female athlete triad",
+      "authors": [
+        "Gibbs, Jenna C",
+        "Williams, Nancy I",
+        "De Souza, Mary Jane"
+      ],
+      "journal": "Medicine & Science in Sports & Exercise",
+      "year": 2013,
+      "volume": "45",
+      "issue": "5",
+      "pages": "985-996",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Female Athlete Health"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "Prevalence data for triad components across athlete samples."
+    },
+    {
+      "key": "herzberg2017",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "The Effect of Menstrual Cycle and Contraceptives on ACL Injuries and Laxity: A Systematic Review and Meta-analysis",
+      "authors": [
+        "Herzberg, Simone D",
+        "Motu'apuaka, Makalapua L",
+        "Lambert, William",
+        "Fu, Rongwei",
+        "Brady, Jacqueline",
+        "Guise, Jeanne-Marie"
+      ],
+      "journal": "Orthopaedic Journal of Sports Medicine",
+      "year": 2017,
+      "volume": "5",
+      "issue": "7",
+      "pages": "2325967117718781",
+      "doi": "10.1177/2325967117718781",
+      "doi_status": "seen",
+      "folders": [
+        "Female Athlete Health",
+        "Meta-Analyses"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "MA: knee laxity increases at ovulation vs. follicular; ACL-injury association at very low strength of evidence."
+    },
+    {
+      "key": "chidiogbolu2019",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "Effect of Estrogen on Musculoskeletal Performance and Injury Risk",
+      "authors": [
+        "Chidi-Ogbolu, Nkechinyere",
+        "Baar, Keith"
+      ],
+      "journal": "Frontiers in Physiology",
+      "year": 2019,
+      "volume": "9",
+      "issue": "",
+      "pages": "1834",
+      "doi": "10.3389/fphys.2018.01834",
+      "doi_status": "seen",
+      "folders": [
+        "Menstrual Physiology",
+        "Female Athlete Health"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Mechanistic review: estrogen raises muscle strength but lowers tendon/ligament stiffness (injury-risk tradeoff)."
+    },
+    {
+      "key": "romeroparra2021",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "Exercise-Induced Muscle Damage During the Menstrual Cycle: A Systematic Review and Meta-Analysis",
+      "authors": [
+        "Romero-Parra, Nuria",
+        "Cupeiro, Rocio",
+        "Alfaro-Magallanes, Victor M",
+        "Rael, Beatriz",
+        "Rubio-Arias, Jacobo A",
+        "Peinado, Ana B",
+        "Benito, Pedro J"
+      ],
+      "journal": "Journal of Strength and Conditioning Research",
+      "year": 2021,
+      "volume": "35",
+      "issue": "2",
+      "pages": "549-561",
+      "doi": "10.1519/JSC.0000000000003878",
+      "doi_status": "seen",
+      "folders": [
+        "Recovery and Fatigue",
+        "Meta-Analyses"
+      ],
+      "focus": [
+        5,
+        7
+      ],
+      "note": "MA: DOMS and strength loss highest in early follicular, lowest mid-luteal; NOT reflected in creatine kinase (perceived vs. objective dissociation) - a core symptom-responsive anchor."
+    },
+    {
+      "key": "carmichael2023sleep",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Menstrual Cycle Symptoms and Sleep: Associations With Performance and Recovery in Elite Athletes",
+      "authors": [
+        "Carmichael, Mikaeli A",
+        "Brown, Nicola",
+        "Pedlar, Charles R",
+        "Schutz, Esther",
+        "Bruinvels, Georgie"
+      ],
+      "journal": "International Journal of Sports Physiology and Performance",
+      "year": 2023,
+      "volume": "18",
+      "issue": "7",
+      "pages": "948-956",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Recovery and Fatigue"
+      ],
+      "focus": [
+        7
+      ],
+      "note": "Symptom-sleep-recovery associations in elite athletes; supports symptom (not phase) as the actionable signal."
+    },
+    {
+      "key": "carmichael2021nr",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "The Impact of Menstrual Cycle Phase on Athletes' Performance: A Narrative Review",
+      "authors": [
+        "Carmichael, Mikaeli A",
+        "Thomson, Rebecca L",
+        "Moran, Lisa J",
+        "Wycherley, Thomas P"
+      ],
+      "journal": "Nutrients",
+      "year": 2021,
+      "volume": "13",
+      "issue": "4",
+      "pages": "879",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Exercise Performance"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Widely-cited narrative review of phase effects; concludes individualization over rigid prescription. MDPI - flag."
+    },
+    {
+      "key": "mcnamara2022",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "The Menstrual Cycle, Exercise Performance and Recovery: Narrative Review and Practical Recommendations",
+      "authors": [
+        "McNamara, Angela E",
+        "O'Brien, William J",
+        "Hackney, Anthony C",
+        "Martin, Daniel",
+        "Slater, Gary J"
+      ],
+      "journal": "Sports",
+      "year": 2022,
+      "volume": "10",
+      "issue": "6",
+      "pages": "88",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Exercise Performance",
+        "Recovery and Fatigue"
+      ],
+      "focus": [
+        5,
+        6
+      ],
+      "note": "Practitioner-facing narrative review with applied recommendations. MDPI - flag."
+    },
+    {
+      "key": "nolan2024",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "The Effect of Hormonal Contraceptive Use on Skeletal Muscle Hypertrophy, Power and Strength Adaptations to Resistance Exercise Training: A Systematic Review and Multilevel Meta-analysis",
+      "authors": [
+        "Nolan, David",
+        "McNulty, Kelly L",
+        "Manninen, Mika",
+        "Egan, Brendan"
+      ],
+      "journal": "Sports Medicine",
+      "year": 2024,
+      "volume": "54",
+      "issue": "1",
+      "pages": "105-125",
+      "doi": "10.1007/s40279-023-01911-3",
+      "doi_status": "seen",
+      "folders": [
+        "Hormonal Contraception",
+        "Meta-Analyses",
+        "Resistance Training"
+      ],
+      "focus": [
+        4,
+        5
+      ],
+      "note": "MA: HC use does not meaningfully alter hypertrophy/power/strength adaptation to resistance training."
+    },
+    {
+      "key": "sung2022oc",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Effects of oral contraceptive use on muscle strength, muscle thickness, and fiber size and composition in young women undergoing 12 weeks of strength training: a cohort study",
+      "authors": [
+        "Sung, Eun-Sook",
+        "Han, Ahreum",
+        "Hinrichs, Timo",
+        "Vorgerd, Matthias",
+        "Platen, Petra"
+      ],
+      "journal": "BMC Women's Health",
+      "year": 2022,
+      "volume": "22",
+      "issue": "1",
+      "pages": "150",
+      "doi": "10.1186/s12905-022-01740-y",
+      "doi_status": "seen",
+      "folders": [
+        "Hormonal Contraception",
+        "Resistance Training"
+      ],
+      "focus": [
+        4
+      ],
+      "note": "Cohort: OC vs non-OC fiber-type/strength adaptations over 12 wk of RT."
+    },
+    {
+      "key": "patterson2022bct",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Behaviour change techniques in cardiovascular disease smartphone apps to improve physical activity and sedentary behaviour: Systematic review and meta-regression",
+      "authors": [
+        "Patterson, Kacie",
+        "Davey, Rachel",
+        "Keegan, Richard",
+        "Kunstler, Brea",
+        "Woodward, Andrew",
+        "Freene, Nicole"
+      ],
+      "journal": "International Journal of Behavioral Nutrition and Physical Activity",
+      "year": 2022,
+      "volume": "19",
+      "issue": "1",
+      "pages": "81",
+      "doi": "10.1186/s12966-022-01319-8",
+      "doi_status": "seen",
+      "folders": [
+        "App Design & Behavior Change"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Which BCTs drive PA in apps: action planning and self-monitoring most effective - directly informs Axis feature design."
+    },
+    {
+      "key": "hayman2021bct",
+      "type": "article",
+      "tier": "T2",
+      "grade": "SR",
+      "title": "Quality, Features, and Presence of Behavior Change Techniques in Mobile Apps Designed to Improve Physical Activity in Pregnant Women: Systematic Search and Content Analysis",
+      "authors": [
+        "Hayman, Melanie",
+        "Alfrey, Kristie-Lee",
+        "Cannon, Summer",
+        "Alley, Stephanie",
+        "Rebar, Amanda L",
+        "Williams, Susan",
+        "Short, Camille E",
+        "Altazan, Abby",
+        "Comardelle, Natalie",
+        "Currie, Sinead"
+      ],
+      "journal": "JMIR mHealth and uHealth",
+      "year": 2021,
+      "volume": "9",
+      "issue": "4",
+      "pages": "e23649",
+      "doi": "10.2196/23649",
+      "doi_status": "seen",
+      "folders": [
+        "App Design & Behavior Change"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Content analysis showing commercial PA apps often lack evidence-based BCTs. Author list truncated."
+    },
+    {
+      "key": "mlphase2025",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Machine learning-based menstrual phase identification using wearable device data",
+      "authors": [],
+      "journal": "npj Women's Health",
+      "year": 2025,
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1038/s44294-025-00078-8",
+      "doi_status": "seen",
+      "authors_via_doi": true,
+      "folders": [
+        "Wearables & Tracking",
+        "Digital Health"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Wrist-wearable signals (skin temp, EDA, HR) classify cycle phase at 87% (3-phase). Authors resolve via DOI on import - directly relevant to Axis's passive-input goal."
+    },
+    {
+      "key": "carmichael2021track",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Menstrual Cycle Symptom Tracking and the Association With Training Load and Wellness in Elite Female Athletes",
+      "authors": [
+        "Carmichael, Mikaeli A",
+        "Brown, Nicola",
+        "Bruinvels, Georgie",
+        "Pedlar, Charles R"
+      ],
+      "journal": "Frontiers in Sports and Active Living",
+      "year": 2021,
+      "volume": "3",
+      "issue": "",
+      "pages": "656229",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Wearables & Tracking"
+      ],
+      "focus": [
+        6,
+        7
+      ],
+      "note": "Symptom tracking relates to training load and wellness in elite athletes - evidence base for symptom-driven load adjustment."
+    },
+    {
+      "key": "carmichael2025scoping",
+      "type": "article",
+      "tier": "T1",
+      "grade": "SR",
+      "title": "Menstrual cycle monitoring in applied sport settings: A scoping review",
+      "authors": [
+        "Carmichael, Mikaeli A",
+        "Perry, Kate",
+        "Roberts, Alexandra H",
+        "Klass, Velvet",
+        "Clarke, Anthea C"
+      ],
+      "journal": "International Journal of Sports Science & Coaching",
+      "year": 2025,
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1177/17479541251333888",
+      "doi_status": "seen",
+      "folders": [
+        "Wearables & Tracking"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Scoping review of how MC monitoring is applied in sport; argues for evidence-based-but-flexible, individualized tracking."
+    },
+    {
+      "key": "flowingdata2025",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Flowing data: women's views and experiences on privacy and data security when using menstrual cycle tracking apps",
+      "authors": [],
+      "journal": "Oxford Open Digital Health",
+      "year": 2025,
+      "volume": "",
+      "issue": "",
+      "pages": "oqaf011",
+      "doi": "10.1093/oodh/oqaf011",
+      "doi_status": "seen",
+      "authors_via_doi": true,
+      "folders": [
+        "Digital Health"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Qualitative evidence on user privacy/data-security concerns - grounds Axis's trust-as-a-feature positioning. Authors resolve via DOI."
+    },
+    {
+      "key": "lei2017",
+      "type": "article",
+      "tier": "T2",
+      "grade": "CT",
+      "title": "Influence of menstrual phase and arid vs. humid heat stress on autonomic and behavioural thermoregulation during exercise in trained but unacclimated women",
+      "authors": [
+        "Lei, Tze-Huan",
+        "Stannard, Stephen R",
+        "Perry, Blake G",
+        "Schlader, Zachary J",
+        "Cotter, James D",
+        "Mundel, Toby"
+      ],
+      "journal": "The Journal of Physiology",
+      "year": 2017,
+      "volume": "595",
+      "issue": "9",
+      "pages": "2823-2837",
+      "doi": "10.1113/JP273176",
+      "doi_status": "seen",
+      "folders": [
+        "Endurance Training"
+      ],
+      "focus": [
+        5
+      ],
+      "note": "Thermoregulatory responses across MC phases during heat-stress exercise in trained women."
+    },
+    {
+      "key": "tempreg2020",
+      "type": "article",
+      "tier": "T1",
+      "grade": "NR",
+      "title": "Temperature regulation in women: Effects of the menstrual cycle",
+      "authors": [],
+      "authors_via_doi": true,
+      "journal": "Temperature",
+      "year": 2020,
+      "volume": "7",
+      "issue": "3",
+      "pages": "226-262",
+      "doi": "10.1080/23328940.2020.1735927",
+      "doi_status": "seen",
+      "folders": [
+        "Menstrual Physiology",
+        "Endurance Training"
+      ],
+      "focus": [
+        5,
+        7
+      ],
+      "note": "Comprehensive review of core-temperature rhythms and thermoregulation across the cycle. Authors resolve via DOI on import."
+    },
+    {
+      "key": "schaumberg2017",
+      "type": "article",
+      "tier": "T1",
+      "grade": "METH",
+      "title": "Three-step method for menstrual and oral contraceptive cycle verification",
+      "authors": [
+        "Schaumberg, Mia A",
+        "Jenkins, David G",
+        "Janse de Jonge, Xanne A K",
+        "Emmerton, Lynne M",
+        "Skinner, Tina L"
+      ],
+      "journal": "Journal of Science and Medicine in Sport",
+      "year": 2017,
+      "volume": "20",
+      "issue": "11",
+      "pages": "965-969",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Menstrual Physiology"
+      ],
+      "focus": [
+        2
+      ],
+      "note": "The gold-standard three-step phase-verification method (mapping + urinary LH + serum hormones). Core methods reference for any phase-based claim."
+    },
+    {
+      "key": "doroshuk2025",
+      "type": "article",
+      "tier": "T2",
+      "grade": "OBS",
+      "title": "Level of Agreement Between a Modified, Three-Step Menstrual Cycle Tracking Method and a Female-Health Menstrual Cycle Tracking App",
+      "authors": [
+        "Doroshuk, Marissa L",
+        "Lebrun, Constance M",
+        "Doyle-Baker, Patricia K"
+      ],
+      "journal": "Women's Health Reports",
+      "year": 2025,
+      "volume": "",
+      "issue": "",
+      "pages": "",
+      "doi": "10.1177/26884844251379415",
+      "doi_status": "seen",
+      "folders": [
+        "Menstrual Physiology",
+        "Wearables & Tracking"
+      ],
+      "focus": [
+        6
+      ],
+      "note": "Benchmarks a cycle-tracking app's phase identification against modified three-step verification - directly relevant to Axis's tracking accuracy."
+    },
+    {
+      "key": "burden2015iron",
+      "type": "article",
+      "tier": "T1",
+      "grade": "MA",
+      "title": "Is iron treatment beneficial in, iron-deficient but non-anaemic (IDNA) endurance athletes? A systematic review and meta-analysis",
+      "authors": [
+        "Burden, Richard J",
+        "Morton, Katherine",
+        "Richards, Toby",
+        "Whyte, Gregory P",
+        "Pedlar, Charles R"
+      ],
+      "journal": "British Journal of Sports Medicine",
+      "year": 2015,
+      "volume": "49",
+      "issue": "21",
+      "pages": "1389-1397",
+      "doi": "",
+      "doi_status": "to-verify",
+      "folders": [
+        "Nutrition",
+        "Female Athlete Health",
+        "Meta-Analyses"
+      ],
+      "focus": [
+        3
+      ],
+      "note": "BJSM MA on iron treatment in non-anaemic iron-deficient endurance athletes; menstrual blood loss is a key female-athlete risk factor."
+    },
+    {
+      "key": "sims2016roar",
+      "type": "book",
+      "tier": "T3",
+      "grade": "EXPERT",
+      "title": "ROAR: How to Match Your Food and Fitness to Your Unique Female Physiology for Optimum Performance, Great Health, and a Strong, Lean Body for Life",
+      "authors": [
+        "Sims, Stacy T",
+        "Yeager, Selene"
+      ],
+      "journal": "",
+      "publisher": "Rodale Books",
+      "isbn": "9781623366865",
+      "year": 2016,
+      "doi": "",
+      "doi_status": "n/a",
+      "folders": [
+        "Menstrual Physiology",
+        "Nutrition",
+        "Exercise Performance"
+      ],
+      "focus": [
+        3,
+        5,
+        6
+      ],
+      "note": "EXPERT-OPINION (Tier 3): PhD exercise physiologist, mainstream publisher (Rodale/Penguin Random House). Practical/translational - NOT to support efficacy claims alone; cross-check against primary literature. Revised ed. 2024 (ISBN 9780593581926)."
+    },
+    {
+      "key": "sims2022nextlevel",
+      "type": "book",
+      "tier": "T3",
+      "grade": "EXPERT",
+      "title": "Next Level: Your Guide to Kicking Ass, Feeling Great, and Crushing Goals Through Menopause and Beyond",
+      "authors": [
+        "Sims, Stacy T",
+        "Yeager, Selene"
+      ],
+      "journal": "",
+      "publisher": "Rodale Books",
+      "isbn": "9780593233153",
+      "year": 2022,
+      "doi": "",
+      "doi_status": "n/a",
+      "folders": [
+        "Perimenopause",
+        "Nutrition"
+      ],
+      "focus": [
+        1
+      ],
+      "note": "EXPERT-OPINION (Tier 3): qualified author, mainstream publisher. Perimenopause/menopause training + nutrition. Practical guidance, not primary evidence."
+    }
+  ]
+}

@@ -1,0 +1,2649 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:z="http://www.zotero.org/namespaces/export#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bib="http://purl.org/net/biblio#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:prism="http://prismstandard.org/namespaces/1.2/basic/">
+  <z:Collection rdf:about="#coll_1">
+    <dc:title>Menstrual Physiology</dc:title>
+    <dcterms:hasPart rdf:resource="#item_22"/>
+    <dcterms:hasPart rdf:resource="#item_23"/>
+    <dcterms:hasPart rdf:resource="#item_27"/>
+    <dcterms:hasPart rdf:resource="#item_30"/>
+    <dcterms:hasPart rdf:resource="#item_31"/>
+    <dcterms:hasPart rdf:resource="#item_46"/>
+    <dcterms:hasPart rdf:resource="#item_60"/>
+    <dcterms:hasPart rdf:resource="#item_61"/>
+    <dcterms:hasPart rdf:resource="#item_62"/>
+    <dcterms:hasPart rdf:resource="#item_64"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_2">
+    <dc:title>Exercise Performance</dc:title>
+    <dcterms:hasPart rdf:resource="#item_1"/>
+    <dcterms:hasPart rdf:resource="#item_4"/>
+    <dcterms:hasPart rdf:resource="#item_5"/>
+    <dcterms:hasPart rdf:resource="#item_12"/>
+    <dcterms:hasPart rdf:resource="#item_27"/>
+    <dcterms:hasPart rdf:resource="#item_28"/>
+    <dcterms:hasPart rdf:resource="#item_49"/>
+    <dcterms:hasPart rdf:resource="#item_50"/>
+    <dcterms:hasPart rdf:resource="#item_64"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_3">
+    <dc:title>Resistance Training</dc:title>
+    <dcterms:hasPart rdf:resource="#item_3"/>
+    <dcterms:hasPart rdf:resource="#item_6"/>
+    <dcterms:hasPart rdf:resource="#item_7"/>
+    <dcterms:hasPart rdf:resource="#item_8"/>
+    <dcterms:hasPart rdf:resource="#item_9"/>
+    <dcterms:hasPart rdf:resource="#item_40"/>
+    <dcterms:hasPart rdf:resource="#item_41"/>
+    <dcterms:hasPart rdf:resource="#item_51"/>
+    <dcterms:hasPart rdf:resource="#item_52"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_4">
+    <dc:title>Endurance Training</dc:title>
+    <dcterms:hasPart rdf:resource="#item_10"/>
+    <dcterms:hasPart rdf:resource="#item_11"/>
+    <dcterms:hasPart rdf:resource="#item_12"/>
+    <dcterms:hasPart rdf:resource="#item_59"/>
+    <dcterms:hasPart rdf:resource="#item_60"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_5">
+    <dc:title>Recovery and Fatigue</dc:title>
+    <dcterms:hasPart rdf:resource="#item_24"/>
+    <dcterms:hasPart rdf:resource="#item_25"/>
+    <dcterms:hasPart rdf:resource="#item_26"/>
+    <dcterms:hasPart rdf:resource="#item_29"/>
+    <dcterms:hasPart rdf:resource="#item_47"/>
+    <dcterms:hasPart rdf:resource="#item_48"/>
+    <dcterms:hasPart rdf:resource="#item_50"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_6">
+    <dc:title>Nutrition</dc:title>
+    <dcterms:hasPart rdf:resource="#item_11"/>
+    <dcterms:hasPart rdf:resource="#item_13"/>
+    <dcterms:hasPart rdf:resource="#item_14"/>
+    <dcterms:hasPart rdf:resource="#item_15"/>
+    <dcterms:hasPart rdf:resource="#item_19"/>
+    <dcterms:hasPart rdf:resource="#item_20"/>
+    <dcterms:hasPart rdf:resource="#item_63"/>
+    <dcterms:hasPart rdf:resource="#item_64"/>
+    <dcterms:hasPart rdf:resource="#item_65"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_7">
+    <dc:title>Hormonal Contraception</dc:title>
+    <dcterms:hasPart rdf:resource="#item_2"/>
+    <dcterms:hasPart rdf:resource="#item_6"/>
+    <dcterms:hasPart rdf:resource="#item_29"/>
+    <dcterms:hasPart rdf:resource="#item_51"/>
+    <dcterms:hasPart rdf:resource="#item_52"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_8">
+    <dc:title>Female Athlete Health</dc:title>
+    <dcterms:hasPart rdf:resource="#item_13"/>
+    <dcterms:hasPart rdf:resource="#item_16"/>
+    <dcterms:hasPart rdf:resource="#item_17"/>
+    <dcterms:hasPart rdf:resource="#item_18"/>
+    <dcterms:hasPart rdf:resource="#item_19"/>
+    <dcterms:hasPart rdf:resource="#item_20"/>
+    <dcterms:hasPart rdf:resource="#item_21"/>
+    <dcterms:hasPart rdf:resource="#item_22"/>
+    <dcterms:hasPart rdf:resource="#item_23"/>
+    <dcterms:hasPart rdf:resource="#item_42"/>
+    <dcterms:hasPart rdf:resource="#item_43"/>
+    <dcterms:hasPart rdf:resource="#item_44"/>
+    <dcterms:hasPart rdf:resource="#item_45"/>
+    <dcterms:hasPart rdf:resource="#item_46"/>
+    <dcterms:hasPart rdf:resource="#item_63"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_9">
+    <dc:title>Systematic Reviews</dc:title>
+    <dcterms:hasPart rdf:resource="#item_3"/>
+    <dcterms:hasPart rdf:resource="#item_4"/>
+    <dcterms:hasPart rdf:resource="#item_5"/>
+    <dcterms:hasPart rdf:resource="#item_24"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_10">
+    <dc:title>Meta-Analyses</dc:title>
+    <dcterms:hasPart rdf:resource="#item_1"/>
+    <dcterms:hasPart rdf:resource="#item_2"/>
+    <dcterms:hasPart rdf:resource="#item_45"/>
+    <dcterms:hasPart rdf:resource="#item_47"/>
+    <dcterms:hasPart rdf:resource="#item_51"/>
+    <dcterms:hasPart rdf:resource="#item_63"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_11">
+    <dc:title>App Design &amp; Behavior Change</dc:title>
+    <dcterms:hasPart rdf:resource="#item_53"/>
+    <dcterms:hasPart rdf:resource="#item_54"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_12">
+    <dc:title>Wearables &amp; Tracking</dc:title>
+    <dcterms:hasPart rdf:resource="#item_25"/>
+    <dcterms:hasPart rdf:resource="#item_26"/>
+    <dcterms:hasPart rdf:resource="#item_28"/>
+    <dcterms:hasPart rdf:resource="#item_31"/>
+    <dcterms:hasPart rdf:resource="#item_55"/>
+    <dcterms:hasPart rdf:resource="#item_56"/>
+    <dcterms:hasPart rdf:resource="#item_57"/>
+    <dcterms:hasPart rdf:resource="#item_62"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_13">
+    <dc:title>Digital Health</dc:title>
+    <dcterms:hasPart rdf:resource="#item_55"/>
+    <dcterms:hasPart rdf:resource="#item_58"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_14">
+    <dc:title>Research Gaps</dc:title>
+    <dcterms:hasPart rdf:resource="#item_14"/>
+    <dcterms:hasPart rdf:resource="#item_15"/>
+    <dcterms:hasPart rdf:resource="#item_32"/>
+    <dcterms:hasPart rdf:resource="#item_33"/>
+    <dcterms:hasPart rdf:resource="#item_34"/>
+    <dcterms:hasPart rdf:resource="#item_35"/>
+    <dcterms:hasPart rdf:resource="#item_36"/>
+    <dcterms:hasPart rdf:resource="#item_37"/>
+    <dcterms:hasPart rdf:resource="#item_38"/>
+    <dcterms:hasPart rdf:resource="#item_39"/>
+  </z:Collection>
+  <z:Collection rdf:about="#coll_15">
+    <dc:title>Perimenopause</dc:title>
+    <dcterms:hasPart rdf:resource="#item_40"/>
+    <dcterms:hasPart rdf:resource="#item_41"/>
+    <dcterms:hasPart rdf:resource="#item_65"/>
+  </z:Collection>
+  <bib:Article rdf:about="#item_1">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McNulty</foaf:surname>
+        <foaf:givenName>Kelly L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Dolan</foaf:surname>
+        <foaf:givenName>Eimear</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Swinton</foaf:surname>
+        <foaf:givenName>Paul A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ansdell</foaf:surname>
+        <foaf:givenName>Paul</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Goodall</foaf:surname>
+        <foaf:givenName>Stuart</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Thomas</foaf:surname>
+        <foaf:givenName>Kevin</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hicks</foaf:surname>
+        <foaf:givenName>Kirsty M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Effects of Menstrual Cycle Phase on Exercise Performance in Eumenorrheic Women: A Systematic Review and Meta-Analysis</dc:title>
+    <dc:date>2020</dc:date>
+    <prism:volume>50</prism:volume>
+    <prism:number>10</prism:number>
+    <bib:pages>1813-1827</bib:pages>
+    <dc:identifier>DOI 10.1007/s40279-020-01319-3</dc:identifier>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:description>Central anchor: pooled effect of MC phase on performance is trivial; large between-study variance. Grounds the &#x27;weak/inconsistent phase effect&#x27; thesis.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_2">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McNulty</foaf:surname>
+        <foaf:givenName>Kelly L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ansdell</foaf:surname>
+        <foaf:givenName>Paul</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Goodall</foaf:surname>
+        <foaf:givenName>Stuart</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hicks</foaf:surname>
+        <foaf:givenName>Kirsty M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Thomas</foaf:surname>
+        <foaf:givenName>Kevin</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Swinton</foaf:surname>
+        <foaf:givenName>Paul A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Dolan</foaf:surname>
+        <foaf:givenName>Eimear</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Effects of Oral Contraceptives on Exercise Performance in Women: A Systematic Review and Meta-analysis</dc:title>
+    <dc:date>2020</dc:date>
+    <prism:volume>50</prism:volume>
+    <prism:number>10</prism:number>
+    <bib:pages>1785-1812</bib:pages>
+    <dc:identifier>DOI 10.1007/s40279-020-01317-5</dc:identifier>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>folder:Hormonal Contraception</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:description>Companion MA: OC use may trivially reduce performance vs. natural cycle; most studies low quality/underpowered.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_3">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Sports and Active Living</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Colenso-Semple</foaf:surname>
+        <foaf:givenName>Lauren M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>D&#x27;Souza</foaf:surname>
+        <foaf:givenName>Alysha C</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Phillips</foaf:surname>
+        <foaf:givenName>Stuart M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Current evidence shows no influence of women&#x27;s menstrual cycle phase on acute strength performance or adaptations to resistance exercise training</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>5</prism:volume>
+    <bib:pages>1054542</bib:pages>
+    <dc:identifier>DOI 10.3389/fspor.2023.1054542</dc:identifier>
+    <dc:subject>folder:Systematic Reviews</dc:subject>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Argues phase does not meaningfully affect acute strength or RT adaptation; critiques methodology of pro-phase studies.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_4">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Muscles</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elorduy-Terrado</foaf:surname>
+        <foaf:givenName>Ainize</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Torres-Luque</foaf:surname>
+        <foaf:givenName>Gema</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Radesca</foaf:surname>
+        <foaf:givenName>Krizia</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Munoz-Andradas</foaf:surname>
+        <foaf:givenName>Guillermo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Saenz-Bravo</foaf:surname>
+        <foaf:givenName>Marisa</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Dominguez-Balmaseda</foaf:surname>
+        <foaf:givenName>Diego</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Evaluation the Impact of Hormonal Fluctuations During the Menstrual Cycle on the Performance of Female Athletes - Systematic Review</dc:title>
+    <dc:date>2025</dc:date>
+    <prism:volume>4</prism:volume>
+    <prism:number>2</prism:number>
+    <bib:pages>15</bib:pages>
+    <dc:identifier>DOI 10.3390/muscles4020015</dc:identifier>
+    <dc:subject>folder:Systematic Reviews</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Recent SR (n=13 studies, 152 athletes); reports inconsistent phase effects. NOTE: MDPI publisher - flag for publisher-vetting per inclusion rules.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_5">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Meignie</foaf:surname>
+        <foaf:givenName>Alice</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Duclos</foaf:surname>
+        <foaf:givenName>Martine</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carling</foaf:surname>
+        <foaf:givenName>Christopher</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Orhant</foaf:surname>
+        <foaf:givenName>Emmanuel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Provost</foaf:surname>
+        <foaf:givenName>Peggy</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Toussaint</foaf:surname>
+        <foaf:givenName>Jean-Francois</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Antero</foaf:surname>
+        <foaf:givenName>Juliana</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Effects of Menstrual Cycle Phase on Elite Athlete Performance: A Critical and Systematic Review</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>12</prism:volume>
+    <bib:pages>654585</bib:pages>
+    <dc:identifier>DOI 10.3389/fphys.2021.654585</dc:identifier>
+    <dc:subject>folder:Systematic Reviews</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Critical SR focused on elite athletes; author order to confirm on import.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_6">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Sports Medicine and Physical Fitness</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Wikstrom-Frisen</foaf:surname>
+        <foaf:givenName>Lisbeth</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Boraxbekk</foaf:surname>
+        <foaf:givenName>Carl-Johan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Henriksson-Larsen</foaf:surname>
+        <foaf:givenName>Karin</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effects on power, strength and lean body mass of menstrual/oral contraceptive cycle based resistance training</dc:title>
+    <dc:date>2017</dc:date>
+    <prism:volume>57</prism:volume>
+    <prism:number>1-2</prism:number>
+    <bib:pages>43-52</bib:pages>
+    <dc:identifier>DOI 10.23736/S0022-4707.16.05848-5</dc:identifier>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>folder:Hormonal Contraception</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>MANDATORY pro-phase counter-anchor: reports follicular-phase-based training superior. Engaged directly; methodological limits (BBT-only phase ID) noted in rebuttals.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_7">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>SpringerPlus</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sung</foaf:surname>
+        <foaf:givenName>Eunsook</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Han</foaf:surname>
+        <foaf:givenName>Ahreum</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hinrichs</foaf:surname>
+        <foaf:givenName>Timo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Vorgerd</foaf:surname>
+        <foaf:givenName>Matthias</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Manchado</foaf:surname>
+        <foaf:givenName>Carmen</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Platen</foaf:surname>
+        <foaf:givenName>Petra</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effects of follicular versus luteal phase-based strength training in young women</dc:title>
+    <dc:date>2014</dc:date>
+    <prism:volume>3</prism:volume>
+    <bib:pages>668</bib:pages>
+    <dc:identifier>DOI 10.1186/2193-1801-3-668</dc:identifier>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>MANDATORY pro-phase counter-anchor: follicular-phase training gave greater strength/hypertrophy in a within-subject leg design.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_8">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kissow</foaf:surname>
+        <foaf:givenName>Julie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Jacobsen</foaf:surname>
+        <foaf:givenName>Kamilla J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Gunnarsson</foaf:surname>
+        <foaf:givenName>Thomas P</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Jessen</foaf:surname>
+        <foaf:givenName>Soren</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hostrup</foaf:surname>
+        <foaf:givenName>Morten</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effects of Follicular and Luteal Phase-Based Menstrual Cycle Resistance Training on Muscle Strength and Mass</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>52</prism:volume>
+    <prism:number>12</prism:number>
+    <bib:pages>2813-2819</bib:pages>
+    <dc:identifier>DOI 10.1007/s40279-022-01679-y</dc:identifier>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>MANDATORY counter-anchor: found no benefit of phase-based over regular training; contradicts Sung/Wikstrom-Frisen with tighter design.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_9">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Strength and Conditioning Research</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sakamaki-Sunaga</foaf:surname>
+        <foaf:givenName>Mika</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Min</foaf:surname>
+        <foaf:givenName>Seokki</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kamemoto</foaf:surname>
+        <foaf:givenName>Kayoko</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Okamoto</foaf:surname>
+        <foaf:givenName>Takanobu</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effects of Menstrual Phase-Dependent Resistance Training Frequency on Muscular Hypertrophy and Strength</dc:title>
+    <dc:date>2016</dc:date>
+    <prism:volume>30</prism:volume>
+    <prism:number>6</prism:number>
+    <bib:pages>1727-1734</bib:pages>
+    <dc:identifier>DOI 10.1519/JSC.0000000000001250</dc:identifier>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>Null result: no effect of phase-dependent training frequency on hypertrophy. Balances the pro-phase anchors.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_10">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Research Quarterly for Exercise and Sport</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ekberg</foaf:surname>
+        <foaf:givenName>Simon</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Morseth</foaf:surname>
+        <foaf:givenName>Bente</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Larsen</foaf:surname>
+        <foaf:givenName>Karin B</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Wikstrom-Frisen</foaf:surname>
+        <foaf:givenName>Lisbeth</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Does the Menstrual Cycle Influence Aerobic Capacity in Endurance-Trained Women?</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>95</prism:volume>
+    <bib:pages>609-616</bib:pages>
+    <dc:identifier>DOI 10.1080/02701367.2023.2291473</dc:identifier>
+    <dc:subject>folder:Endurance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>Endurance-specific: aerobic capacity across phases in trained women.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_11">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>European Journal of Applied Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Oosthuyse</foaf:surname>
+        <foaf:givenName>Tanja</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Strauss</foaf:surname>
+        <foaf:givenName>Juliette A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hackney</foaf:surname>
+        <foaf:givenName>Anthony C</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Understanding the female athlete: molecular mechanisms underpinning menstrual phase differences in exercise metabolism</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>123</prism:volume>
+    <bib:pages>423-450</bib:pages>
+    <dc:identifier>DOI 10.1007/s00421-022-05090-3</dc:identifier>
+    <dc:subject>folder:Endurance Training</dc:subject>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:description>Mechanistic review of substrate metabolism across the cycle; underpins any nutrition-timing rationale.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_12">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Scandinavian Journal of Medicine &amp; Science in Sports</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mattu</foaf:surname>
+        <foaf:givenName>Anmol T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Iannetta</foaf:surname>
+        <foaf:givenName>Danilo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>MacInnis</foaf:surname>
+        <foaf:givenName>Martin J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Doyle-Baker</foaf:surname>
+        <foaf:givenName>Patricia K</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Murias</foaf:surname>
+        <foaf:givenName>Juan M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual and oral contraceptive cycle phases do not affect submaximal and maximal exercise responses</dc:title>
+    <dc:date>2020</dc:date>
+    <prism:volume>30</prism:volume>
+    <bib:pages>472-484</bib:pages>
+    <dc:identifier>DOI 10.1111/sms.13590</dc:identifier>
+    <dc:subject>folder:Endurance Training</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>Well-controlled null: no phase effect on sub-/maximal responses.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_13">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of the International Society of Sports Nutrition</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sims</foaf:surname>
+        <foaf:givenName>Stacy T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kerksick</foaf:surname>
+        <foaf:givenName>Chad M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Smith-Ryan</foaf:surname>
+        <foaf:givenName>Abbie E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Janse de Jonge</foaf:surname>
+        <foaf:givenName>Xanne A K</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hirsch</foaf:surname>
+        <foaf:givenName>Katie R</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Arent</foaf:surname>
+        <foaf:givenName>Shawn M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>International society of sports nutrition position stand: nutritional concerns of the female athlete</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>20</prism:volume>
+    <prism:number>1</prism:number>
+    <bib:pages>2204066</bib:pages>
+    <dc:identifier>DOI 10.1080/15502783.2023.2204066</dc:identifier>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:description>ISSN position stand. Author list truncated (et al.) - confirm on import. Notably endorses individualized tracking over rigid phase prescription.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_14">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Medicine &amp; Science in Sports &amp; Exercise</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kuikman</foaf:surname>
+        <foaf:givenName>Megan A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Smith</foaf:surname>
+        <foaf:givenName>Ella S</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McKay</foaf:surname>
+        <foaf:givenName>Alannah K A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ackerman</foaf:surname>
+        <foaf:givenName>Kathryn E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Harris</foaf:surname>
+        <foaf:givenName>Rachel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Stellingwerff</foaf:surname>
+        <foaf:givenName>Trent</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Fueling the Female Athlete: Auditing Her Representation in Studies of Acute Carbohydrate Intake for Exercise</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>55</prism:volume>
+    <prism:number>3</prism:number>
+    <bib:pages>569-580</bib:pages>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Audit of female representation in carbohydrate-intake research; nutrition + evidence-gap.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_15">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Nutrients</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Smith</foaf:surname>
+        <foaf:givenName>Ella S</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McKay</foaf:surname>
+        <foaf:givenName>Alannah K A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kuikman</foaf:surname>
+        <foaf:givenName>Megan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ackerman</foaf:surname>
+        <foaf:givenName>Kathryn E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Harris</foaf:surname>
+        <foaf:givenName>Rachel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Stellingwerff</foaf:surname>
+        <foaf:givenName>Trent</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Auditing the Representation of Female Versus Male Athletes in Sports Science and Sports Medicine Research: Evidence-Based Performance Supplements</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>14</prism:volume>
+    <prism:number>5</prism:number>
+    <bib:pages>953</bib:pages>
+    <dc:identifier>DOI 10.3390/nu14050953</dc:identifier>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Supplement-research audit. MDPI - flag for publisher vetting.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_16">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mountjoy</foaf:surname>
+        <foaf:givenName>Margo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sundgot-Borgen</foaf:surname>
+        <foaf:givenName>Jorunn</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carter</foaf:surname>
+        <foaf:givenName>Susan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Constantini</foaf:surname>
+        <foaf:givenName>Naama</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lebrun</foaf:surname>
+        <foaf:givenName>Constance</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The IOC consensus statement: beyond the Female Athlete Triad - Relative Energy Deficiency in Sport (RED-S)</dc:title>
+    <dc:date>2014</dc:date>
+    <prism:volume>48</prism:volume>
+    <prism:number>7</prism:number>
+    <bib:pages>491-497</bib:pages>
+    <dc:identifier>DOI 10.1136/bjsports-2014-093502</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:description>Seminal RED-S consensus (pre-15yr, retained as foundational). Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_17">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mountjoy</foaf:surname>
+        <foaf:givenName>Margo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sundgot-Borgen</foaf:surname>
+        <foaf:givenName>Jorunn K</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ackerman</foaf:surname>
+        <foaf:givenName>Kathryn E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Blauwet</foaf:surname>
+        <foaf:givenName>Cheri</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Constantini</foaf:surname>
+        <foaf:givenName>Naama</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update</dc:title>
+    <dc:date>2018</dc:date>
+    <prism:volume>52</prism:volume>
+    <prism:number>11</prism:number>
+    <bib:pages>687-697</bib:pages>
+    <dc:identifier>DOI 10.1136/bjsports-2018-099193</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:description>2018 RED-S update. Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_18">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mountjoy</foaf:surname>
+        <foaf:givenName>Margo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ackerman</foaf:surname>
+        <foaf:givenName>Kathryn E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bailey</foaf:surname>
+        <foaf:givenName>David M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Constantini</foaf:surname>
+        <foaf:givenName>Naama</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hackney</foaf:surname>
+        <foaf:givenName>Anthony C</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>2023 International Olympic Committee&#x27;s (IOC) consensus statement on Relative Energy Deficiency in Sport (REDs)</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>57</prism:volume>
+    <prism:number>17</prism:number>
+    <bib:pages>1073-1097</bib:pages>
+    <dc:identifier>DOI 10.1136/bjsports-2023-106994</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:description>Current REDs consensus; updated conceptual + physiological models. Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_19">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Sports Sciences</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Loucks</foaf:surname>
+        <foaf:givenName>Anne B</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kiens</foaf:surname>
+        <foaf:givenName>Bente</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Wright</foaf:surname>
+        <foaf:givenName>Hattie H</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Energy availability in athletes</dc:title>
+    <dc:date>2011</dc:date>
+    <prism:volume>29</prism:volume>
+    <prism:number>Suppl 1</prism:number>
+    <bib:pages>S7-S15</bib:pages>
+    <dc:identifier>DOI 10.1080/02640414.2011.588958</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:description>Seminal energy-availability review (pre-15yr, retained as foundational).</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_20">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Sport Nutrition and Exercise Metabolism</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Heikura</foaf:surname>
+        <foaf:givenName>Ida A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Uusitalo</foaf:surname>
+        <foaf:givenName>Arja L T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Stellingwerff</foaf:surname>
+        <foaf:givenName>Trent</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bergland</foaf:surname>
+        <foaf:givenName>Dan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mero</foaf:surname>
+        <foaf:givenName>Antti A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burke</foaf:surname>
+        <foaf:givenName>Louise M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Low Energy Availability Is Difficult to Assess but Outcomes Have Large Impact on Bone Injury Rates in Elite Distance Athletes</dc:title>
+    <dc:date>2018</dc:date>
+    <prism:volume>28</prism:volume>
+    <prism:number>4</prism:number>
+    <bib:pages>403-411</bib:pages>
+    <dc:identifier>DOI 10.1123/ijsnem.2017-0313</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Links low energy availability to bone-injury outcomes in elite athletes.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_21">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carson</foaf:surname>
+        <foaf:givenName>Tiffany L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>West</foaf:surname>
+        <foaf:givenName>Brady T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sonneville</foaf:surname>
+        <foaf:givenName>Kendrin</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Zernicke</foaf:surname>
+        <foaf:givenName>Ronald F</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Clarke</foaf:surname>
+        <foaf:givenName>Philippa</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Harlow</foaf:surname>
+        <foaf:givenName>Sioban</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Karvonen-Gutierrez</foaf:surname>
+        <foaf:givenName>Carrie</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Identifying latent classes of Relative Energy Deficiency in Sport (REDs) consequences in a sample of collegiate female cross country runners</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>57</prism:volume>
+    <prism:number>3</prism:number>
+    <bib:pages>153-159</bib:pages>
+    <dc:identifier>DOI 10.1136/bjsports-2021-104083</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Empirical REDs consequence clustering in female runners.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_22">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Human Reproduction</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>De Souza</foaf:surname>
+        <foaf:givenName>Mary Jane</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Toombs</foaf:surname>
+        <foaf:givenName>Rebecca J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Scheid</foaf:surname>
+        <foaf:givenName>Jennifer L</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>High prevalence of subtle and severe menstrual disturbances in exercising women: confirmation using daily hormone measures</dc:title>
+    <dc:date>2010</dc:date>
+    <prism:volume>25</prism:volume>
+    <prism:number>2</prism:number>
+    <bib:pages>491-503</bib:pages>
+    <dc:identifier>DOI 10.1093/humrep/dep411</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Seminal: menstrual disturbances common in exercising women (pre-15yr, retained). Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_23">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>PLoS ONE</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burden</foaf:surname>
+        <foaf:givenName>Richard</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Brown</foaf:surname>
+        <foaf:givenName>Nicola</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Richards</foaf:surname>
+        <foaf:givenName>Toby</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Prevalence and Impact of Heavy Menstrual Bleeding (Menorrhagia) in Elite and Non-Elite Athletes</dc:title>
+    <dc:date>2016</dc:date>
+    <prism:volume>11</prism:volume>
+    <prism:number>2</prism:number>
+    <bib:pages>e0149881</bib:pages>
+    <dc:identifier>DOI 10.1371/journal.pone.0149881</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Heavy menstrual bleeding prevalence/impact in athletes; symptom burden evidence.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_24">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Science and Medicine in Sport</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Oester</foaf:surname>
+        <foaf:givenName>Chelsea</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Norris</foaf:surname>
+        <foaf:givenName>Dean</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Scott</foaf:surname>
+        <foaf:givenName>Dawn</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lovell</foaf:surname>
+        <foaf:givenName>Ric</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Inconsistencies in the perceived impact of the menstrual cycle on sport performance and in the prevalence of menstrual cycle symptoms: A scoping review of the literature</dc:title>
+    <dc:date>2024</dc:date>
+    <prism:volume>27</prism:volume>
+    <prism:number>6</prism:number>
+    <bib:pages>373-384</bib:pages>
+    <dc:identifier>DOI 10.1016/j.jsams.2024.02.012</dc:identifier>
+    <dc:subject>folder:Systematic Reviews</dc:subject>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Key perceived-impact review: 2.8-100% report negative impact; symptoms, not phase per se, drive perception.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_25">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ekenros</foaf:surname>
+        <foaf:givenName>Linda</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>von Rosen</foaf:surname>
+        <foaf:givenName>Philip</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Solli</foaf:surname>
+        <foaf:givenName>Guro Strom</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sandbakk</foaf:surname>
+        <foaf:givenName>Oyvind</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Holmberg</foaf:surname>
+        <foaf:givenName>Hans-Christer</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hirschberg</foaf:surname>
+        <foaf:givenName>Angelica Linden</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Friden</foaf:surname>
+        <foaf:givenName>Cecilia</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Perceived impact of the menstrual cycle and hormonal contraceptives on physical exercise and performance in 1,086 athletes from 57 sports</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>13</prism:volume>
+    <bib:pages>954760</bib:pages>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Large survey (n=1,086): symptoms relate to perceived performance; only 18% factor cycle into planning.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_26">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Goldsmith</foaf:surname>
+        <foaf:givenName>Esther</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Blagrove</foaf:surname>
+        <foaf:givenName>Richard</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Simpkin</foaf:surname>
+        <foaf:givenName>Andrew</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lewis</foaf:surname>
+        <foaf:givenName>Nathan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Morton</foaf:surname>
+        <foaf:givenName>Katie</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Prevalence and frequency of menstrual cycle symptoms are associated with availability to train and compete: a study of 6,812 exercising women recruited using the Strava exercise app</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>55</prism:volume>
+    <prism:number>8</prism:number>
+    <bib:pages>438-443</bib:pages>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Large app-recruited cohort (n=6,812): symptom burden linked to reduced availability to train/compete. Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_27">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hackney</foaf:surname>
+        <foaf:givenName>Anthony C</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles R</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual Cycle: The Importance of Both the Phases and the Transitions Between Phases on Training and Performance</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>52</prism:volume>
+    <prism:number>7</prism:number>
+    <bib:pages>1457-1460</bib:pages>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Argues transitions between phases (not just phases) matter for individualized planning.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_28">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Antero</foaf:surname>
+        <foaf:givenName>Juliana</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Golovkine</foaf:surname>
+        <foaf:givenName>Steven</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Niffoi</foaf:surname>
+        <foaf:givenName>Louis</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Meignie</foaf:surname>
+        <foaf:givenName>Alice</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Chassard</foaf:surname>
+        <foaf:givenName>Tom</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Delarochelambert</foaf:surname>
+        <foaf:givenName>Quentin</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual cycle and hormonal contraceptive phases&#x27; effect on elite rowers&#x27; training, performance and wellness</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>14</prism:volume>
+    <bib:pages>1110526</bib:pages>
+    <dc:identifier>DOI 10.3389/fphys.2023.1110526</dc:identifier>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Longitudinal elite-rower monitoring of cycle/HC effects on wellness + performance. Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_29">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Sports Physiology and Performance</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Martin</foaf:surname>
+        <foaf:givenName>Daniel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sale</foaf:surname>
+        <foaf:givenName>Craig</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Cooper</foaf:surname>
+        <foaf:givenName>Simon B</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Period Prevalence and Perceived Side Effects of Hormonal Contraceptive Use and the Menstrual Cycle in Elite Athletes</dc:title>
+    <dc:date>2018</dc:date>
+    <prism:volume>13</prism:volume>
+    <prism:number>7</prism:number>
+    <bib:pages>926-932</bib:pages>
+    <dc:subject>folder:Hormonal Contraception</dc:subject>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>HC prevalence + perceived side effects in elite athletes.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_30">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Contraception</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Creinin</foaf:surname>
+        <foaf:givenName>Mitchell D</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Keverline</foaf:surname>
+        <foaf:givenName>Sharon</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Meyn</foaf:surname>
+        <foaf:givenName>Leslie A</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>How regular is regular? An analysis of menstrual cycle regularity</dc:title>
+    <dc:date>2004</dc:date>
+    <prism:volume>70</prism:volume>
+    <prism:number>4</prism:number>
+    <bib:pages>289-292</bib:pages>
+    <dc:identifier>DOI 10.1016/j.contraception.2004.04.012</dc:identifier>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Seminal: quantifies cycle irregularity, undermining the fixed-28-day assumption (pre-15yr, retained).</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_31">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>npj Digital Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bull</foaf:surname>
+        <foaf:givenName>Jonathan R</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Rowland</foaf:surname>
+        <foaf:givenName>Simon P</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Scherwitzl</foaf:surname>
+        <foaf:givenName>Elina Berglund</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Scherwitzl</foaf:surname>
+        <foaf:givenName>Raoul</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Danielsson</foaf:surname>
+        <foaf:givenName>Kristina Gemzell</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Harper</foaf:surname>
+        <foaf:givenName>Joyce</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Real-world menstrual cycle characteristics of more than 600,000 menstrual cycles</dc:title>
+    <dc:date>2019</dc:date>
+    <prism:volume>2</prism:volume>
+    <bib:pages>83</bib:pages>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>App-derived large-scale data on real cycle variability; supports individualized tracking over population assumptions.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_32">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>European Journal of Sport Science</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Costello</foaf:surname>
+        <foaf:givenName>Joseph T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bieuzen</foaf:surname>
+        <foaf:givenName>Francois</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bleakley</foaf:surname>
+        <foaf:givenName>Chris M</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Where are all the female participants in Sports and Exercise Medicine research?</dc:title>
+    <dc:date>2014</dc:date>
+    <prism:volume>14</prism:volume>
+    <prism:number>8</prism:number>
+    <bib:pages>847-851</bib:pages>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Seminal quantification of female underrepresentation (the original &#x27;sex data gap&#x27; paper).</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_33">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Women in Sport and Physical Activity Journal</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Cowley</foaf:surname>
+        <foaf:givenName>Emma S</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Olenick</foaf:surname>
+        <foaf:givenName>Alyssa A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McNulty</foaf:surname>
+        <foaf:givenName>Kelly L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ross</foaf:surname>
+        <foaf:givenName>Emma Z</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>&#x27;Invisible Sportswomen&#x27;: The Sex Data Gap in Sport and Exercise Science Research</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>29</prism:volume>
+    <prism:number>2</prism:number>
+    <bib:pages>146-151</bib:pages>
+    <dc:identifier>DOI 10.1123/wspaj.2021-0028</dc:identifier>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:description>Flagship follow-up to Costello: only 6% of studies female-only; 34% of participants female across 12.5M.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_34">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Medicine &amp; Science in Sports &amp; Exercise</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Janse de Jonge</foaf:surname>
+        <foaf:givenName>Xanne</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Thompson</foaf:surname>
+        <foaf:givenName>Belinda</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Han</foaf:surname>
+        <foaf:givenName>Aaron</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Methodological Recommendations for Menstrual Cycle Research in Sports and Exercise</dc:title>
+    <dc:date>2019</dc:date>
+    <prism:volume>51</prism:volume>
+    <prism:number>12</prism:number>
+    <bib:pages>2610-2617</bib:pages>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Gold-standard methods guide for MC research; defines phase-verification standards.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_35">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elliott-Sale</foaf:surname>
+        <foaf:givenName>Kirsty J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Minahan</foaf:surname>
+        <foaf:givenName>Clare L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>de Jonge</foaf:surname>
+        <foaf:givenName>Xanne A K Janse</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ackerman</foaf:surname>
+        <foaf:givenName>Kathryn E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sipila</foaf:surname>
+        <foaf:givenName>Sarianna</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Constantini</foaf:surname>
+        <foaf:givenName>Naama W</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lebrun</foaf:surname>
+        <foaf:givenName>Constance M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hackney</foaf:surname>
+        <foaf:givenName>Anthony C</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Methodological Considerations for Studies in Sport and Exercise Science with Women as Participants: A Working Guide for Standards of Practice for Research on Women</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>51</prism:volume>
+    <prism:number>5</prism:number>
+    <bib:pages>843-861</bib:pages>
+    <dc:identifier>DOI 10.1007/s40279-021-01435-8</dc:identifier>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:description>Standards-of-practice guide for female-participant research; core methods citation.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_36">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Experimental Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burden</foaf:surname>
+        <foaf:givenName>Richard J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Shill</foaf:surname>
+        <foaf:givenName>Alexander L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bishop</foaf:surname>
+        <foaf:givenName>Nicolette C</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Elite female athlete research: stop searching for the &#x27;magic P&#x27;</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>106</prism:volume>
+    <prism:number>10</prism:number>
+    <bib:pages>2029-2030</bib:pages>
+    <dc:identifier>DOI 10.1113/EP089884</dc:identifier>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:description>Commentary against over-reliance on phase p-values; argues for individualized approaches.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_37">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>European Journal of Applied Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Meignie</foaf:surname>
+        <foaf:givenName>Alice</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Toussaint</foaf:surname>
+        <foaf:givenName>Jean-Francois</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Antero</foaf:surname>
+        <foaf:givenName>Juliana</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Dealing with menstrual cycle in sport: stop finding excuses to exclude women from research</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>122</prism:volume>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Commentary countering the use of cycle complexity as a reason to exclude women.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_38">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hagstrom</foaf:surname>
+        <foaf:givenName>Amanda D</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Yuwono</foaf:surname>
+        <foaf:givenName>Nicole</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Warton</foaf:surname>
+        <foaf:givenName>Kristina</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Ford</foaf:surname>
+        <foaf:givenName>Caroline E</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Sex Bias in Cohorts Included in Sports Medicine Research</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>51</prism:volume>
+    <prism:number>9</prism:number>
+    <bib:pages>1799-1804</bib:pages>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Quantifies male-skewed cohorts in sports-medicine research.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_39">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Sports Physiology and Performance</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mujika</foaf:surname>
+        <foaf:givenName>Inigo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Taipale</foaf:surname>
+        <foaf:givenName>Ritva S</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Sport Science on Women, Women in Sport Science</dc:title>
+    <dc:date>2019</dc:date>
+    <prism:volume>14</prism:volume>
+    <prism:number>8</prism:number>
+    <bib:pages>1013-1014</bib:pages>
+    <dc:identifier>DOI 10.1123/ijspp.2019-0514</dc:identifier>
+    <dc:subject>folder:Research Gaps</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:description>Editorial framing the female evidence gap and the researcher-gender dimension.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_40">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>BMC Women&#x27;s Health</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Isenmann</foaf:surname>
+        <foaf:givenName>Eduard</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kaluza</foaf:surname>
+        <foaf:givenName>Dominik</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Havers</foaf:surname>
+        <foaf:givenName>Tim</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Elbeshausen</foaf:surname>
+        <foaf:givenName>Ana</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Geisler</foaf:surname>
+        <foaf:givenName>Stephan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hofmann</foaf:surname>
+        <foaf:givenName>Katharina</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Flenker</foaf:surname>
+        <foaf:givenName>Ulrich</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Diel</foaf:surname>
+        <foaf:givenName>Patrick</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Gavanda</foaf:surname>
+        <foaf:givenName>Simon</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Resistance training alters body composition in middle-aged women depending on menopause - A 20-week control trial</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>23</prism:volume>
+    <bib:pages>526</bib:pages>
+    <dc:identifier>DOI 10.1186/s12905-023-02671-y</dc:identifier>
+    <dc:subject>folder:Perimenopause</dc:subject>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>RT effects on body composition differ pre- vs post-menopause; hypertrophy seen only pre-menopause.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_41">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Medicine &amp; Science in Sports &amp; Exercise</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Svensen</foaf:surname>
+        <foaf:givenName>Emma</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Koscien</foaf:surname>
+        <foaf:givenName>Charlotte P</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Alamdari</foaf:surname>
+        <foaf:givenName>Nima</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Wall</foaf:surname>
+        <foaf:givenName>Benjamin T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Stephens</foaf:surname>
+        <foaf:givenName>Francis B</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>A Novel Low-Impact Resistance Exercise Program Increases Strength and Balance in Females Irrespective of Menopause Status</dc:title>
+    <dc:date>2025</dc:date>
+    <prism:volume>57</prism:volume>
+    <prism:number>3</prism:number>
+    <bib:pages>501-513</bib:pages>
+    <dc:identifier>DOI 10.1249/MSS.0000000000003586</dc:identifier>
+    <dc:subject>folder:Perimenopause</dc:subject>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:RCT</dc:subject>
+    <dc:description>RT improves strength/balance regardless of menopause status; practical for the perimenopause track.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_42">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Medicine &amp; Science in Sports &amp; Exercise</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Nattiv</foaf:surname>
+        <foaf:givenName>Aurelia</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Loucks</foaf:surname>
+        <foaf:givenName>Anne B</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Manore</foaf:surname>
+        <foaf:givenName>Melinda M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sanborn</foaf:surname>
+        <foaf:givenName>Charlotte F</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sundgot-Borgen</foaf:surname>
+        <foaf:givenName>Jorunn</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Warren</foaf:surname>
+        <foaf:givenName>Michelle P</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>American College of Sports Medicine position stand. The female athlete triad</dc:title>
+    <dc:date>2007</dc:date>
+    <prism:volume>39</prism:volume>
+    <prism:number>10</prism:number>
+    <bib:pages>1867-1882</bib:pages>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Seminal ACSM position stand defining the Female Athlete Triad continuum (pre-15yr, retained as foundational).</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_43">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>De Souza</foaf:surname>
+        <foaf:givenName>Mary Jane</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Nattiv</foaf:surname>
+        <foaf:givenName>Aurelia</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Joy</foaf:surname>
+        <foaf:givenName>Elizabeth</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>2014 Female Athlete Triad Coalition Consensus Statement on Treatment and Return to Play of the Female Athlete Triad</dc:title>
+    <dc:date>2014</dc:date>
+    <prism:volume>48</prism:volume>
+    <prism:number>4</prism:number>
+    <bib:pages>289</bib:pages>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:CS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Triad Coalition clinical consensus on treatment/return-to-play (pre-15yr, retained). Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_44">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Medicine &amp; Science in Sports &amp; Exercise</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Gibbs</foaf:surname>
+        <foaf:givenName>Jenna C</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Williams</foaf:surname>
+        <foaf:givenName>Nancy I</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>De Souza</foaf:surname>
+        <foaf:givenName>Mary Jane</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Prevalence of individual and combined components of the female athlete triad</dc:title>
+    <dc:date>2013</dc:date>
+    <prism:volume>45</prism:volume>
+    <prism:number>5</prism:number>
+    <bib:pages>985-996</bib:pages>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Prevalence data for triad components across athlete samples.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_45">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Orthopaedic Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Herzberg</foaf:surname>
+        <foaf:givenName>Simone D</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Motu&#x27;apuaka</foaf:surname>
+        <foaf:givenName>Makalapua L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lambert</foaf:surname>
+        <foaf:givenName>William</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Fu</foaf:surname>
+        <foaf:givenName>Rongwei</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Brady</foaf:surname>
+        <foaf:givenName>Jacqueline</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Guise</foaf:surname>
+        <foaf:givenName>Jeanne-Marie</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Effect of Menstrual Cycle and Contraceptives on ACL Injuries and Laxity: A Systematic Review and Meta-analysis</dc:title>
+    <dc:date>2017</dc:date>
+    <prism:volume>5</prism:volume>
+    <prism:number>7</prism:number>
+    <bib:pages>2325967117718781</bib:pages>
+    <dc:identifier>DOI 10.1177/2325967117718781</dc:identifier>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:description>MA: knee laxity increases at ovulation vs. follicular; ACL-injury association at very low strength of evidence.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_46">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Chidi-Ogbolu</foaf:surname>
+        <foaf:givenName>Nkechinyere</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Baar</foaf:surname>
+        <foaf:givenName>Keith</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effect of Estrogen on Musculoskeletal Performance and Injury Risk</dc:title>
+    <dc:date>2019</dc:date>
+    <prism:volume>9</prism:volume>
+    <bib:pages>1834</bib:pages>
+    <dc:identifier>DOI 10.3389/fphys.2018.01834</dc:identifier>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:description>Mechanistic review: estrogen raises muscle strength but lowers tendon/ligament stiffness (injury-risk tradeoff).</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_47">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Strength and Conditioning Research</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Romero-Parra</foaf:surname>
+        <foaf:givenName>Nuria</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Cupeiro</foaf:surname>
+        <foaf:givenName>Rocio</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Alfaro-Magallanes</foaf:surname>
+        <foaf:givenName>Victor M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Rael</foaf:surname>
+        <foaf:givenName>Beatriz</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Rubio-Arias</foaf:surname>
+        <foaf:givenName>Jacobo A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Peinado</foaf:surname>
+        <foaf:givenName>Ana B</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Benito</foaf:surname>
+        <foaf:givenName>Pedro J</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Exercise-Induced Muscle Damage During the Menstrual Cycle: A Systematic Review and Meta-Analysis</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>35</prism:volume>
+    <prism:number>2</prism:number>
+    <bib:pages>549-561</bib:pages>
+    <dc:identifier>DOI 10.1519/JSC.0000000000003878</dc:identifier>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:description>MA: DOMS and strength loss highest in early follicular, lowest mid-luteal; NOT reflected in creatine kinase (perceived vs. objective dissociation) - a core symptom-responsive anchor.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_48">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Sports Physiology and Performance</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carmichael</foaf:surname>
+        <foaf:givenName>Mikaeli A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Brown</foaf:surname>
+        <foaf:givenName>Nicola</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles R</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Schutz</foaf:surname>
+        <foaf:givenName>Esther</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual Cycle Symptoms and Sleep: Associations With Performance and Recovery in Elite Athletes</dc:title>
+    <dc:date>2023</dc:date>
+    <prism:volume>18</prism:volume>
+    <prism:number>7</prism:number>
+    <bib:pages>948-956</bib:pages>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Symptom-sleep-recovery associations in elite athletes; supports symptom (not phase) as the actionable signal.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_49">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Nutrients</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carmichael</foaf:surname>
+        <foaf:givenName>Mikaeli A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Thomson</foaf:surname>
+        <foaf:givenName>Rebecca L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Moran</foaf:surname>
+        <foaf:givenName>Lisa J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Wycherley</foaf:surname>
+        <foaf:givenName>Thomas P</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Impact of Menstrual Cycle Phase on Athletes&#x27; Performance: A Narrative Review</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>13</prism:volume>
+    <prism:number>4</prism:number>
+    <bib:pages>879</bib:pages>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Widely-cited narrative review of phase effects; concludes individualization over rigid prescription. MDPI - flag.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_50">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McNamara</foaf:surname>
+        <foaf:givenName>Angela E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>O&#x27;Brien</foaf:surname>
+        <foaf:givenName>William J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hackney</foaf:surname>
+        <foaf:givenName>Anthony C</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Martin</foaf:surname>
+        <foaf:givenName>Daniel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Slater</foaf:surname>
+        <foaf:givenName>Gary J</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Menstrual Cycle, Exercise Performance and Recovery: Narrative Review and Practical Recommendations</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>10</prism:volume>
+    <prism:number>6</prism:number>
+    <bib:pages>88</bib:pages>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>folder:Recovery and Fatigue</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Practitioner-facing narrative review with applied recommendations. MDPI - flag.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_51">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Nolan</foaf:surname>
+        <foaf:givenName>David</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>McNulty</foaf:surname>
+        <foaf:givenName>Kelly L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Manninen</foaf:surname>
+        <foaf:givenName>Mika</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Egan</foaf:surname>
+        <foaf:givenName>Brendan</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>The Effect of Hormonal Contraceptive Use on Skeletal Muscle Hypertrophy, Power and Strength Adaptations to Resistance Exercise Training: A Systematic Review and Multilevel Meta-analysis</dc:title>
+    <dc:date>2024</dc:date>
+    <prism:volume>54</prism:volume>
+    <prism:number>1</prism:number>
+    <bib:pages>105-125</bib:pages>
+    <dc:identifier>DOI 10.1007/s40279-023-01911-3</dc:identifier>
+    <dc:subject>folder:Hormonal Contraception</dc:subject>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:description>MA: HC use does not meaningfully alter hypertrophy/power/strength adaptation to resistance training.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_52">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>BMC Women&#x27;s Health</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sung</foaf:surname>
+        <foaf:givenName>Eun-Sook</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Han</foaf:surname>
+        <foaf:givenName>Ahreum</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hinrichs</foaf:surname>
+        <foaf:givenName>Timo</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Vorgerd</foaf:surname>
+        <foaf:givenName>Matthias</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Platen</foaf:surname>
+        <foaf:givenName>Petra</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Effects of oral contraceptive use on muscle strength, muscle thickness, and fiber size and composition in young women undergoing 12 weeks of strength training: a cohort study</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>22</prism:volume>
+    <prism:number>1</prism:number>
+    <bib:pages>150</bib:pages>
+    <dc:identifier>DOI 10.1186/s12905-022-01740-y</dc:identifier>
+    <dc:subject>folder:Hormonal Contraception</dc:subject>
+    <dc:subject>folder:Resistance Training</dc:subject>
+    <dc:subject>focus:Adaptive training for the menstrual cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Cohort: OC vs non-OC fiber-type/strength adaptations over 12 wk of RT.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_53">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Behavioral Nutrition and Physical Activity</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Patterson</foaf:surname>
+        <foaf:givenName>Kacie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Davey</foaf:surname>
+        <foaf:givenName>Rachel</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Keegan</foaf:surname>
+        <foaf:givenName>Richard</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Kunstler</foaf:surname>
+        <foaf:givenName>Brea</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Woodward</foaf:surname>
+        <foaf:givenName>Andrew</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Freene</foaf:surname>
+        <foaf:givenName>Nicole</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Behaviour change techniques in cardiovascular disease smartphone apps to improve physical activity and sedentary behaviour: Systematic review and meta-regression</dc:title>
+    <dc:date>2022</dc:date>
+    <prism:volume>19</prism:volume>
+    <prism:number>1</prism:number>
+    <bib:pages>81</bib:pages>
+    <dc:identifier>DOI 10.1186/s12966-022-01319-8</dc:identifier>
+    <dc:subject>folder:App Design &amp; Behavior Change</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Which BCTs drive PA in apps: action planning and self-monitoring most effective - directly informs Axis feature design.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_54">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>JMIR mHealth and uHealth</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Hayman</foaf:surname>
+        <foaf:givenName>Melanie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Alfrey</foaf:surname>
+        <foaf:givenName>Kristie-Lee</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Cannon</foaf:surname>
+        <foaf:givenName>Summer</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Alley</foaf:surname>
+        <foaf:givenName>Stephanie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Rebar</foaf:surname>
+        <foaf:givenName>Amanda L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Williams</foaf:surname>
+        <foaf:givenName>Susan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Short</foaf:surname>
+        <foaf:givenName>Camille E</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Altazan</foaf:surname>
+        <foaf:givenName>Abby</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Comardelle</foaf:surname>
+        <foaf:givenName>Natalie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Currie</foaf:surname>
+        <foaf:givenName>Sinead</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Quality, Features, and Presence of Behavior Change Techniques in Mobile Apps Designed to Improve Physical Activity in Pregnant Women: Systematic Search and Content Analysis</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>9</prism:volume>
+    <prism:number>4</prism:number>
+    <bib:pages>e23649</bib:pages>
+    <dc:identifier>DOI 10.2196/23649</dc:identifier>
+    <dc:subject>folder:App Design &amp; Behavior Change</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Content analysis showing commercial PA apps often lack evidence-based BCTs. Author list truncated.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_55">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>npj Women&#x27;s Health</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <dc:title>Machine learning-based menstrual phase identification using wearable device data</dc:title>
+    <dc:date>2025</dc:date>
+    <dc:identifier>DOI 10.1038/s44294-025-00078-8</dc:identifier>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>folder:Digital Health</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>AUTHORS-VIA-DOI</dc:subject>
+    <dc:description>Wrist-wearable signals (skin temp, EDA, HR) classify cycle phase at 87% (3-phase). Authors resolve via DOI on import - directly relevant to Axis&#x27;s passive-input goal.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_56">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Frontiers in Sports and Active Living</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carmichael</foaf:surname>
+        <foaf:givenName>Mikaeli A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Brown</foaf:surname>
+        <foaf:givenName>Nicola</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Bruinvels</foaf:surname>
+        <foaf:givenName>Georgie</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles R</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual Cycle Symptom Tracking and the Association With Training Load and Wellness in Elite Female Athletes</dc:title>
+    <dc:date>2021</dc:date>
+    <prism:volume>3</prism:volume>
+    <bib:pages>656229</bib:pages>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>Symptom tracking relates to training load and wellness in elite athletes - evidence base for symptom-driven load adjustment.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_57">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>International Journal of Sports Science &amp; Coaching</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Carmichael</foaf:surname>
+        <foaf:givenName>Mikaeli A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Perry</foaf:surname>
+        <foaf:givenName>Kate</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Roberts</foaf:surname>
+        <foaf:givenName>Alexandra H</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Klass</foaf:surname>
+        <foaf:givenName>Velvet</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Clarke</foaf:surname>
+        <foaf:givenName>Anthea C</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Menstrual cycle monitoring in applied sport settings: A scoping review</dc:title>
+    <dc:date>2025</dc:date>
+    <dc:identifier>DOI 10.1177/17479541251333888</dc:identifier>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:SR</dc:subject>
+    <dc:description>Scoping review of how MC monitoring is applied in sport; argues for evidence-based-but-flexible, individualized tracking.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_58">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Oxford Open Digital Health</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <dc:title>Flowing data: women&#x27;s views and experiences on privacy and data security when using menstrual cycle tracking apps</dc:title>
+    <dc:date>2025</dc:date>
+    <bib:pages>oqaf011</bib:pages>
+    <dc:identifier>DOI 10.1093/oodh/oqaf011</dc:identifier>
+    <dc:subject>folder:Digital Health</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:subject>AUTHORS-VIA-DOI</dc:subject>
+    <dc:description>Qualitative evidence on user privacy/data-security concerns - grounds Axis&#x27;s trust-as-a-feature positioning. Authors resolve via DOI.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_59">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>The Journal of Physiology</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lei</foaf:surname>
+        <foaf:givenName>Tze-Huan</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Stannard</foaf:surname>
+        <foaf:givenName>Stephen R</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Perry</foaf:surname>
+        <foaf:givenName>Blake G</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Schlader</foaf:surname>
+        <foaf:givenName>Zachary J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Cotter</foaf:surname>
+        <foaf:givenName>James D</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Mundel</foaf:surname>
+        <foaf:givenName>Toby</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Influence of menstrual phase and arid vs. humid heat stress on autonomic and behavioural thermoregulation during exercise in trained but unacclimated women</dc:title>
+    <dc:date>2017</dc:date>
+    <prism:volume>595</prism:volume>
+    <prism:number>9</prism:number>
+    <bib:pages>2823-2837</bib:pages>
+    <dc:identifier>DOI 10.1113/JP273176</dc:identifier>
+    <dc:subject>folder:Endurance Training</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:CT</dc:subject>
+    <dc:description>Thermoregulatory responses across MC phases during heat-stress exercise in trained women.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_60">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Temperature</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <dc:title>Temperature regulation in women: Effects of the menstrual cycle</dc:title>
+    <dc:date>2020</dc:date>
+    <prism:volume>7</prism:volume>
+    <prism:number>3</prism:number>
+    <bib:pages>226-262</bib:pages>
+    <dc:identifier>DOI 10.1080/23328940.2020.1735927</dc:identifier>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>folder:Endurance Training</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>focus:Energy and perceived energy during the cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:NR</dc:subject>
+    <dc:subject>AUTHORS-VIA-DOI</dc:subject>
+    <dc:description>Comprehensive review of core-temperature rhythms and thermoregulation across the cycle. Authors resolve via DOI on import.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_61">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Journal of Science and Medicine in Sport</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Schaumberg</foaf:surname>
+        <foaf:givenName>Mia A</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Jenkins</foaf:surname>
+        <foaf:givenName>David G</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Janse de Jonge</foaf:surname>
+        <foaf:givenName>Xanne A K</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Emmerton</foaf:surname>
+        <foaf:givenName>Lynne M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Skinner</foaf:surname>
+        <foaf:givenName>Tina L</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Three-step method for menstrual and oral contraceptive cycle verification</dc:title>
+    <dc:date>2017</dc:date>
+    <prism:volume>20</prism:volume>
+    <prism:number>11</prism:number>
+    <bib:pages>965-969</bib:pages>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>focus:Lack of data on training specifics for women</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:METH</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>The gold-standard three-step phase-verification method (mapping + urinary LH + serum hormones). Core methods reference for any phase-based claim.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_62">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>Women&#x27;s Health Reports</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Doroshuk</foaf:surname>
+        <foaf:givenName>Marissa L</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Lebrun</foaf:surname>
+        <foaf:givenName>Constance M</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Doyle-Baker</foaf:surname>
+        <foaf:givenName>Patricia K</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Level of Agreement Between a Modified, Three-Step Menstrual Cycle Tracking Method and a Female-Health Menstrual Cycle Tracking App</dc:title>
+    <dc:date>2025</dc:date>
+    <dc:identifier>DOI 10.1177/26884844251379415</dc:identifier>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>folder:Wearables &amp; Tracking</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T2</dc:subject>
+    <dc:subject>grade:OBS</dc:subject>
+    <dc:description>Benchmarks a cycle-tracking app&#x27;s phase identification against modified three-step verification - directly relevant to Axis&#x27;s tracking accuracy.</dc:description>
+  </bib:Article>
+  <bib:Article rdf:about="#item_63">
+    <z:itemType>journalArticle</z:itemType>
+    <dcterms:isPartOf><bib:Journal>
+      <dc:title>British Journal of Sports Medicine</dc:title>
+    </bib:Journal></dcterms:isPartOf>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Burden</foaf:surname>
+        <foaf:givenName>Richard J</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Morton</foaf:surname>
+        <foaf:givenName>Katherine</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Richards</foaf:surname>
+        <foaf:givenName>Toby</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Whyte</foaf:surname>
+        <foaf:givenName>Gregory P</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Pedlar</foaf:surname>
+        <foaf:givenName>Charles R</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Is iron treatment beneficial in, iron-deficient but non-anaemic (IDNA) endurance athletes? A systematic review and meta-analysis</dc:title>
+    <dc:date>2015</dc:date>
+    <prism:volume>49</prism:volume>
+    <prism:number>21</prism:number>
+    <bib:pages>1389-1397</bib:pages>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>folder:Female Athlete Health</dc:subject>
+    <dc:subject>folder:Meta-Analyses</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>tier:T1</dc:subject>
+    <dc:subject>grade:MA</dc:subject>
+    <dc:subject>DOI-TO-VERIFY</dc:subject>
+    <dc:description>BJSM MA on iron treatment in non-anaemic iron-deficient endurance athletes; menstrual blood loss is a key female-athlete risk factor.</dc:description>
+  </bib:Article>
+  <bib:Book rdf:about="#item_64">
+    <z:itemType>book</z:itemType>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sims</foaf:surname>
+        <foaf:givenName>Stacy T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Yeager</foaf:surname>
+        <foaf:givenName>Selene</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>ROAR: How to Match Your Food and Fitness to Your Unique Female Physiology for Optimum Performance, Great Health, and a Strong, Lean Body for Life</dc:title>
+    <dc:date>2016</dc:date>
+    <dc:publisher>Rodale Books</dc:publisher>
+    <dc:identifier>ISBN 9781623366865</dc:identifier>
+    <dc:subject>folder:Menstrual Physiology</dc:subject>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>folder:Exercise Performance</dc:subject>
+    <dc:subject>focus:Nutritional guidance around the menstrual cycle</dc:subject>
+    <dc:subject>focus:Impacts of the cycle on performance + mitigations</dc:subject>
+    <dc:subject>focus:Training with the cycle in mind</dc:subject>
+    <dc:subject>tier:T3</dc:subject>
+    <dc:subject>grade:EXPERT</dc:subject>
+    <dc:description>EXPERT-OPINION (Tier 3): PhD exercise physiologist, mainstream publisher (Rodale/Penguin Random House). Practical/translational - NOT to support efficacy claims alone; cross-check against primary literature. Revised ed. 2024 (ISBN 9780593581926).</dc:description>
+  </bib:Book>
+  <bib:Book rdf:about="#item_65">
+    <z:itemType>book</z:itemType>
+    <bib:authors><rdf:Seq>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Sims</foaf:surname>
+        <foaf:givenName>Stacy T</foaf:givenName>
+      </foaf:Person></rdf:li>
+      <rdf:li><foaf:Person>
+        <foaf:surname>Yeager</foaf:surname>
+        <foaf:givenName>Selene</foaf:givenName>
+      </foaf:Person></rdf:li>
+    </rdf:Seq></bib:authors>
+    <dc:title>Next Level: Your Guide to Kicking Ass, Feeling Great, and Crushing Goals Through Menopause and Beyond</dc:title>
+    <dc:date>2022</dc:date>
+    <dc:publisher>Rodale Books</dc:publisher>
+    <dc:identifier>ISBN 9780593233153</dc:identifier>
+    <dc:subject>folder:Perimenopause</dc:subject>
+    <dc:subject>folder:Nutrition</dc:subject>
+    <dc:subject>focus:Adaptive training for women</dc:subject>
+    <dc:subject>tier:T3</dc:subject>
+    <dc:subject>grade:EXPERT</dc:subject>
+    <dc:description>EXPERT-OPINION (Tier 3): qualified author, mainstream publisher. Perimenopause/menopause training + nutrition. Practical guidance, not primary evidence.</dc:description>
+  </bib:Book>
+</rdf:RDF>
