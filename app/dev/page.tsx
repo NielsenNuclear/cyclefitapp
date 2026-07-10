@@ -10,6 +10,8 @@ import { RegressionReport }      from "@/components/dev/RegressionReport";
 import { ConfidenceInspector }   from "@/components/dev/ConfidenceInspector";
 import { SafetyDashboard }       from "@/components/dev/SafetyDashboard";
 import { ResilienceDashboard }   from "@/components/dev/ResilienceDashboard";
+import { DataHealthDashboard }   from "@/components/dev/DataHealthDashboard";
+import { PerformanceDashboard }  from "@/components/dev/PerformanceDashboard";
 
 type Tab =
   | "verification"
@@ -17,19 +19,23 @@ type Tab =
   | "regression"
   | "confidence"
   | "safety"
-  | "resilience";
+  | "resilience"
+  | "data"
+  | "performance";
 
 const TABS: { id: Tab; label: string; subtitle: string }[] = [
-  { id: "verification", label: "Verification",  subtitle: "Phase 64 — Recommendation outcome tracking"    },
-  { id: "trace",        label: "Traces",         subtitle: "Phase 65 — Decision audit log and replay"      },
-  { id: "regression",   label: "Regression",     subtitle: "Phase 66 — Scenario stability and snapshots"   },
-  { id: "confidence",   label: "Confidence",     subtitle: "Phase 67 — Trust profile and dimension audit"  },
-  { id: "safety",       label: "Safety",         subtitle: "Phase 68 — Safety rule activations and audit"  },
-  { id: "resilience",   label: "Resilience",     subtitle: "Phase 69 — Storage health and chaos testing"   },
+  { id: "verification", label: "Verification",  subtitle: "Phase 64 — Recommendation outcome tracking"             },
+  { id: "trace",        label: "Traces",         subtitle: "Phase 65 — Decision audit log and replay"               },
+  { id: "regression",   label: "Regression",     subtitle: "Phase 66 — Scenario stability and snapshots"            },
+  { id: "confidence",   label: "Confidence",     subtitle: "Phase 67 — Trust profile and dimension audit"           },
+  { id: "safety",       label: "Safety",         subtitle: "Phase 68 — Safety rule activations and audit"           },
+  { id: "resilience",   label: "Resilience",     subtitle: "Phase 69 — Storage health and chaos testing"            },
+  { id: "data",         label: "Data Health",    subtitle: "Phase 70 — Schema validation, migration, cross-object"  },
+  { id: "performance",  label: "Performance",    subtitle: "Phase 71 — Timing stats, budgets, scalability"          },
 ];
 
 export default function DevPage() {
-  const [tab, setTab] = useState<Tab>("resilience");
+  const [tab, setTab] = useState<Tab>("data");
 
   return (
     <div className="min-h-screen bg-canvas text-ink-base">
@@ -76,6 +82,8 @@ export default function DevPage() {
         {tab === "confidence"   && <ConfidenceInspector />}
         {tab === "safety"       && <SafetyDashboard />}
         {tab === "resilience"   && <ResilienceDashboard />}
+        {tab === "data"         && <DataHealthDashboard />}
+        {tab === "performance"  && <PerformanceDashboard />}
       </div>
     </div>
   );
