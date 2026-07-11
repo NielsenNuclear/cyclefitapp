@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Lora } from "next/font/google";
 import "./globals.css";
+import { GlobalErrorBoundary } from "@/components/ErrorBoundary/GlobalErrorBoundary";
 
 const dmSans = DM_Sans({
   variable:  "--font-sans",
@@ -31,7 +32,11 @@ export default function RootLayout({
       lang="en"
       className={`${dmSans.variable} ${lora.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <GlobalErrorBoundary label="RootLayout">
+          {children}
+        </GlobalErrorBoundary>
+      </body>
     </html>
   );
 }
