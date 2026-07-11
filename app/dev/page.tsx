@@ -1,6 +1,6 @@
 "use client";
 // ─── app/dev/page.tsx ──────────────────────────────────────────────────────────
-// Developer Tools — Phases 64–69
+// Developer Tools — Phases 64–76
 // Route: /dev
 
 import { useState } from "react";
@@ -12,6 +12,10 @@ import { SafetyDashboard }       from "@/components/dev/SafetyDashboard";
 import { ResilienceDashboard }   from "@/components/dev/ResilienceDashboard";
 import { DataHealthDashboard }   from "@/components/dev/DataHealthDashboard";
 import { PerformanceDashboard }  from "@/components/dev/PerformanceDashboard";
+import { QADashboard }           from "@/components/dev/QADashboard";
+import { DevToolsPanel }         from "@/components/dev/DevToolsPanel";
+import { TelemetryDashboard }    from "@/components/dev/TelemetryDashboard";
+import { LaunchDashboard }       from "@/components/dev/LaunchDashboard";
 
 type Tab =
   | "verification"
@@ -21,21 +25,33 @@ type Tab =
   | "safety"
   | "resilience"
   | "data"
-  | "performance";
+  | "performance"
+  | "qa"
+  | "devtools"
+  | "telemetry"
+  | "launch";
 
-const TABS: { id: Tab; label: string; subtitle: string }[] = [
-  { id: "verification", label: "Verification",  subtitle: "Phase 64 — Recommendation outcome tracking"             },
-  { id: "trace",        label: "Traces",         subtitle: "Phase 65 — Decision audit log and replay"               },
-  { id: "regression",   label: "Regression",     subtitle: "Phase 66 — Scenario stability and snapshots"            },
-  { id: "confidence",   label: "Confidence",     subtitle: "Phase 67 — Trust profile and dimension audit"           },
-  { id: "safety",       label: "Safety",         subtitle: "Phase 68 — Safety rule activations and audit"           },
-  { id: "resilience",   label: "Resilience",     subtitle: "Phase 69 — Storage health and chaos testing"            },
-  { id: "data",         label: "Data Health",    subtitle: "Phase 70 — Schema validation, migration, cross-object"  },
-  { id: "performance",  label: "Performance",    subtitle: "Phase 71 — Timing stats, budgets, scalability"          },
+const TABS: { id: Tab; label: string; subtitle: string; era: string }[] = [
+  // Trust & Verification era
+  { id: "verification", label: "Verification",  era: "64", subtitle: "Recommendation outcome tracking"            },
+  { id: "trace",        label: "Traces",         era: "65", subtitle: "Decision audit log and replay"              },
+  { id: "regression",   label: "Regression",     era: "66", subtitle: "Scenario stability and snapshots"           },
+  { id: "confidence",   label: "Confidence",     era: "67", subtitle: "Trust profile and dimension audit"          },
+  { id: "safety",       label: "Safety",         era: "68", subtitle: "Safety rule activations and audit"          },
+  { id: "resilience",   label: "Resilience",     era: "69", subtitle: "Storage health and chaos testing"           },
+  { id: "data",         label: "Data Health",    era: "70", subtitle: "Schema validation, migration, cross-object" },
+  { id: "performance",  label: "Performance",    era: "71", subtitle: "Timing stats, budgets, scalability"         },
+  // Production Readiness era
+  { id: "qa",           label: "QA",             era: "73", subtitle: "Feature audit and release checklist"        },
+  { id: "devtools",     label: "Dev Tools",      era: "74", subtitle: "Feature flags, debug console, mock data"    },
+  { id: "telemetry",    label: "Telemetry",      era: "75", subtitle: "Privacy-first product analytics"            },
+  { id: "launch",       label: "Launch",         era: "76", subtitle: "Beta readiness and launch gate tracking"    },
 ];
 
 export default function DevPage() {
-  const [tab, setTab] = useState<Tab>("data");
+  const [tab, setTab] = useState<Tab>("launch");
+
+  const activeTab = TABS.find(t => t.id === tab)!;
 
   return (
     <div className="min-h-screen bg-canvas text-ink-base">
@@ -46,7 +62,7 @@ export default function DevPage() {
         </p>
         <h1 className="text-xl font-bold text-ink-base">Axis Intelligence Workbench</h1>
         <p className="text-xs text-ink-muted mt-0.5">
-          Observability · Trust · Safety · Resilience · algorithm-version axis-v1.0
+          Phases 64–76 · Trust · Safety · QA · Launch · algorithm-version axis-v1.0
         </p>
       </div>
 
@@ -68,10 +84,11 @@ export default function DevPage() {
       </div>
 
       {/* Active tab subtitle */}
-      <div className="px-4 py-2 border-b border-ui-border/50">
-        <p className="text-xs text-ink-muted">
-          {TABS.find(t => t.id === tab)?.subtitle}
-        </p>
+      <div className="px-4 py-2 border-b border-ui-border/50 flex items-center gap-2">
+        <span className="text-xs bg-ui-surface text-ink-muted rounded px-1.5 py-0.5 font-mono">
+          Phase {activeTab.era}
+        </span>
+        <p className="text-xs text-ink-muted">{activeTab.subtitle}</p>
       </div>
 
       {/* Content */}
@@ -84,6 +101,10 @@ export default function DevPage() {
         {tab === "resilience"   && <ResilienceDashboard />}
         {tab === "data"         && <DataHealthDashboard />}
         {tab === "performance"  && <PerformanceDashboard />}
+        {tab === "qa"           && <QADashboard />}
+        {tab === "devtools"     && <DevToolsPanel />}
+        {tab === "telemetry"    && <TelemetryDashboard />}
+        {tab === "launch"       && <LaunchDashboard />}
       </div>
     </div>
   );
