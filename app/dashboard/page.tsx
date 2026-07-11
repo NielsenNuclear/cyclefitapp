@@ -475,6 +475,10 @@ import { buildInsightDiscoveryReport, type InsightDiscoveryReport }            f
 import { InsightDiscoveryCard }                                                 from "@/components/insights/InsightDiscoveryCard";
 import { ExerciseAnalyticsCard }                                                from "@/components/insights/ExerciseAnalyticsCard";
 import { CorrelationExplorerCard }                                              from "@/components/insights/CorrelationExplorerCard";
+// ─── Phase A: Safety Engine Integration ──────────────────────────────────────
+import { applySafetyGovernance, type SafetyResult }                            from "@/lib/intelligence/safety/SafetyEngine";
+import { buildSafetyContext }                                                   from "@/lib/intelligence/safety/buildSafetyContext";
+import { SafetyConstraintBanner }                                               from "@/components/intelligence/SafetyConstraintBanner";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -920,6 +924,8 @@ export default function DashboardPage() {
   // Phase 58 state
   const [recEffectiveness,  setRecEffectiveness]  = useState<RecEffectivenessProfile | undefined>(undefined);
   const [safetyGuardrail,   setSafetyGuardrail]   = useState<GuardrailResult | undefined>(undefined);
+  // Phase A state — Safety governance
+  const [safetyResult,      setSafetyResult]      = useState<SafetyResult | null>(null);
   // Phase 62 state
   const [athleteProfile,       setAthleteProfile]       = useState<AthleteProfile | undefined>(undefined);
   // Phase 63 state
@@ -1630,12 +1636,37 @@ export default function DashboardPage() {
       ? lifeContextVal.adjustments.equipmentOverride
       : equipmentInventoryVal.allEquipmentNames;
 
+    // Phase A: Safety governance gate — every recommendation passes through Safety before generation
+    const currentWeekSets = weeklyVolumesVal[0]
+      ? Object.values(weeklyVolumesVal[0]).reduce((a: number, b: number) => a + b, 0)
+      : 0;
+    const prevWeekSets = weeklyVolumesVal[1]
+      ? Object.values(weeklyVolumesVal[1]).reduce((a: number, b: number) => a + b, 0)
+      : 0;
+    const safetyCtx = buildSafetyContext({
+      proposedVolumeScale:   trainingDecisionVal.finalVolumeScale,
+      currentVolumeScale:    adaptiveModifierVal.volumeMultiplier ?? 1.0,
+      readinessScore:        readiness.score,
+      recoveryScore:         recoveryScoreVal.score,
+      fatigueEstimate:       fatigueEntryVal.score,
+      hasSymptoms:           todaySymptomsVal.length > 0,
+      isDeload:              periodizationStatusVal?.phase === "deload",
+      confidenceScore:       (rdxConfidenceVal?.confidence ?? 40) / 100,
+      weeklyVolumeSets:      currentWeekSets,
+      prevWeekVolumeSets:    prevWeekSets,
+      workoutHistory:        rawHistory,
+      recoveryScores:        recoveryScoresNow,
+      trainingDecisionType:  trainingDecisionVal.type,
+    });
+    const safetyResultVal = applySafetyGovernance(safetyCtx);
+    setSafetyResult(safetyResultVal);
+
     const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
       badgeToEnergyCap(effectiveBadge), recoveryCapacityVal.level,
       exerciseSummariesVal, phase37AdaptiveModifier, phase39Equipment,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
-      trainingDecisionVal.finalVolumeScale,  // Phase 37 is now the single volume authority
+      safetyResultVal.volumeScale,  // Phase A: safety-constrained volume (was trainingDecisionVal.finalVolumeScale)
     );
     // Phase 37B: apply exercise complexity swaps → Phase 39F: trim to time budget mode
     const wkt = applyWorkoutMode(applyExerciseAdjustments(wktRaw, trainingDecisionVal), lifeContextVal.recommendedMode);
@@ -2360,7 +2391,8 @@ export default function DashboardPage() {
     }));
     const goalType = mapOnboardingGoalToGoalType(user.goals);
     // Phase 50: full 16-param call + post-processing (matches mount call site)
-    const wktRaw2 = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, trainingDecision?.finalVolumeScale ?? 1.0);
+    // Phase A: re-use safety-constrained volume from the main computation
+    const wktRaw2 = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0);
     const wktAdj2 = trainingDecision ? applyExerciseAdjustments(wktRaw2, trainingDecision) : wktRaw2;
     const wkt = applyWorkoutMode(wktAdj2, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);
@@ -2572,7 +2604,8 @@ export default function DashboardPage() {
       : user;
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
     // Phase 50: full 16-param call + post-processing (matches mount call site)
-    const wktRaw3 = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, trainingDecision?.finalVolumeScale ?? 1.0);
+    // Phase A: re-use safety-constrained volume from the main computation
+    const wktRaw3 = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0);
     const wktAdj3 = trainingDecision ? applyExerciseAdjustments(wktRaw3, trainingDecision) : wktRaw3;
     const wkt = applyWorkoutMode(wktAdj3, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);
@@ -2661,6 +2694,7 @@ export default function DashboardPage() {
             )
           }
         />
+        {safetyResult && <SafetyConstraintBanner result={safetyResult} />}
         {workout && (
           <WorkoutCard
             workout={workout}
