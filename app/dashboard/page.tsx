@@ -477,8 +477,12 @@ import { ExerciseAnalyticsCard }                                                
 import { CorrelationExplorerCard }                                              from "@/components/insights/CorrelationExplorerCard";
 // ─── Phase A: Safety Engine Integration ──────────────────────────────────────
 import { applySafetyGovernance, type SafetyResult }                            from "@/lib/intelligence/safety/SafetyEngine";
-import { buildSafetyContext }                                                   from "@/lib/intelligence/safety/buildSafetyContext";
+import { buildSafetyContext, computeStreakDays }                                from "@/lib/intelligence/safety/buildSafetyContext";
 import { SafetyConstraintBanner }                                               from "@/components/intelligence/SafetyConstraintBanner";
+import { recordRecommendation, runPendingEvaluations }                         from "@/lib/intelligence/verification/recommendationVerifier";
+import { getRecordForDate, expireOldRecords }                                  from "@/lib/intelligence/verification/verificationRegistry";
+import { buildVerificationInput }                                               from "@/lib/intelligence/verification/buildVerificationInput";
+import type { VerificationRecord }                                              from "@/lib/intelligence/verification/verificationTypes";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -926,6 +930,7 @@ export default function DashboardPage() {
   const [safetyGuardrail,   setSafetyGuardrail]   = useState<GuardrailResult | undefined>(undefined);
   // Phase A state — Safety governance
   const [safetyResult,      setSafetyResult]      = useState<SafetyResult | null>(null);
+  const [verificationRecord, setVerificationRecord] = useState<VerificationRecord | null>(null);
   // Phase 62 state
   const [athleteProfile,       setAthleteProfile]       = useState<AthleteProfile | undefined>(undefined);
   // Phase 63 state
@@ -1660,6 +1665,41 @@ export default function DashboardPage() {
     });
     const safetyResultVal = applySafetyGovernance(safetyCtx);
     setSafetyResult(safetyResultVal);
+
+    // Phase C: Verification Registry gate
+    // 1. Sweep orphaned records (> 30d past due, never evaluated)
+    expireOldRecords(todayStr);
+    // 2. Evaluate any predictions whose evidence window has now expired
+    runPendingEvaluations(todayStr, fullRdxHistory, recoveryScoresNow, adherenceHistoryPre);
+    // 3. Register today's recommendation (idempotent — one record per day)
+    const existingVerRecord = getRecordForDate(todayStr);
+    if (!existingVerRecord) {
+      const verInput = buildVerificationInput({
+        decisionType:     trainingDecisionVal.type,
+        finalVolumeScale: safetyResultVal.volumeScale,
+        headline:         trainingDecisionVal.headline,
+        rationale:        trainingDecisionVal.rationale,
+        isDeload:         periodizationStatusVal?.phase === "deload",
+        workoutMode:      lifeContextVal.recommendedMode,
+        readinessScore:   readiness.score,
+        recoveryScore:    recoveryScoreVal.score,
+        fatigueEstimate:  fatigueEntryVal.score,
+        cyclePhase:       phase.name,
+        cycleDay:         phase.cycleDay ?? null,
+        weeklyVolumeSets: currentWeekSets,
+        streakDays:       computeStreakDays(rawHistory),
+        adherenceRate:    adherenceHistoryPre.length > 0
+          ? adherenceHistoryPre.filter(
+              e => e.status === "completed" || e.status === "partially_completed",
+            ).length / adherenceHistoryPre.length
+          : 0,
+        confidenceScore:  (rdxConfidenceVal?.confidence ?? 40) / 100,
+        today:            todayStr,
+      });
+      setVerificationRecord(recordRecommendation(verInput));
+    } else {
+      setVerificationRecord(existingVerRecord);
+    }
 
     const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,

@@ -34,7 +34,7 @@ export interface BuildSafetyContextInput {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function computeStreakDays(history: WorkoutHistoryLike[]): number {
+export function computeStreakDays(history: WorkoutHistoryLike[]): number {
   const today = new Date();
   let streak = 0;
   for (let d = 0; d < 30; d++) {

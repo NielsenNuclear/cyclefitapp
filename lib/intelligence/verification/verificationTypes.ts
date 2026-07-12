@@ -1,7 +1,31 @@
 // ─── lib/intelligence/verification/verificationTypes.ts ───────────────────────
 // Phase 64 — Recommendation Verification Framework
+// Phase C  — Added VerificationState lifecycle and PredictionType
 // Types for recording recommendations, capturing athlete state snapshots,
 // evaluating outcomes, and scoring verification results.
+
+// ── Lifecycle state (Phase C) ─────────────────────────────────────────────────
+// Computed dynamically from existing record fields — never stored redundantly.
+
+export type VerificationState =
+  | "waiting"           // inside evaluation window — collecting evidence
+  | "pending"           // window expired — awaiting pipeline processing
+  | "verified"          // evaluated with sufficient data
+  | "insufficient_data" // evaluated — too little data to score
+  | "expired"           // > 30 days past due without evaluation (orphan)
+  | "cancelled";        // manually cancelled (extension point)
+
+// ── Prediction types supported by the registry (Phase C) ─────────────────────
+
+export type PredictionType =
+  | "readiness"
+  | "recovery"
+  | "workout_completion"
+  | "adherence"
+  | "performance_improvement"
+  | "fatigue"
+  | "cycle_prediction"
+  | "nutrition_compliance";
 
 // ── Verification score (qualitative, not binary) ──────────────────────────────
 

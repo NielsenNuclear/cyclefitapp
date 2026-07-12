@@ -1,8 +1,9 @@
 // ─── lib/intelligence/verification/verificationRegistry.ts ────────────────────
 // Phase 64 — Verification Registry
+// Phase C  — Added state computation, idempotency query, expiration
 // Persistent storage for VerificationRecords. No recommendation logic here.
 
-import type { VerificationRecord } from "./verificationTypes";
+import type { VerificationRecord, VerificationState } from "./verificationTypes";
 
 const STORAGE_KEY    = "axis_verification_registry_v1";
 const MAX_RECORDS    = 300;
@@ -69,4 +70,64 @@ export function getActiveVerifications(today: string): VerificationRecord[] {
 
 export function getCompletedVerifications(): VerificationRecord[] {
   return loadVerificationRegistry().filter(r => r.evaluated);
+}
+
+// ── Idempotency query (Phase C) ───────────────────────────────────────────────
+
+/** Return the record created for a given calendar date, or null. Used to
+ *  prevent duplicate registrations on re-render. */
+export function getRecordForDate(date: string): VerificationRecord | null {
+  return loadVerificationRegistry().find(r => r.timestamp === date) ?? null;
+}
+
+// ── Lifecycle state derivation (Phase C) ─────────────────────────────────────
+
+const EXPIRY_GRACE_DAYS = 30;
+
+function daysBetween(earlier: string, later: string): number {
+  return Math.floor(
+    (new Date(later + "T12:00:00Z").getTime() -
+      new Date(earlier + "T12:00:00Z").getTime()) /
+      86_400_000,
+  );
+}
+
+/** Derive the current lifecycle state of a record without mutating it. */
+export function computeVerificationState(
+  record: VerificationRecord,
+  today:  string,
+): VerificationState {
+  if (record.evaluated) {
+    return record.verificationScore === "insufficient_data"
+      ? "insufficient_data"
+      : "verified";
+  }
+  const overdue = daysBetween(record.evaluationDueDate, today);
+  if (overdue > EXPIRY_GRACE_DAYS) return "expired";
+  if (record.evaluationDueDate <= today)  return "pending";
+  return "waiting";
+}
+
+// ── Expiration sweep (Phase C) ────────────────────────────────────────────────
+
+/** Mark records that are > EXPIRY_GRACE_DAYS past their due date as evaluated
+ *  with score "insufficient_data" so they don't block the summary forever.
+ *  Returns the number of records swept. */
+export function expireOldRecords(today: string): number {
+  const all = loadVerificationRegistry();
+  let swept = 0;
+  const updated = all.map(r => {
+    if (!r.evaluated && daysBetween(r.evaluationDueDate, today) > EXPIRY_GRACE_DAYS) {
+      swept++;
+      return {
+        ...r,
+        evaluated:         true,
+        verificationScore: "insufficient_data" as const,
+        scoreRationale:    "Record expired without sufficient evidence.",
+      };
+    }
+    return r;
+  });
+  if (swept > 0) saveVerificationRegistry(updated);
+  return swept;
 }
