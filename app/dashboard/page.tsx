@@ -2835,6 +2835,7 @@ export default function DashboardPage() {
             onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
             onWorkoutLogged={handleWorkoutLogged}
+            confidenceLevel={confidenceProfile?.level}
           />
         )}
         {showSkipReason && (
