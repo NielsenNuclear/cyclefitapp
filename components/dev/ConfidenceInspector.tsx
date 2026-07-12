@@ -12,6 +12,7 @@ import { explainConfidence, getMissingDataOpportunities } from "@/lib/intelligen
 import { getConfidenceTimeline }  from "@/lib/intelligence/confidence/ConfidenceRegistry";
 import { loadVerificationRegistry }   from "@/lib/intelligence/verification/verificationRegistry";
 import { computeVerificationSummary } from "@/lib/intelligence/verification/calculateRecommendationAccuracy";
+import { loadCalibrationProfile }     from "@/lib/intelligence/calibration/calibrationProfile";
 import type { ConfidenceProfile, ConfidenceSnapshot } from "@/lib/intelligence/confidence/ConfidenceTypes";
 
 // ── Confidence timeline chart (simple bar) ────────────────────────────────────
@@ -47,15 +48,16 @@ export function ConfidenceInspector() {
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
-    const records = loadVerificationRegistry();
-    const summary = computeVerificationSummary(records, today);
+    const records     = loadVerificationRegistry();
+    const summary     = computeVerificationSummary(records, today);
+    const calibration = loadCalibrationProfile();   // Phase 57 — null until MIN_SAMPLES
 
     const inputs: ConfidenceInputs = {
-      calibrationFactor:       undefined,     // TODO: wire Phase 57
+      calibrationFactor:       calibration?.overallAccuracy ?? undefined,
       verificationSuccessRate: summary.overallSuccessRate,
       completedEvaluations:    summary.completedEvaluations,
       completedWorkouts:       records.length,
-      weeksTracked:            Math.floor(records.length / 3),
+      weeksTracked:            Math.max(1, Math.floor(records.length / 3)),
       hasRecoveryData:         records.length > 0,
       hasNutritionData:        false,
       hasCycleData:            false,

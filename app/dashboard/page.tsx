@@ -479,10 +479,15 @@ import { CorrelationExplorerCard }                                              
 import { applySafetyGovernance, type SafetyResult }                            from "@/lib/intelligence/safety/SafetyEngine";
 import { buildSafetyContext, computeStreakDays }                                from "@/lib/intelligence/safety/buildSafetyContext";
 import { SafetyConstraintBanner }                                               from "@/components/intelligence/SafetyConstraintBanner";
-import { recordRecommendation, runPendingEvaluations }                         from "@/lib/intelligence/verification/recommendationVerifier";
+import { recordRecommendation, runPendingEvaluations, getVerifierOutput }      from "@/lib/intelligence/verification/recommendationVerifier";
 import { getRecordForDate, expireOldRecords }                                  from "@/lib/intelligence/verification/verificationRegistry";
 import { buildVerificationInput }                                               from "@/lib/intelligence/verification/buildVerificationInput";
 import type { VerificationRecord }                                              from "@/lib/intelligence/verification/verificationTypes";
+import { buildConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceEngine";
+import { buildConfidenceInputs }                                                from "@/lib/intelligence/confidence/buildConfidenceInputs";
+import type { ConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceTypes";
+import { ConfidenceBadge }                                                      from "@/components/intelligence/ConfidenceBadge";
+import { daysBetween }                                                          from "@/lib/cycle/cycleUtils";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -931,6 +936,8 @@ export default function DashboardPage() {
   // Phase A state — Safety governance
   const [safetyResult,      setSafetyResult]      = useState<SafetyResult | null>(null);
   const [verificationRecord, setVerificationRecord] = useState<VerificationRecord | null>(null);
+  // Phase D state — Confidence Engine
+  const [confidenceProfile, setConfidenceProfile] = useState<ConfidenceProfile | null>(null);
   // Phase 62 state
   const [athleteProfile,       setAthleteProfile]       = useState<AthleteProfile | undefined>(undefined);
   // Phase 63 state
@@ -1700,6 +1707,35 @@ export default function DashboardPage() {
     } else {
       setVerificationRecord(existingVerRecord);
     }
+
+    // Phase D: Confidence Engine gate
+    // Runs after Verification so verification history feeds into confidence.
+    const verifierOutput = getVerifierOutput(todayStr);
+    const completedWorkoutsCount = rawHistory.filter(
+      h => h.status === "completed" || h.status === "partially_completed",
+    ).length;
+    const oldestEntryId = rawHistory.length > 0
+      ? rawHistory[rawHistory.length - 1].id
+      : todayStr;
+    const weeklyVolumeTotals = weeklyVolumesVal.slice(0, 4).map(
+      (wk: Record<string, number> | undefined) =>
+        wk ? Object.values(wk).reduce((a: number, b: number) => a + b, 0) : 0,
+    );
+    const confidenceInputsVal = buildConfidenceInputs({
+      calibrationFactor:       prevCalibration57?.overallAccuracy ?? null,
+      verificationSuccessRate: verifierOutput.summary.overallSuccessRate,
+      completedEvaluations:    verifierOutput.summary.completedEvaluations,
+      completedWorkouts:       completedWorkoutsCount,
+      weeksTracked:            Math.max(1, Math.floor(daysBetween(oldestEntryId, todayStr) / 7)),
+      hasRecoveryData:         recoveryScoresNow.length > 0,
+      hasNutritionData:        getNutritionCheckinHistory().length > 0,
+      hasCycleData:            !!phase.name,
+      hasSleepData:            !!effectiveUser.sleepQuality,
+      checkInStreak:           fullRdxHistory.length,
+      recentWeeklyVolumeSets:  weeklyVolumeTotals,
+      safetyWasConstrained:    safetyResultVal.evaluation.wasConstrained,
+    });
+    setConfidenceProfile(buildConfidenceProfile(confidenceInputsVal));
 
     const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
@@ -2735,6 +2771,11 @@ export default function DashboardPage() {
           }
         />
         {safetyResult && <SafetyConstraintBanner result={safetyResult} />}
+        {confidenceProfile && (
+          <div className="flex justify-end px-1 -mt-1">
+            <ConfidenceBadge level={confidenceProfile.level} size="sm" />
+          </div>
+        )}
         {workout && (
           <WorkoutCard
             workout={workout}

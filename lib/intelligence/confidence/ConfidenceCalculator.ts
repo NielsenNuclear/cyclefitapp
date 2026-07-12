@@ -111,14 +111,26 @@ export function calculateDimensions(inputs: ConfidenceInputs): DimensionSet {
     available: true,
   };
 
-  // Prediction stability
-  const cv = inputs.recentVolumeCv;
+  // Prediction stability — blends volume consistency (CV) with
+  // adaptive/safety agreement (predictionAgreement, Phase D).
+  const cv        = inputs.recentVolumeCv;
+  const agreement = inputs.predictionAgreement;   // 0–1 (1 = engines agreed)
+  const cvScore   = cv !== undefined ? Math.max(0, 1 - cv) : null;
+  const stabilityScore =
+    cvScore !== null && agreement !== undefined
+      ? cvScore * 0.75 + agreement * 0.25
+      : cvScore !== null
+        ? cvScore
+        : agreement !== undefined
+          ? agreement * 0.5 + 0.25  // agreement alone → conservative mid-range
+          : 0.5;
+  const stabilityAvailable = cv !== undefined || agreement !== undefined;
   const predictionStability: ConfidenceDimension = {
     name:      "Prediction Stability",
-    score:     cv !== undefined ? Math.max(0, 1 - cv) : 0.5,
+    score:     Math.max(0, Math.min(1, stabilityScore)),
     weight:    WEIGHTS.predictionStability,
-    available: cv !== undefined,
-    notes:     cv === undefined ? "Not enough history to measure stability" : undefined,
+    available: stabilityAvailable,
+    notes:     !stabilityAvailable ? "Not enough history to measure stability" : undefined,
   };
 
   // Historical context
