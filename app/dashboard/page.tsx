@@ -488,6 +488,14 @@ import { buildConfidenceInputs }                                                
 import type { ConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceTypes";
 import { ConfidenceBadge }                                                      from "@/components/intelligence/ConfidenceBadge";
 import { daysBetween }                                                          from "@/lib/cycle/cycleUtils";
+import {
+  trackSafetyEvaluation,
+  trackVerificationRegistered,
+  trackConfidenceCalculated,
+  trackPipelineCompleted,
+  trackErrorRecovery,
+}                                                                               from "@/lib/telemetry/ObservabilityEvents";
+import { registerErrorTelemetryHook }                                          from "@/lib/errorRecovery/RecoveryManager";
 
 function mapDifficulty(trainingLevel: string): DifficultyLevel {
   if (trainingLevel === "just_starting") return "Beginner";
@@ -1648,6 +1656,9 @@ export default function DashboardPage() {
       ? lifeContextVal.adjustments.equipmentOverride
       : equipmentInventoryVal.allEquipmentNames;
 
+    // Phase E: record governance pipeline start time
+    const pipelineT0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+
     // Phase A: Safety governance gate — every recommendation passes through Safety before generation
     const currentWeekSets = weeklyVolumesVal[0]
       ? Object.values(weeklyVolumesVal[0]).reduce((a: number, b: number) => a + b, 0)
@@ -1670,8 +1681,14 @@ export default function DashboardPage() {
       recoveryScores:        recoveryScoresNow,
       trainingDecisionType:  trainingDecisionVal.type,
     });
+    const safetyT0       = typeof performance !== "undefined" ? performance.now() : Date.now();
     const safetyResultVal = applySafetyGovernance(safetyCtx);
     setSafetyResult(safetyResultVal);
+    // Phase E: Safety observability event
+    trackSafetyEvaluation(
+      safetyResultVal,
+      Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - safetyT0),
+    );
 
     // Phase C: Verification Registry gate
     // 1. Sweep orphaned records (> 30d past due, never evaluated)
@@ -1679,7 +1696,9 @@ export default function DashboardPage() {
     // 2. Evaluate any predictions whose evidence window has now expired
     runPendingEvaluations(todayStr, fullRdxHistory, recoveryScoresNow, adherenceHistoryPre);
     // 3. Register today's recommendation (idempotent — one record per day)
+    const verT0            = typeof performance !== "undefined" ? performance.now() : Date.now();
     const existingVerRecord = getRecordForDate(todayStr);
+    let latestVerRecord: typeof existingVerRecord = existingVerRecord;
     if (!existingVerRecord) {
       const verInput = buildVerificationInput({
         decisionType:     trainingDecisionVal.type,
@@ -1703,13 +1722,21 @@ export default function DashboardPage() {
         confidenceScore:  (rdxConfidenceVal?.confidence ?? 40) / 100,
         today:            todayStr,
       });
-      setVerificationRecord(recordRecommendation(verInput));
+      latestVerRecord = recordRecommendation(verInput);
+      setVerificationRecord(latestVerRecord);
     } else {
       setVerificationRecord(existingVerRecord);
     }
+    // Phase E: Verification observability event
+    trackVerificationRegistered(
+      latestVerRecord,
+      !existingVerRecord,
+      Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - verT0),
+    );
 
     // Phase D: Confidence Engine gate
     // Runs after Verification so verification history feeds into confidence.
+    const confT0         = typeof performance !== "undefined" ? performance.now() : Date.now();
     const verifierOutput = getVerifierOutput(todayStr);
     const completedWorkoutsCount = rawHistory.filter(
       h => h.status === "completed" || h.status === "partially_completed",
@@ -1735,7 +1762,24 @@ export default function DashboardPage() {
       recentWeeklyVolumeSets:  weeklyVolumeTotals,
       safetyWasConstrained:    safetyResultVal.evaluation.wasConstrained,
     });
-    setConfidenceProfile(buildConfidenceProfile(confidenceInputsVal));
+    const confidenceProfileVal = buildConfidenceProfile(confidenceInputsVal);
+    setConfidenceProfile(confidenceProfileVal);
+    // Phase E: Confidence observability event
+    const confDurationMs = Math.round(
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) - confT0,
+    );
+    trackConfidenceCalculated(confidenceProfileVal, confDurationMs);
+    // Phase E: Full pipeline completed event
+    trackPipelineCompleted({
+      totalDurationMs:   Math.round(
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) - pipelineT0,
+      ),
+      safetyConstrained:  safetyResultVal.evaluation.wasConstrained,
+      confidenceLevel:    confidenceProfileVal.level,
+      verificationState:  latestVerRecord
+        ? (latestVerRecord.evaluated ? "verified" : "waiting")
+        : "none",
+    });
 
     const wktRaw = runWorkoutPipeline(
       effectiveUser, personalizedRec.phase, savedEnv, profile, finalAdjustmentVal, readiness,
@@ -2718,6 +2762,11 @@ export default function DashboardPage() {
     setBodySnapshot(snap);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workout, recoveryScore, fatigueEntry, todaySymptoms, recommendation?.phase.name]);
+
+  // Phase E: register the Phase B error telemetry hook on mount
+  useEffect(() => {
+    registerErrorTelemetryHook(trackErrorRecovery);
+  }, []);
 
   if (!recommendation) {
     return (

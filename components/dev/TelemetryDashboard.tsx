@@ -23,6 +23,8 @@ const CATEGORY_LABELS: Record<TelemetryCategory, string> = {
   feature_use:    "Feature Use",
   error:          "Error",
   performance:    "Performance",
+  system:         "System",
+  health:         "Health",
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────────

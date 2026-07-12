@@ -95,6 +95,17 @@ const CATEGORY_MAP: Record<TelemetryEventName, TelemetryCategory> = {
   performance_budget_exceeded: "performance",
   error_boundary_triggered:    "error",
   storage_error:               "error",
+  // Phase E observability
+  adaptive_decision_made:      "system",
+  safety_evaluated:            "system",
+  verification_registered:     "system",
+  verification_evaluated:      "system",
+  confidence_calculated:       "system",
+  calibration_updated:         "system",
+  pipeline_completed:          "system",
+  error_recovery_triggered:    "health",
+  storage_quota_warning:       "health",
+  session_restored:            "health",
 };
 
 export function track(

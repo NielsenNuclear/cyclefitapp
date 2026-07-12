@@ -15,7 +15,8 @@ import { PerformanceDashboard }  from "@/components/dev/PerformanceDashboard";
 import { QADashboard }           from "@/components/dev/QADashboard";
 import { DevToolsPanel }         from "@/components/dev/DevToolsPanel";
 import { TelemetryDashboard }    from "@/components/dev/TelemetryDashboard";
-import { LaunchDashboard }       from "@/components/dev/LaunchDashboard";
+import { LaunchDashboard }         from "@/components/dev/LaunchDashboard";
+import { ObservabilityInspector }  from "@/components/dev/ObservabilityInspector";
 
 type Tab =
   | "verification"
@@ -29,6 +30,7 @@ type Tab =
   | "qa"
   | "devtools"
   | "telemetry"
+  | "observability"
   | "launch";
 
 const TABS: { id: Tab; label: string; subtitle: string; era: string }[] = [
@@ -44,8 +46,9 @@ const TABS: { id: Tab; label: string; subtitle: string; era: string }[] = [
   // Production Readiness era
   { id: "qa",           label: "QA",             era: "73", subtitle: "Feature audit and release checklist"        },
   { id: "devtools",     label: "Dev Tools",      era: "74", subtitle: "Feature flags, debug console, mock data"    },
-  { id: "telemetry",    label: "Telemetry",      era: "75", subtitle: "Privacy-first product analytics"            },
-  { id: "launch",       label: "Launch",         era: "76", subtitle: "Beta readiness and launch gate tracking"    },
+  { id: "telemetry",      label: "Telemetry",      era: "75", subtitle: "Privacy-first product analytics"            },
+  { id: "observability",  label: "Observability",  era: "E",  subtitle: "System governance traces and pipeline timeline" },
+  { id: "launch",         label: "Launch",         era: "76", subtitle: "Beta readiness and launch gate tracking"    },
 ];
 
 export default function DevPage() {
@@ -103,8 +106,9 @@ export default function DevPage() {
         {tab === "performance"  && <PerformanceDashboard />}
         {tab === "qa"           && <QADashboard />}
         {tab === "devtools"     && <DevToolsPanel />}
-        {tab === "telemetry"    && <TelemetryDashboard />}
-        {tab === "launch"       && <LaunchDashboard />}
+        {tab === "telemetry"      && <TelemetryDashboard />}
+        {tab === "observability"  && <ObservabilityInspector />}
+        {tab === "launch"         && <LaunchDashboard />}
       </div>
     </div>
   );
