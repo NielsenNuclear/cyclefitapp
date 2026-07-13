@@ -17,6 +17,7 @@ import { DevToolsPanel }         from "@/components/dev/DevToolsPanel";
 import { TelemetryDashboard }    from "@/components/dev/TelemetryDashboard";
 import { LaunchDashboard }         from "@/components/dev/LaunchDashboard";
 import { ObservabilityInspector }  from "@/components/dev/ObservabilityInspector";
+import { DesignSystemShowcase }    from "@/components/dev/DesignSystemShowcase";
 
 type Tab =
   | "verification"
@@ -31,7 +32,8 @@ type Tab =
   | "devtools"
   | "telemetry"
   | "observability"
-  | "launch";
+  | "launch"
+  | "design-system";
 
 const TABS: { id: Tab; label: string; subtitle: string; era: string }[] = [
   // Trust & Verification era
@@ -49,6 +51,8 @@ const TABS: { id: Tab; label: string; subtitle: string; era: string }[] = [
   { id: "telemetry",      label: "Telemetry",      era: "75", subtitle: "Privacy-first product analytics"            },
   { id: "observability",  label: "Observability",  era: "E",  subtitle: "System governance traces and pipeline timeline" },
   { id: "launch",         label: "Launch",         era: "76", subtitle: "Beta readiness and launch gate tracking"    },
+  // Design System era
+  { id: "design-system",  label: "Design System",  era: "DS-2", subtitle: "Shared primitive gallery — Dialog, Sheet, Toast, Tabs, Select" },
 ];
 
 export default function DevPage() {
@@ -109,6 +113,7 @@ export default function DevPage() {
         {tab === "telemetry"      && <TelemetryDashboard />}
         {tab === "observability"  && <ObservabilityInspector />}
         {tab === "launch"         && <LaunchDashboard />}
+        {tab === "design-system"  && <DesignSystemShowcase />}
       </div>
     </div>
   );
