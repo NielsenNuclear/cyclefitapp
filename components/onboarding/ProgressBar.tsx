@@ -13,9 +13,9 @@ export function ProgressBar({ currentStep, totalSteps = STEPS.length }: Progress
   return (
     <div className="w-full">
       {/* Track */}
-      <div className="h-[2px] bg-[#E8E5DC] rounded-full overflow-hidden">
+      <div className="h-[2px] bg-border rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#534AB7] rounded-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          className="h-full bg-brand rounded-full transition-all duration-slower ease-[cubic-bezier(0.4,0,0.2,1)]"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -28,15 +28,15 @@ export function ProgressBar({ currentStep, totalSteps = STEPS.length }: Progress
           return (
             <div
               key={step.id}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 ${
+              className={`flex flex-col items-center gap-1 transition-all duration-slow ${
                 isDone || isCurrent ? "opacity-100" : "opacity-30"
               }`}
             >
               <div
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  isDone    ? "bg-[#534AB7]" :
-                  isCurrent ? "bg-[#534AB7] ring-2 ring-[#534AB7] ring-offset-1" :
-                  "bg-[#D3D1C7]"
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-slow ${
+                  isDone    ? "bg-brand" :
+                  isCurrent ? "bg-brand ring-2 ring-brand ring-offset-1" :
+                  "bg-ink-faint"
                 }`}
               />
             </div>
@@ -63,7 +63,7 @@ export function StepHeader({ currentStep, totalSteps = STEPS.length, onBack }: S
         <button
           type="button"
           onClick={onBack}
-          className={`flex items-center gap-1.5 text-[12px] text-[#8A8880] hover:text-[#1C1B18] transition-colors ${
+          className={`flex items-center gap-1.5 text-[12px] text-ink-muted hover:text-ink transition-colors ${
             currentStep <= 1 ? "invisible pointer-events-none" : ""
           }`}
         >
@@ -75,18 +75,18 @@ export function StepHeader({ currentStep, totalSteps = STEPS.length, onBack }: S
 
         {/* Brand */}
         <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded-md bg-[#534AB7] flex items-center justify-center">
+          <div className="w-5 h-5 rounded-md bg-brand flex items-center justify-center">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
               <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span className="text-[13px] font-semibold text-[#1C1B18]">Axis</span>
+          <span className="text-[13px] font-semibold text-ink">Axis</span>
         </div>
 
         {/* Step counter */}
-        <span className="text-[12px] text-[#8A8880] tabular-nums">
-          {currentStep}<span className="text-[#D3D1C7]">/{totalSteps}</span>
+        <span className="text-[12px] text-ink-muted tabular-nums">
+          {currentStep}<span className="text-ink-faint">/{totalSteps}</span>
         </span>
       </div>
 

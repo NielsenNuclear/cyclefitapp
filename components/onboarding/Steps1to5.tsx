@@ -64,7 +64,7 @@ export function Step2Experience({ data, onChange }: StepProps) {
   return (
     <div className="space-y-5">
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Training level</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Training level</div>
         <div className="space-y-2">
           {LEVELS.map(l => (
             <OptionCard
@@ -79,17 +79,17 @@ export function Step2Experience({ data, onChange }: StepProps) {
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Years training</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Years training</div>
         <div className="flex flex-wrap gap-2">
           {YEARS_OPTIONS.map(y => (
             <button
               key={y.value}
               type="button"
               onClick={() => onChange({ trainingYears: y.value })}
-              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-all
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-all duration-fast
                 ${data.trainingYears === y.value
-                  ? "bg-[#EEEDFE] text-[#3C3489] border-[#C4C0EE]"
-                  : "bg-white text-[#6B6860] border-[#E0DDD4] hover:border-[#C8C5BC]"
+                  ? "bg-brand-bg-mid text-brand-text border-brand-border"
+                  : "bg-surface text-ink-secondary border-border-strong hover:border-ink-faint"
                 }`}
             >
               {y.label}
@@ -126,7 +126,7 @@ export function Step3TrainingStyle({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Select all that apply</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Select all that apply</div>
         <div className="grid grid-cols-2 gap-2">
           {STYLES.map(s => (
             <OptionCard
@@ -142,7 +142,7 @@ export function Step3TrainingStyle({ data, onChange }: StepProps) {
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">Sessions per week</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-4">Sessions per week</div>
         <NumberStepper
           value={data.sessionsPerWeek}
           onChange={val => onChange({ sessionsPerWeek: val })}
@@ -178,14 +178,14 @@ export function Step4Recovery({ data, onChange }: StepProps) {
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-[#EEEDFE] rounded-xl border border-[#C4C0EE]">
+      <div className="p-4 bg-brand-bg-mid rounded-xl border border-brand-border">
         <div className="flex gap-2.5">
-          <div className="text-[#534AB7] mt-0.5">
+          <div className="text-brand mt-0.5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <p className="text-[12px] text-[#3C3489] leading-relaxed">
+          <p className="text-[12px] text-brand-text leading-relaxed">
             Recovery practices are weighted signals in your readiness model. Even selecting "none" is useful data — it helps us calibrate expectations for your recovery curve.
           </p>
         </div>
@@ -220,8 +220,8 @@ export function Step5Sleep({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       {/* Hours slider */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">Average sleep per night</div>
+      <div className="bg-surface-subtle rounded-2xl p-5 border border-border">
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-4">Average sleep per night</div>
         <NumberStepper
           value={data.sleepHours}
           onChange={val => onChange({ sleepHours: val })}
@@ -232,7 +232,7 @@ export function Step5Sleep({ data, onChange }: StepProps) {
 
       {/* Quality */}
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Sleep quality</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Sleep quality</div>
         <div className="space-y-2">
           {QUALITY_OPTIONS.map(q => (
             <OptionCard
@@ -247,8 +247,8 @@ export function Step5Sleep({ data, onChange }: StepProps) {
         </div>
       </div>
 
-      <div className="p-3.5 bg-[#E1F5EE] rounded-xl border border-[#A8DFC8]">
-        <p className="text-[11px] text-[#085041] leading-relaxed">
+      <div className="p-3.5 bg-success-bg rounded-xl border border-success-border">
+        <p className="text-[11px] text-success-text leading-relaxed">
           Sleep hours and quality carry the highest combined weight in your readiness score — up to 40% in the adaptive model. Accurate data here matters most.
         </p>
       </div>

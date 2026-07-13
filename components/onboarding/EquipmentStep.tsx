@@ -71,22 +71,22 @@ export function Step11Equipment({ data, onChange }: StepProps) {
 
       {/* Presets */}
       <div>
-        <p className="text-[12px] text-[#7A7870] mb-3">Start with a preset, then customise below.</p>
+        <p className="text-[12px] text-ink-muted mb-3">Start with a preset, then customise below.</p>
         <div className="grid grid-cols-2 gap-2.5">
           {(Object.keys(EQUIPMENT_PRESET_LABELS) as EquipmentPreset[]).map(preset => (
             <button
               key={preset}
               onClick={() => applyPreset(preset)}
-              className={`text-left p-3.5 rounded-xl border transition-all duration-150 ${
+              className={`text-left p-3.5 rounded-xl border transition-all duration-normal ${
                 activePreset === preset
-                  ? "border-[#534AB7] bg-[#F5F4FF]"
-                  : "border-[#DDD9CF] bg-white hover:border-[#534AB7] hover:bg-[#F5F4FF]"
+                  ? "border-brand bg-brand-bg-mid"
+                  : "border-border-strong bg-surface hover:border-brand hover:bg-brand-bg-mid"
               }`}
             >
-              <div className="text-[13px] font-semibold text-[#1C1B18] leading-tight mb-1">
+              <div className="text-[13px] font-semibold text-ink leading-tight mb-1">
                 {EQUIPMENT_PRESET_LABELS[preset]}
               </div>
-              <div className="text-[11px] text-[#8A8880] leading-relaxed">
+              <div className="text-[11px] text-ink-muted leading-relaxed">
                 {PRESET_DESCRIPTIONS[preset]}
               </div>
             </button>
@@ -96,13 +96,13 @@ export function Step11Equipment({ data, onChange }: StepProps) {
 
       {/* Owned summary */}
       {owned.size > 0 && (
-        <div className="flex items-center justify-between px-3 py-2.5 bg-[#F0EEF8] rounded-xl">
-          <span className="text-[12px] text-[#534AB7] font-medium">
+        <div className="flex items-center justify-between px-3 py-2.5 bg-brand-bg rounded-xl">
+          <span className="text-[12px] text-brand font-medium">
             {owned.size} item{owned.size !== 1 ? "s" : ""} selected
           </span>
           <button
             onClick={() => onChange({ equipment: [] })}
-            className="text-[11px] text-[#8A8880] hover:text-[#534AB7] transition-colors"
+            className="text-[11px] text-ink-muted hover:text-brand transition-colors"
           >
             Clear all
           </button>
@@ -111,42 +111,42 @@ export function Step11Equipment({ data, onChange }: StepProps) {
 
       {/* Per-group toggles */}
       <div className="space-y-2">
-        <p className="text-[12px] font-semibold uppercase tracking-widest text-[#8A8880]">Customise</p>
+        <p className="text-[12px] font-semibold uppercase tracking-widest text-ink-muted">Customise</p>
         {groupedItems.map(({ group, items, ownedCount }) => (
-          <div key={group} className="border border-[#E5E2DA] rounded-xl overflow-hidden">
+          <div key={group} className="border border-border rounded-xl overflow-hidden">
             <button
               onClick={() => toggleGroup(group)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-[#FAFAF7] transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-surface hover:bg-canvas transition-colors"
             >
-              <span className="text-[13px] font-medium text-[#1C1B18]">{GROUP_LABELS[group]}</span>
+              <span className="text-[13px] font-medium text-ink">{GROUP_LABELS[group]}</span>
               <div className="flex items-center gap-2">
                 {ownedCount > 0 && (
-                  <span className="text-[11px] text-[#534AB7] font-medium">{ownedCount}</span>
+                  <span className="text-[11px] text-brand font-medium">{ownedCount}</span>
                 )}
-                <span className="text-[11px] text-[#9B9690]">
+                <span className="text-[11px] text-ink-muted">
                   {expandedGroups.has(group) ? "▲" : "▼"}
                 </span>
               </div>
             </button>
             {expandedGroups.has(group) && (
-              <div className="border-t border-[#E5E2DA] divide-y divide-[#F0EDE7]">
+              <div className="border-t border-border divide-y divide-surface-hover">
                 {items.map(item => (
                   <button
                     key={item.id}
                     onClick={() => toggleItem(item.id)}
                     className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors ${
                       owned.has(item.id)
-                        ? "bg-[#F5F4FF]"
-                        : "bg-white hover:bg-[#FAFAF7]"
+                        ? "bg-brand-bg-mid"
+                        : "bg-surface hover:bg-canvas"
                     }`}
                   >
-                    <span className={`text-[13px] ${owned.has(item.id) ? "text-[#534AB7] font-medium" : "text-[#3C3B38]"}`}>
+                    <span className={`text-[13px] ${owned.has(item.id) ? "text-brand font-medium" : "text-ink-secondary"}`}>
                       {item.name}
                     </span>
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${
                       owned.has(item.id)
-                        ? "bg-[#534AB7] border-[#534AB7]"
-                        : "border-[#C5C1B7]"
+                        ? "bg-brand border-brand"
+                        : "border-ink-faint"
                     }`}>
                       {owned.has(item.id) && (
                         <svg width="10" height="8" viewBox="0 0 10 8" fill="none">

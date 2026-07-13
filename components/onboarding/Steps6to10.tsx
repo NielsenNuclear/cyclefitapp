@@ -33,20 +33,17 @@ export function Step6Stress({ data, onChange }: StepProps) {
   return (
     <div className="space-y-6">
       {/* Stress scale */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-1">
+      <div className="bg-surface-subtle rounded-2xl p-5 border border-border">
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1">
           Typical weekly stress level
         </div>
-        <div className="text-[11px] text-[#8A8880] mb-4">Not current stress — your average baseline</div>
+        <div className="text-[11px] text-ink-muted mb-4">Not current stress — your average baseline</div>
 
         <div className="text-center mb-4">
-          <span
-            className="text-[36px] font-light text-[#1C1B18]"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
-          >
+          <span className="text-[36px] font-light font-serif text-ink">
             {data.stressLevel}
           </span>
-          <span className="text-[13px] text-[#8A8880] ml-2">— {stressLabel(data.stressLevel)}</span>
+          <span className="text-[13px] text-ink-muted ml-2">— {stressLabel(data.stressLevel)}</span>
         </div>
 
         <ScaleSlider
@@ -61,7 +58,7 @@ export function Step6Stress({ data, onChange }: StepProps) {
 
       {/* Sources */}
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">
           Primary sources (optional)
         </div>
         <ChipSelect
@@ -71,8 +68,8 @@ export function Step6Stress({ data, onChange }: StepProps) {
         />
       </div>
 
-      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#EAE7DE]">
-        <p className="text-[11px] text-[#8A8880] leading-relaxed italic">
+      <div className="p-3.5 bg-canvas rounded-xl border border-border">
+        <p className="text-[11px] text-ink-muted leading-relaxed italic">
           "Stress is a physiological input — elevated chronic stress suppresses recovery and reduces training adaptation. Axis models this explicitly, not as a moral judgment."
         </p>
       </div>
@@ -111,7 +108,7 @@ export function Step7Energy({ data, onChange }: StepProps) {
   return (
     <div className="space-y-5">
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Typical energy pattern</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Typical energy pattern</div>
         <div className="space-y-2">
           {ENERGY_PATTERNS.map(p => (
             <OptionCard
@@ -127,7 +124,7 @@ export function Step7Energy({ data, onChange }: StepProps) {
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">
           Known low-energy triggers
         </div>
         <ChipSelect
@@ -161,9 +158,9 @@ export function Step8Cycle({ data, onChange }: StepProps) {
     <div className="space-y-6">
 
       {/* Framing callout */}
-      <div className="p-4 bg-[#EEEDFE] rounded-xl border border-[#C4C0EE]">
-        <div className="text-[12px] font-semibold text-[#3C3489] mb-1.5">Why we ask this</div>
-        <p className="text-[12px] text-[#534AB7] leading-relaxed">
+      <div className="p-4 bg-brand-bg-mid rounded-xl border border-brand-border">
+        <div className="text-[12px] font-semibold text-brand-text mb-1.5">Why we ask this</div>
+        <p className="text-[12px] text-brand leading-relaxed">
           Cycle phase is one signal among several in your readiness model — weighted at approximately 10%.
           It never overrides sleep, energy, or recovery signals. You can opt out entirely and receive
           equally effective recommendations from other signals alone.
@@ -171,32 +168,32 @@ export function Step8Cycle({ data, onChange }: StepProps) {
       </div>
 
       {/* Cycle length */}
-      <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-4">Typical cycle length</div>
+      <div className="bg-surface-subtle rounded-2xl p-5 border border-border">
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-4">Typical cycle length</div>
         <div className="flex items-center gap-4 justify-center">
           <button
             type="button"
             onClick={() => onChange({ cycleLength: Math.max(21, data.cycleLength - 1) })}
-            className="w-9 h-9 rounded-full border border-[#E0DDD4] bg-white text-lg flex items-center justify-center hover:bg-[#EEEDFE] hover:border-[#C4C0EE] transition-all"
+            className="w-9 h-9 rounded-full border border-border-strong bg-surface text-lg flex items-center justify-center hover:bg-brand-bg-mid hover:border-brand-border transition-all"
           >−</button>
           <div className="text-center">
-            <span className="text-[36px] font-light text-[#1C1B18]" style={{ fontFamily: "'DM Serif Display', serif" }}>
+            <span className="text-[36px] font-light font-serif text-ink">
               {data.cycleLength}
             </span>
-            <span className="text-[13px] text-[#8A8880] ml-1.5">days</span>
-            <div className="text-[10px] text-[#8A8880] mt-0.5">typical range: 21–38 days</div>
+            <span className="text-[13px] text-ink-muted ml-1.5">days</span>
+            <div className="text-[10px] text-ink-muted mt-0.5">typical range: 21–38 days</div>
           </div>
           <button
             type="button"
             onClick={() => onChange({ cycleLength: Math.min(38, data.cycleLength + 1) })}
-            className="w-9 h-9 rounded-full border border-[#E0DDD4] bg-white text-lg flex items-center justify-center hover:bg-[#EEEDFE] hover:border-[#C4C0EE] transition-all"
+            className="w-9 h-9 rounded-full border border-border-strong bg-surface text-lg flex items-center justify-center hover:bg-brand-bg-mid hover:border-brand-border transition-all"
           >+</button>
         </div>
       </div>
 
       {/* Regularity */}
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Cycle regularity</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Cycle regularity</div>
         <div className="space-y-2">
           {REGULARITY_OPTIONS.map(r => (
             <OptionCard
@@ -213,8 +210,8 @@ export function Step8Cycle({ data, onChange }: StepProps) {
 
       {/* Tracking preference */}
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-2">How much cycle context do you want?</div>
-        <div className="text-[11px] text-[#8A8880] mb-3">This affects how prominently cycle data appears in your dashboard</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-2">How much cycle context do you want?</div>
+        <div className="text-[11px] text-ink-muted mb-3">This affects how prominently cycle data appears in your dashboard</div>
         <SegmentedControl
           options={TRACKING_PREFS}
           value={data.trackingPreference}
@@ -227,11 +224,11 @@ export function Step8Cycle({ data, onChange }: StepProps) {
 
       {/* Last period date — shown when user wants cycle tracking */}
       {data.trackingPreference !== "none" && data.trackingPreference !== "" && (
-        <div className="bg-[#F5F3EE] rounded-2xl p-5 border border-[#EAE7DE]">
-          <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-1">
+        <div className="bg-surface-subtle rounded-2xl p-5 border border-border">
+          <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1">
             First day of last period
           </div>
-          <div className="text-[11px] text-[#9B9690] mb-3">
+          <div className="text-[11px] text-ink-muted mb-3">
             Used to estimate your current cycle phase. Approximate is fine.
           </div>
           <input
@@ -239,7 +236,7 @@ export function Step8Cycle({ data, onChange }: StepProps) {
             value={data.lastPeriodDate}
             max={new Date().toISOString().slice(0, 10)}
             onChange={e => onChange({ lastPeriodDate: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border border-[#E0DDD4] bg-white text-[13px] text-[#1C1B18] focus:outline-none focus:border-[#C4C0EE] focus:ring-1 focus:ring-[#C4C0EE]"
+            className="w-full px-4 py-3 rounded-xl border border-border-strong bg-surface text-[13px] text-ink focus:outline-none focus:border-brand-border focus:ring-1 focus:ring-brand-border"
           />
         </div>
       )}
@@ -282,14 +279,14 @@ export function Step9Symptoms({ data, onChange }: StepProps) {
 
   return (
     <div className="space-y-5">
-      <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[#EAE7DE]">
-        <p className="text-[11px] text-[#8A8880] leading-relaxed">
+      <div className="p-3.5 bg-canvas rounded-xl border border-border">
+        <p className="text-[11px] text-ink-muted leading-relaxed">
           Only select symptoms that affect your training. This is performance-relevant context — not a medical history. Axis uses this to calibrate readiness adjustments, not diagnose conditions.
         </p>
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Select relevant symptoms</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Select relevant symptoms</div>
         <div className="grid grid-cols-2 gap-2">
           {SYMPTOMS.map(s => (
             <button
@@ -298,8 +295,8 @@ export function Step9Symptoms({ data, onChange }: StepProps) {
               onClick={() => toggleSymptom(s.value)}
               className={`px-3 py-2.5 rounded-xl text-[12px] font-medium border text-left transition-all
                 ${data.symptoms.includes(s.value)
-                  ? "bg-[#EEEDFE] text-[#3C3489] border-[#C4C0EE]"
-                  : "bg-white text-[#6B6860] border-[#E0DDD4] hover:border-[#C8C5BC]"
+                  ? "bg-brand-bg-mid text-brand-text border-brand-border"
+                  : "bg-surface text-ink-secondary border-border-strong hover:border-ink-faint"
                 }`}
             >
               {s.label}
@@ -310,7 +307,7 @@ export function Step9Symptoms({ data, onChange }: StepProps) {
 
       {hasSymptoms && (
         <div>
-          <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Typical symptom severity</div>
+          <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Typical symptom severity</div>
           <div className="space-y-2">
             {SEVERITY_OPTIONS.map(s => (
               <OptionCard
@@ -372,16 +369,16 @@ export function Step10Priorities({ data, onChange }: StepProps) {
 
   return (
     <div className="space-y-5">
-      <div className="p-3.5 bg-[#EEEDFE] rounded-xl border border-[#C4C0EE]">
-        <p className="text-[12px] text-[#3C3489] leading-relaxed">
+      <div className="p-3.5 bg-brand-bg-mid rounded-xl border border-brand-border">
+        <p className="text-[12px] text-brand-text leading-relaxed">
           Select up to 3. The order you select them sets your priority ranking — the adaptive engine weights decisions to favour your top outcomes.
         </p>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider">Top 3 priorities</div>
-          <div className="text-[11px] text-[#8A8880]">{data.performancePriorities.length}/3 selected</div>
+          <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">Top 3 priorities</div>
+          <div className="text-[11px] text-ink-muted">{data.performancePriorities.length}/3 selected</div>
         </div>
         <div className="grid grid-cols-1 gap-2">
           {PRIORITIES.map(p => {
@@ -395,16 +392,16 @@ export function Step10Priorities({ data, onChange }: StepProps) {
                 onClick={() => !isDisabled && toggle(p.value)}
                 disabled={isDisabled}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all duration-150
-                  ${isSelected   ? "bg-[#EEEDFE] border-[#C4C0EE]"          :
-                    isDisabled   ? "bg-[#FAFAF8] border-[#F0EDE4] opacity-40 cursor-not-allowed" :
-                    "bg-white border-[#E0DDD4] hover:border-[#C8C5BC]"
+                  ${isSelected   ? "bg-brand-bg-mid border-brand-border"          :
+                    isDisabled   ? "bg-canvas border-border opacity-40 cursor-not-allowed" :
+                    "bg-surface border-border-strong hover:border-ink-faint"
                   }`}
               >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0
-                  ${isSelected ? "bg-[#534AB7] text-white" : "bg-[#F1EFE8] text-[#8A8880]"}`}>
+                  ${isSelected ? "bg-brand text-white" : "bg-surface-hover text-ink-muted"}`}>
                   {isSelected ? r : <span className="text-[10px] font-mono">{p.icon}</span>}
                 </div>
-                <span className={`text-[13px] font-medium ${isSelected ? "text-[#3C3489]" : "text-[#1C1B18]"}`}>
+                <span className={`text-[13px] font-medium ${isSelected ? "text-brand-text" : "text-ink"}`}>
                   {p.label}
                 </span>
               </button>
@@ -414,7 +411,7 @@ export function Step10Priorities({ data, onChange }: StepProps) {
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold text-[#8A8880] uppercase tracking-wider mb-3">Primary goal timeline</div>
+        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-3">Primary goal timeline</div>
         <div className="flex flex-wrap gap-2">
           {TIMELINE_OPTIONS.map(t => (
             <button
@@ -423,8 +420,8 @@ export function Step10Priorities({ data, onChange }: StepProps) {
               onClick={() => onChange({ primaryGoalDeadline: t.value })}
               className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-all
                 ${data.primaryGoalDeadline === t.value
-                  ? "bg-[#EEEDFE] text-[#3C3489] border-[#C4C0EE]"
-                  : "bg-white text-[#6B6860] border-[#E0DDD4] hover:border-[#C8C5BC]"
+                  ? "bg-brand-bg-mid text-brand-text border-brand-border"
+                  : "bg-surface text-ink-secondary border-border-strong hover:border-ink-faint"
                 }`}
             >
               {t.label}

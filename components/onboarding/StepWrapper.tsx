@@ -40,14 +40,11 @@ export function StepWrapper({
           {/* Category + step label */}
           <div className="pt-2 pb-5">
             <StepLabel category={config?.category ?? ""} step={step} total={STEPS.length} />
-            <h2
-              className="text-[clamp(1.4rem,5vw,2rem)] font-light text-[#1C1B18] leading-tight mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
+            <h2 className="text-[clamp(1.4rem,5vw,2rem)] font-light font-serif text-ink leading-tight mb-2">
               {config?.title}
             </h2>
             {config?.subtitle && (
-              <p className="text-[13px] text-[#8A8880] leading-relaxed">
+              <p className="text-[13px] text-ink-muted leading-relaxed">
                 {config.subtitle}
               </p>
             )}
@@ -60,7 +57,7 @@ export function StepWrapper({
 
       {/* Fixed continue button */}
       {!hideButton && (
-        <div className="px-5 pb-6 pt-3 bg-white border-t border-[#F0EDE4] max-w-lg mx-auto w-full">
+        <div className="px-5 pb-6 pt-3 bg-surface border-t border-border max-w-lg mx-auto w-full">
           <StepContinueButton
             onClick={onContinue}
             disabled={!canContinue}
