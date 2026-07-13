@@ -3,6 +3,7 @@
 // Phase 69 — React error boundary that catches render exceptions gracefully.
 
 import React, { type ReactNode, type ErrorInfo } from "react";
+import { Button } from "@/components/ui/Button";
 
 interface Props {
   children:  ReactNode;
@@ -46,20 +47,21 @@ export class ErrorBoundary extends React.Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div className="bg-ui-surface rounded-2xl p-5 text-center space-y-3 border border-ui-border">
-          <div className="w-10 h-10 rounded-full bg-orange-900/20 flex items-center justify-center mx-auto">
-            <span className="text-orange-400 text-lg">!</span>
+        <div
+          role="alert"
+          aria-live="polite"
+          className="bg-surface rounded-2xl p-5 text-center space-y-3 border border-border"
+        >
+          <div className="w-10 h-10 rounded-full bg-caution-bg flex items-center justify-center mx-auto">
+            <span className="text-caution text-lg" aria-hidden="true">!</span>
           </div>
           <div>
-            <p className="text-sm font-medium text-ink-base">Something unexpected happened.</p>
-            <p className="text-xs text-ink-muted mt-1">Your data is safe. Axis has recovered automatically.</p>
+            <p className="type-body-md font-medium text-ink">Something unexpected happened.</p>
+            <p className="type-caption text-ink-muted mt-1">Your data is safe. Axis has recovered automatically.</p>
           </div>
-          <button
-            onClick={this.handleReset}
-            className="text-xs px-3 py-1.5 bg-brand text-canvas rounded-lg font-medium"
-          >
+          <Button variant="primary" size="sm" onClick={this.handleReset}>
             Continue Training
-          </button>
+          </Button>
         </div>
       );
     }
