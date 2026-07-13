@@ -32,6 +32,7 @@ import { OverlaySelector }    from "./panels/OverlaySelector";
 import { BodyDebugPanel }     from "./panels/BodyDebugPanel";
 import type { BodyDebugState } from "./panels/BodyDebugPanel";
 import { LAYER_META }         from "./rendering/OverlaySystem";
+import { ErrorBoundary }      from "@/components/resilience/ErrorBoundary";
 
 const MODEL_URL = process.env.NEXT_PUBLIC_BODY_MODEL_URL ?? "";
 
@@ -252,6 +253,7 @@ export function BodyIntelligenceViewer({
   }), [hoveredId, selectedId, layer, debugMeshNames, muscleMap]);
 
   return (
+    <ErrorBoundary label="body-intelligence">
     <div className={`flex h-full bg-[#FAF9F5] overflow-hidden ${className}`}>
 
       {/* ── Left sidebar (desktop) ──────────────────────────────────────────── */}
@@ -348,5 +350,6 @@ export function BodyIntelligenceViewer({
         />
       </BottomSheet>
     </div>
+    </ErrorBoundary>
   );
 }

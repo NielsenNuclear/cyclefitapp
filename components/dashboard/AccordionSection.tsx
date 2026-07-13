@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ErrorBoundary } from "@/components/resilience/ErrorBoundary";
 
 const PREFS_KEY = "axis_dashboard_sections";
 
@@ -108,7 +109,9 @@ export function AccordionSection({
           {/* Lazy render: only mount content after first open */}
           {hasOpened && (
             <div className="border-t border-[#F0EDE4] px-3 pt-3 pb-4 space-y-3">
-              {children}
+              <ErrorBoundary label={`dashboard-section:${id}`}>
+                {children}
+              </ErrorBoundary>
             </div>
           )}
         </div>
