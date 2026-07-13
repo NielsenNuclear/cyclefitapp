@@ -37,6 +37,7 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 1 | `docs(ui): promote SectionHeader as canonical, reframe CardLabel as compact variant` | `components/ui/SectionHeader.tsx` |
 | 1 | `chore(dev): add Design System primitive showcase to /dev console` | `components/dev/DesignSystemShowcase.tsx`, `app/dev/page.tsx` |
 | 1 | `docs: update DS2Progress.md — Batch 1 complete` | `docs/design/DS2Progress.md` |
+| 1 (follow-up) | `docs: record completed browser QA pass for Batch 1` | `docs/design/DS2Progress.md` |
 
 (Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx` for the authoritative record.)
 
@@ -47,8 +48,8 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | `tsc --noEmit` | ✅ Clean (0 errors) — required two rounds of fixes (see Known Issues) |
 | `vitest run` | ✅ 323/323 passing, 6 files (unchanged — no test coverage exists for these new UI primitives yet; nothing to add for net-new components with no call sites) |
 | Dev server launches | ✅ Confirmed clean startup, multiple times across this batch |
-| `/dev`, `/dashboard`, `/body` routes compile and return HTTP 200 | ✅ Confirmed via direct request (see Visual QA note below for why this substitutes for browser QA) |
-| Manual visual QA | **Partial — see below.** Automated browser QA (gstack) could not be completed in this environment; fell back to code-level manual verification per the batch plan's documented fallback. |
+| `/dev`, `/dashboard`, `/body` routes compile and return HTTP 200 | ✅ Confirmed via direct request |
+| Automated browser QA (gstack) | ✅ **Completed as a follow-up pass** — see "Browser QA — completed" below. The Playwright build-mismatch issue (documented below for the record) was fully resolved. |
 | git status clean of unrelated changes | ✅ Confirmed — only Batch 1 files staged per commit; pre-existing unrelated changes (`package-lock.json`, `axis-research-setup-claude-code-brief.md`, `research/files (2).zip`) untouched |
 
 ### Visual QA note — tooling gap, not skipped
@@ -60,11 +61,38 @@ Automated browser-based QA (the `gstack` skill) requires a Playwright headless-C
 2. Direct HTTP requests to every route touched (`/dev`, `/dashboard`, `/body`) confirming Turbopack compiles the full module graph (including the new `DesignSystemShowcase.tsx` and its six primitive imports) with no server errors.
 3. **Manual line-by-line logic review** of the new primitives, specifically focused on the two areas static checks can't catch: focus-trap correctness and the Sheet's closed-state DOM behavior.
 
-This manual review caught two real bugs before they shipped (see below) — worth recording as evidence the fallback path did real work, not just a formality. **What manual review could not confirm**: actual rendered visual appearance (spacing, colors, shadow — though these are the same token classes already used correctly elsewhere in the app, e.g. `shadow-modal`, `bg-surface`, so risk is low), and real keyboard-driven interactive behavior in an actual browser (Tab cycling, Escape, click-to-close). **Recommend a real browser check of the `/dev` → "Design System" tab before Batch 4 wires these into production surfaces** — flagging this explicitly rather than silently treating code review as equivalent to interaction testing.
+This manual review caught two real bugs before they shipped (see Known Issues #4 and #5) — worth recording as evidence the fallback path did real work, not just a formality.
+
+### Browser QA — completed (follow-up pass)
+
+Root cause of the version mismatch: gstack's browser server needs Playwright build `1208`; `npx playwright install` (ambient/global resolution) grabbed `1228` instead; `bunx playwright install` also resolved to `1228` (bunx's own package resolution, not gstack's local `node_modules/playwright` v1.58.2 dependency). Fixed by invoking gstack's local dependency directly (`node node_modules/playwright/cli.js install chromium-headless-shell` from within the gstack skill directory). Even that stalled twice on the final extraction/rename step (the underlying zip did fully download to a temp staging folder both times — confirmed via file size — but the installer never completed moving it into place); resolved by manually extracting the already-downloaded zip (`Expand-Archive`) to the expected `chromium_headless_shell-1208` path, bypassing the installer's stuck final step entirely.
+
+With the browser working, ran the full interactive QA pass against `/dev` → "Design System":
+
+| Check | Result |
+|---|---|
+| Dialog: opens centered, `shadow-modal`, correct token colors | ✅ |
+| Dialog: initial focus lands on first focusable element (Close button) | ✅ |
+| Dialog: Tab/Shift+Tab wrap correctly within the trap | ✅ |
+| Dialog: `role="dialog"` `aria-modal="true"` `aria-labelledby` correct (verified via DOM query, not just visual) | ✅ |
+| Dialog: Escape closes it, fully unmounts, focus returns to the triggering button | ✅ |
+| Sheet: slides in from the right, full height, correct styling | ✅ |
+| Sheet: backdrop click closes it | ✅ |
+| Sheet: closed state is genuinely `inert` (not just `aria-hidden`) — **directly confirms the Known Issue #4 fix works in a real browser**, not just in theory | ✅ |
+| Toast: all three variants (neutral/success/danger) render with correct token colors, stack correctly when fired in quick succession, auto-dismiss on schedule (confirmed 0 toasts remaining after the dismiss window) | ✅ |
+| Select: native `<select>` changes value correctly, options list correct | ✅ |
+| VisuallyHidden: icon-only "✕" button has a real accessible name ("Dismiss") distinct from the visual glyph, confirmed via accessibility-tree snapshot | ✅ |
+| Focus ring: keyboard-navigated (Tab) focus on the icon button shows a visible solid brand-purple ring; mouse-click focus correctly does *not* show one (expected `:focus-visible` behavior, not a bug) | ✅ |
+| Tabs: ArrowRight moves both focus and selection through Dialog/Sheet → Toast → Select | ✅ |
+| Mobile viewport (390×844): Dialog and Sheet both render without horizontal overflow or clipping | ✅ |
+| Console errors across the entire session | ✅ none |
+| Pre-existing "1 Issue" badge in the `/dev` overlay | Investigated — a hydration mismatch in `components/dev/LaunchDashboard.tsx` (live-clock render, pre-existing "Launch" tab, era 76). **Unrelated to Batch 1**, not introduced by this work, not fixed (out of scope). |
+
+No new bugs found beyond the two already caught and fixed by manual review — this pass corroborated the manual-review findings rather than surfacing anything new, which is itself useful signal that the manual review was thorough.
 
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 2–7. Additionally: a real-browser interaction check of the Batch 1 primitives (see Visual QA note) is recommended before Batch 4 specifically, since that's when `Dialog`/`Sheet` get their first production call sites.
+Everything in `DS2ImplementationPlan.md` Batches 2–7. Batch 1's primitives are now both code-reviewed and browser-verified — no outstanding QA debt carried into Batch 2.
 
 ## Known Issues
 
@@ -118,5 +146,5 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 
 ## Notes for Batch 2 kickoff
 
-- Recommend a real-browser pass over the `/dev` → "Design System" tab before or during Batch 2, now that the Playwright browser binary is actually installed and working (`chromium-headless-shell` build `1208` confirmed present) — the earlier failures were pure version-resolution issues, now resolved, not an environment blocker going forward.
+- Browser QA tooling is now confirmed working end-to-end (`chromium-headless-shell` build `1208` installed and verified) — no environment blocker carried into Batch 2; expect the mandatory full manual walkthrough for onboarding to actually use it.
 - Batch 2 scope per `DS2ImplementationPlan.md`: migrate `components/ui/onboarding-primitives.tsx` to tokens, fold `StepContinueButton` into `Button`, full manual walkthrough of all 11 onboarding steps + profile-edit reuse. Resolve the `#8A8880` judgment call (Known Issue #2) as part of this batch.
