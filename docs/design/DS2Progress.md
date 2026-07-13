@@ -11,20 +11,29 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 0 — Migration Baseline | ✅ Complete |
 | Pre-flight decisions | ✅ Decided and implemented in Batch 1 |
 | 1 — New shared primitives | ✅ Complete |
-| 2 — Onboarding (pilot) | ⏳ Not started |
+| 2 — Onboarding (pilot) | ✅ Complete |
 | 3 — Dashboard Layer 1 | ⏳ Not started |
 | 4 — Navigation + overlays | ⏳ Not started |
 | 5 — Dashboard Layer 2 (accordion sections) | ⏳ Not started |
 | 6 — Dashboard Layer 3 ("Axis Intelligence") | ⏳ Not started |
 | 7 — Icon system | ⏳ Not started |
 
-**Compliance headline (from `DS2Baseline.md`):** 15 of 195 files (7.7%) fully token-compliant at baseline. Batch 1 added net-new, fully-compliant files — it did not migrate any of the 180 non-compliant files (that's Batches 2+), so this number is unchanged as a *percentage of the original 195*; re-measure against `DS2Baseline.md`'s methodology once Batch 2 lands the first real migration.
+**Compliance headline — re-measured after Batch 2** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`, 195 `.tsx` files):
+
+| Metric | Baseline (Batch 0) | After Batch 2 | Change |
+|---|---|---|---|
+| Fully compliant files | 15 (7.7%) | **22 (11.3%)** | +7 |
+| Files using ≥1 token color class | 49 (25%) | **62 (32%)** | +13 |
+| Files with ≥1 hardcoded hex | 133 (68%) | **127 (65%)** | −6 |
+| Total hardcoded hex occurrences | 3,500 | **3,227** | −273 |
+
+Batch 2 migrated 7 files (all of `components/onboarding/` + `components/ui/onboarding-primitives.tsx`) — 275 of the 273-hex-occurrence reduction came directly from this batch's scope (the small residual difference is from Batch 1's `Button.tsx`/`ErrorBoundary.tsx` edits already counted in a prior measurement window). One file (`ProfileSummary.tsx`) still shows 2 hex occurrences — both are the single documented exception (see Known Issues), not missed migration work.
 
 ## Current Batch
 
-**Batch 1 — New shared primitives: complete.** Adds six new `components/ui/` primitives (`useFocusTrap`, `VisuallyHidden`, `Dialog`, `Sheet`, `Toast`/`ToastProvider`, `Tabs`/`TabPanel`, `Select`) plus both pre-flight decisions, implemented. No existing call site was migrated to use these yet — that starts in Batch 2 (onboarding) and Batch 4 (settings toast, body-viewer sheet), per `DS2ImplementationPlan.md`.
+**Batch 2 — Onboarding (pilot): complete.** Migrated `components/ui/onboarding-primitives.tsx` and all 6 onboarding feature files (`StepWrapper.tsx`, `Steps1to5.tsx`, `Steps6to10.tsx`, `EquipmentStep.tsx`, `ProfileSummary.tsx`, `ProgressBar.tsx`) to tokens — broader than `DS2ImplementationPlan.md`'s literal Batch 2 text (which named only the primitives file + `StepWrapper.tsx` as StepContinueButton's consumer), because the baseline re-audit found the step files themselves carried the majority of onboarding's hex usage (275 of 275 occurrences migrated came from across all 7 files, not just the 2 originally named) — migrating only the primitives library would have left the pilot batch's own stated goal ("prove the pattern on a fully-consistent flow") half-done. Full detail in "Batch 2 details" below.
 
-**Next up:** Batch 2 (onboarding pilot migration) — awaiting review sign-off before starting.
+**Next up:** Batch 3 (Dashboard Layer 1) — awaiting review sign-off before starting.
 
 ## Commit History
 
@@ -38,8 +47,12 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 1 | `chore(dev): add Design System primitive showcase to /dev console` | `components/dev/DesignSystemShowcase.tsx`, `app/dev/page.tsx` |
 | 1 | `docs: update DS2Progress.md — Batch 1 complete` | `docs/design/DS2Progress.md` |
 | 1 (follow-up) | `docs: record completed browser QA pass for Batch 1` | `docs/design/DS2Progress.md` |
+| 2 | `feat(ui): add dark/pill Button variant for onboarding CTA` | `components/ui/Button.tsx` |
+| 2 | `refactor: migrate onboarding-primitives.tsx to design tokens` | `components/ui/onboarding-primitives.tsx` |
+| 2 | `refactor: migrate onboarding step files to design tokens` | `components/onboarding/{StepWrapper,Steps1to5,Steps6to10,EquipmentStep,ProfileSummary,ProgressBar}.tsx` |
+| 2 | `docs: update DS2Progress.md — Batch 2 complete` | `docs/design/DS2Progress.md` |
 
-(Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx` for the authoritative record.)
+(Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/` for the authoritative record.)
 
 ## Verification Status (Batch 1)
 
@@ -90,14 +103,71 @@ With the browser working, ran the full interactive QA pass against `/dev` → "D
 
 No new bugs found beyond the two already caught and fixed by manual review — this pass corroborated the manual-review findings rather than surfacing anything new, which is itself useful signal that the manual review was thorough.
 
+## Verification Status (Batch 2)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ Clean (0 errors) |
+| `vitest run` | ✅ 323/323 passing, 6 files (unchanged) |
+| Dev server launches | ✅ Confirmed clean startup |
+| Automated browser QA (gstack) | ✅ **Full interactive walkthrough completed** — all 11 onboarding steps + profile-edit reuse. See "Batch 2 details" below. |
+| Console errors across entire walkthrough | ✅ none |
+| git status clean of unrelated changes | ✅ Confirmed |
+
+## Batch 2 details
+
+### Button gets a `dark` variant + `pill` shape (design decision, not just token substitution)
+
+`StepContinueButton`'s original implementation (`bg-[#1C1B18] hover:bg-[#2C2B28]`, `rounded-full`, lifted hover shadow) is visually a *different* button treatment from `Button`'s existing `primary` (brand purple, fixed-height, `rounded-lg`/`xl`) — not a hex-vs-token difference, a genuinely different shape and color. `DS2ImplementationPlan.md`'s literal Batch 2 text said fold it in as `variant="primary" size="lg" fullWidth`, which would have silently repainted the onboarding CTA purple — a real design change, not adoption. Caught this before implementing and instead:
+- Added `variant: "dark"` to `Button` (`bg-ink`/`hover:bg-ink/90`, tokens) — same ink color as before, just token-driven.
+- Added `shape: "pill" | "default"` to `Button` — pill uses padding-driven height + `rounded-full` + a documented, ink-tinted arbitrary shadow (`shadow-[0_4px_20px_rgba(28,27,24,0.12)]` etc. — doesn't map to any of the 5 shadow tokens, kept scoped to this one shape rather than inventing a 6th global token for one use).
+- `StepContinueButton` is now a ~15-line wrapper: `<Button variant="dark" shape="pill" size="lg" fullWidth iconEnd={<ArrowIcon/>}>`. Same visible output, single implementation.
+- Confirmed via browser QA: enabled/disabled/hover states all pixel-equivalent to the original.
+
+### `'DM Serif Display'` was never actually loading — real bug, fixed
+
+Found while migrating: `StepWrapper.tsx`'s step title, `ScaleSlider`/`NumberStepper`'s numeric displays, `ProfileSummary.tsx`'s headline/ring text, and `ProgressBar`-adjacent step counters all set `fontFamily: "'DM Serif Display', Georgia, serif"` inline. **`DM Serif Display` is not loaded anywhere in the app** — no `next/font` declaration, no `@font-face`. Every one of these was silently falling back to generic `Georgia` this whole time, not the app's actual configured serif (`Lora`, loaded correctly via `next/font` and available as the `font-serif` token). Replaced every instance with `font-serif`. This is a fix, not a redesign judgment call — `font-serif` is the one serif that was ever really available; treating "make broken font references resolve to the real, working token" as adoption rather than a style change. Confirmed via browser QA: numeric displays and headlines now render in Lora, look more considered/on-brand than the Georgia fallback, no layout shift.
+
+### Found and neutralized a second pre-existing bug: a shadow declaration that could never have rendered
+
+`OptionCard`'s selected state built a Tailwind class string as `` `shadow-[0_0_0_1px_${a.border}]` `` where `a.border` was itself a full class name (e.g. `"border-[#534AB7]"`), producing the literal (invalid) string `shadow-[0_0_0_1px_border-[#534AB7]]` — not parseable Tailwind syntax, so this ring shadow never rendered in production, ever. Two options: make it actually work (visible change, arguably redesign) or remove the dead declaration (zero visual change, matches current behavior exactly). Chose the latter — removed it, selected-state styling is unchanged (border + background color swap only, as it's actually looked all along). Not "fixed," just correctly left broken-as-before rather than accidentally un-breaking it into a new visual.
+
+### Full interactive browser QA — all 11 steps + profile-edit reuse
+
+With the Playwright tooling now working (per Batch 1's resolution), ran the actual walkthrough rather than deferring it:
+
+| Area | Result |
+|---|---|
+| Step 1 (Goals) — OptionCard multi-select, disabled→enabled Continue transition | ✅ purple selected-state, dark pill CTA correct |
+| Step 2 (Experience) — OptionCard single-select + pill chip row | ✅ |
+| Step 3 (Training Style) — OptionCard grid + NumberStepper | ✅ serif "3 sessions" numeral confirmed |
+| Step 4 (Recovery) — OptionCard + brand-tinted info callout | ✅ |
+| Step 5 (Sleep) — NumberStepper + accent-variant OptionCards (teal "Excellent", amber "Poor") | ✅ both accent color families render correctly |
+| Step 6 (Stress) — ScaleSlider + serif numeral (the `font-serif` fix) + ChipSelect | ✅ confirmed Lora rendering, not Georgia |
+| Step 7 (Energy) — OptionCard + ChipSelect | ✅ |
+| Step 8 (Cycle) — brand callout, custom stepper, regularity cards, SegmentedControl, conditional date field | ✅ all render/interact correctly, conditional field appears exactly per existing logic |
+| Step 9 (Symptoms) — toggle-button grid + conditional severity OptionCards | ✅ |
+| Step 10 (Priorities) — ranked-selection with numbered badges (brand-purple selected badge vs. neutral unselected) | ✅ |
+| Step 11 (Equipment) — preset cards, "N items selected" summary, per-group accordions | ✅ |
+| `ProfileSummary` (completion screen) | ✅ ring/score, weight bars (5 distinct token-sourced colors via `lib/design/tokens.ts`'s `color` export), badges, dark "what happens next" block, purple-glow final CTA — all correct |
+| `/profile` route (StepWrapper/Step1Goals reuse for profile editing) | ✅ renders identically to fresh onboarding, confirming shared-component reuse still works |
+| Console errors, entire walkthrough | ✅ none |
+
+### `weightColors` in `ProfileSummary.tsx` — the actual intended use of `lib/design/tokens.ts`
+
+This was a plain JS object feeding inline `style={{ background: color }}`, not a className string — exactly the documented use case for the TS token mirror. Now imports `color` from `@/lib/design/tokens` instead of hardcoding hex, e.g. `sleep: tokenColor.brand` instead of `sleep: "#534AB7"`.
+
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 2–7. Batch 1's primitives are now both code-reviewed and browser-verified — no outstanding QA debt carried into Batch 2.
+Everything in `DS2ImplementationPlan.md` Batches 3–7. Batches 1 and 2 are both code-reviewed and browser-verified — no outstanding QA debt carried forward.
 
 ## Known Issues
 
 1. **Border-radius naming collision** (from Batch 0) — unresolved, unchanged. See `DS2Baseline.md` → "Border Radius."
-2. **`#8A8880`** (onboarding) has no exact token match — unresolved, unchanged. Needs a judgment call in Batch 2.
+2. **`#8A8880`** (onboarding) — **resolved in Batch 2**: mapped to `text-ink-muted` (closer numeric/semantic match than `ink-secondary`), applied consistently across all 7 onboarding files.
+2b. **New, found in Batch 2**: `text-[#D3D1C7]` in `ProfileSummary.tsx`'s dark "what happens next" block — light text on a dark surface, and this app has **no on-dark-surface text token scale at all** (confirmed: no dark-mode tokens exist per Batch 0/DS-1 findings). Left as a documented, scoped hex exception rather than forcing a poor-fit light-mode token. Real fix is a dark-surface text scale, which belongs to dark-mode work (DS-7), not this batch.
+2c. **New, found in Batch 2**: a third pill-button treatment exists (`ProfileSummary.tsx`'s "Go to my dashboard" CTA — brand-purple glow, distinct from both `Button`'s `primary` and the new `dark`+`pill` combo). Tokenized in place, **not consolidated onto `Button`** — that's a consolidation decision (DS-3/DS-6 territory per DS-2 rules), not this batch's job. Now three known button treatments in the app: `Button primary`, `Button dark+pill` (onboarding steps), and this one (profile-summary completion CTA).
+2d. **New, found in Batch 2**: the brand-purple "glow" shadow family (`rgba(83,74,183,0.3)` etc., ~10+ occurrences per `DS2Baseline.md`) still has no token — confirmed present in `ProfileSummary.tsx`'s final CTA, left as-is (not tokenized) since inventing a new global shadow token is a small but real design decision outside pure adoption scope. Candidate for a future token if DS-6 or a dedicated token-expansion review picks it up.
 3. **Fixed in Batch 1**: `VisuallyHidden`'s initial implementation (`<Tag className=... >{children}</Tag>` with a dynamic `ElementType`) failed `tsc` — TypeScript couldn't reconcile the polymorphic tag's children type. Fixed by using `createElement` directly instead of JSX for the dynamic-tag case.
 4. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `Sheet.tsx` always renders its children (needed for the slide-in/out transition) and only marked the closed state via `aria-hidden` + a CSS transform pushing it off-screen. `aria-hidden` alone doesn't reliably stop keyboard focus from reaching off-screen content in every browser. Fixed by adding `inert={!isOpen}` (React 19 passes this through natively) so closed-sheet content is genuinely unfocusable, not just visually hidden.
 5. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `useFocusTrap`'s effect originally depended on `[active, onEscape, initialFocus]`. Since `onEscape` is normally an inline arrow function from the caller (e.g. `onClose={() => setDialogOpen(false)}`), its identity changes on every render of the parent — meaning *any* unrelated re-render of the parent while a Dialog/Sheet was open would re-run the effect, re-capture "previously focused element," and yank focus back to the trap's first focusable element, potentially interrupting a user mid-interaction (e.g. typing). Fixed by reading `onEscape` through a ref updated every render, with the effect itself depending only on `[active]`.
@@ -144,7 +214,9 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 
 ---
 
-## Notes for Batch 2 kickoff
+## Notes for Batch 3 kickoff
 
-- Browser QA tooling is now confirmed working end-to-end (`chromium-headless-shell` build `1208` installed and verified) — no environment blocker carried into Batch 2; expect the mandatory full manual walkthrough for onboarding to actually use it.
-- Batch 2 scope per `DS2ImplementationPlan.md`: migrate `components/ui/onboarding-primitives.tsx` to tokens, fold `StepContinueButton` into `Button`, full manual walkthrough of all 11 onboarding steps + profile-edit reuse. Resolve the `#8A8880` judgment call (Known Issue #2) as part of this batch.
+- Browser QA tooling remains flaky at the *server-restart* level (gstack's browse server crashed and auto-restarted twice mid-session during Batch 2, unrelated to app code) but was recoverable every time by re-running the command — not a blocker, just expect an occasional retry.
+- Batch 3 scope per `DS2ImplementationPlan.md`: migrate the 8 Layer-1 "always visible" dashboard cards (`DailyCheckIn`, `DailyStatus`, `TrainingCard`, `SafetyConstraintBanner`, `ConfidenceBadge`, `WorkoutCard`, `TodayHighlights`, `BodyStatusCard`) to tokens/`components/ui/` primitives, one commit per component. This is the highest-traffic surface in the app — treat with the same care as onboarding, but note it's rated Medium-High risk in the plan (small file count, but live user data on every visit).
+- `WorkoutCard.tsx` already got a light touch in Batch 1 (ErrorBoundary wrap only, styling untouched) — Batch 3 will do its full token migration; don't be surprised the file already has one recent edit in git history.
+- Three known button treatments now exist in the app (`Button primary`, `Button dark+pill`, `ProfileSummary`'s glow CTA) and a fourth-treatment temptation will arise the moment Batch 3 touches any dashboard card with its own CTA — resist consolidating on sight; that's DS-3 territory per the DS-2 rules, this batch is styling-in-place only.
