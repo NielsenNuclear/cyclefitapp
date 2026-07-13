@@ -1,7 +1,10 @@
 "use client";
 
 // ── SectionHeader ──────────────────────────────────────────────────────────
-// Eyebrow + title row used at the top of every card and section.
+// Canonical card/section heading. Use this for any new card that needs a
+// title (with optional eyebrow, subtitle, or trailing action) — it's the
+// full component; CardLabel below is a compact eyebrow-only variant, not a
+// separate thing to reach for by default.
 
 interface SectionHeaderProps {
   eyebrow?:      string;
@@ -36,8 +39,12 @@ export function SectionHeader({
   );
 }
 
-// ── CardLabel (legacy alias) ───────────────────────────────────────────────
-// Many existing cards use <CardLabel>. Keep it working.
+// ── CardLabel (compact variant) ────────────────────────────────────────────
+// A bare eyebrow label with no title row — for the (25+ existing) cards that
+// only need a small uppercase category tag, not a full heading. Not deprecated;
+// use it deliberately when that's genuinely all the card needs. If a card
+// grows a real title, move it to <SectionHeader eyebrow="..."> instead of
+// hand-adding a heading next to <CardLabel>.
 
 export function CardLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
