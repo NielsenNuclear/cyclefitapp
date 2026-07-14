@@ -33,6 +33,7 @@ import { BodyDebugPanel }     from "./panels/BodyDebugPanel";
 import type { BodyDebugState } from "./panels/BodyDebugPanel";
 import { LAYER_META }         from "./rendering/OverlaySystem";
 import { ErrorBoundary }      from "@/components/resilience/ErrorBoundary";
+import { Sheet }              from "@/components/ui/Sheet";
 
 const MODEL_URL = process.env.NEXT_PUBLIC_BODY_MODEL_URL ?? "";
 
@@ -119,45 +120,6 @@ function BodyScene({
           <PlaceholderBody {...rendererProps} />
         )}
       </Suspense>
-    </>
-  );
-}
-
-// ─── Mobile bottom sheet ──────────────────────────────────────────────────────
-
-interface SheetProps {
-  isOpen:    boolean;
-  onDismiss: () => void;
-  children:  React.ReactNode;
-}
-
-function BottomSheet({ isOpen, onDismiss, children }: SheetProps) {
-  return (
-    <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
-          aria-hidden="true"
-          onClick={onDismiss}
-        />
-      )}
-      <div
-        className={`
-          fixed inset-x-0 bottom-0 z-40 lg:hidden
-          bg-[#FAF9F5] rounded-t-3xl shadow-2xl
-          max-h-[76vh] flex flex-col
-          transform transition-transform duration-300 ease-out
-          ${isOpen ? "translate-y-0" : "translate-y-full"}
-        `}
-        role="dialog"
-        aria-modal={isOpen}
-        aria-hidden={!isOpen}
-      >
-        <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[#C8C5BC]" />
-        </div>
-        <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
-      </div>
     </>
   );
 }
@@ -342,13 +304,20 @@ export function BodyIntelligenceViewer({
       </aside>
 
       {/* ── Mobile: region detail bottom sheet ──────────────────────────────── */}
-      <BottomSheet isOpen={!!selectedId} onDismiss={onDeselect}>
+      <Sheet
+        isOpen={!!selectedId}
+        onClose={onDeselect}
+        side="bottom"
+        showHandle
+        bodyPadding={false}
+        wrapperClassName="lg:hidden"
+      >
         <RegionDetailsPanel
           selected={selected}
           onDeselect={onDeselect}
           layer={layer}
         />
-      </BottomSheet>
+      </Sheet>
     </div>
     </ErrorBoundary>
   );

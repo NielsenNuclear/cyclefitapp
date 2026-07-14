@@ -17,15 +17,31 @@ const SIDE_CLS: Record<SheetSide, { position: string; enter: string; exit: strin
 };
 
 interface SheetProps {
-  isOpen:     boolean;
-  onClose:    () => void;
-  side?:      SheetSide;
-  title?:     string;
-  children:   React.ReactNode;
-  className?: string;
+  isOpen:           boolean;
+  onClose:          () => void;
+  side?:            SheetSide;
+  title?:           string;
+  children:         React.ReactNode;
+  className?:       string;
+  /** Show a drag-handle bar instead of (or alongside) a title — the standard
+   *  affordance for a `side="bottom"` sheet. */
+  showHandle?:      boolean;
+  /** Pad the content area (default true). Set false when the child already
+   *  manages its own padding — e.g. a component reused unpadded elsewhere
+   *  (a static side panel) that would otherwise get inconsistent spacing
+   *  between its two contexts. */
+  bodyPadding?:     boolean;
+  /** Wraps the entire sheet (backdrop included) in a container with this
+   *  className — for responsive cases where the sheet must not exist at all
+   *  above a breakpoint (e.g. "lg:hidden"), not just be visually hidden while
+   *  still dimming the page behind it. */
+  wrapperClassName?: string;
 }
 
-export function Sheet({ isOpen, onClose, side = "right", title, children, className = "" }: SheetProps) {
+export function Sheet({
+  isOpen, onClose, side = "right", title, children,
+  className = "", showHandle = false, bodyPadding = true, wrapperClassName = "",
+}: SheetProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -45,7 +61,7 @@ export function Sheet({ isOpen, onClose, side = "right", title, children, classN
   const roundedCls = side === "bottom" ? "rounded-t-2xl" : "";
 
   return createPortal(
-    <>
+    <div className={wrapperClassName}>
       <div
         className={`fixed inset-0 z-40 bg-ink/40 transition-opacity duration-normal ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -69,14 +85,19 @@ export function Sheet({ isOpen, onClose, side = "right", title, children, classN
           ${className}
         `}
       >
+        {showHandle && (
+          <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 rounded-full bg-ink-faint" />
+          </div>
+        )}
         {title && (
           <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-border">
             <h2 id={titleId} className="type-card-title text-ink">{title}</h2>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto min-h-0 p-5">{children}</div>
+        <div className={`flex-1 overflow-y-auto min-h-0 ${bodyPadding ? "p-5" : ""}`}>{children}</div>
       </div>
-    </>,
+    </div>,
     document.body
   );
 }
