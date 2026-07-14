@@ -12,28 +12,28 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | Pre-flight decisions | ✅ Decided and implemented in Batch 1 |
 | 1 — New shared primitives | ✅ Complete |
 | 2 — Onboarding (pilot) | ✅ Complete |
-| 3 — Dashboard Layer 1 | ⏳ Not started |
+| 3 — Dashboard Layer 1 | ✅ Complete (with one scoped gap — see below) |
 | 4 — Navigation + overlays | ⏳ Not started |
 | 5 — Dashboard Layer 2 (accordion sections) | ⏳ Not started |
 | 6 — Dashboard Layer 3 ("Axis Intelligence") | ⏳ Not started |
 | 7 — Icon system | ⏳ Not started |
 
-**Compliance headline — re-measured after Batch 2** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`, 195 `.tsx` files):
+**Compliance headline — re-measured after Batch 3** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`, 195 `.tsx` files):
 
-| Metric | Baseline (Batch 0) | After Batch 2 | Change |
+| Metric | Baseline (Batch 0) | After Batch 2 | After Batch 3 |
 |---|---|---|---|
-| Fully compliant files | 15 (7.7%) | **22 (11.3%)** | +7 |
-| Files using ≥1 token color class | 49 (25%) | **62 (32%)** | +13 |
-| Files with ≥1 hardcoded hex | 133 (68%) | **127 (65%)** | −6 |
-| Total hardcoded hex occurrences | 3,500 | **3,227** | −273 |
+| Fully compliant files | 15 (7.7%) | 22 (11.3%) | **22 (11.3%) — see note below** |
+| Files using ≥1 token color class | 49 (25%) | 62 (32%) | **68 (35%)** |
+| Files with ≥1 hardcoded hex | 133 (68%) | 127 (65%) | **122 (63%)** |
+| Total hardcoded hex occurrences | 3,500 | 3,227 | **3,049** |
 
-Batch 2 migrated 7 files (all of `components/onboarding/` + `components/ui/onboarding-primitives.tsx`) — 275 of the 273-hex-occurrence reduction came directly from this batch's scope (the small residual difference is from Batch 1's `Button.tsx`/`ErrorBoundary.tsx` edits already counted in a prior measurement window). One file (`ProfileSummary.tsx`) still shows 2 hex occurrences — both are the single documented exception (see Known Issues), not missed migration work.
+**Why "fully compliant files" didn't move in Batch 3** despite real progress: that metric requires *zero* hardcoded hex **and** zero arbitrary `text-[Npx]` sizing **and** zero raw Tailwind palette classes. Batch 3 fully eliminated hardcoded hex from all 8 Layer-1 files (their color-token adoption is complete), but did not convert their arbitrary pixel font sizes (`text-[11px]`, `text-[13px]`, etc.) to the `.type-*` semantic scale — that's the typography-migration effort flagged in `DS2Baseline.md` as the single largest compliance gap in the app (154 files, 1,451 occurrences), and doing it properly for 8 files in the middle of a color-migration batch risked scope creep into a second, much larger unplanned effort. Color-token adoption (the metric that actually moved) is the more consequential of the two per the baseline's own analysis.
 
 ## Current Batch
 
-**Batch 2 — Onboarding (pilot): complete.** Migrated `components/ui/onboarding-primitives.tsx` and all 6 onboarding feature files (`StepWrapper.tsx`, `Steps1to5.tsx`, `Steps6to10.tsx`, `EquipmentStep.tsx`, `ProfileSummary.tsx`, `ProgressBar.tsx`) to tokens — broader than `DS2ImplementationPlan.md`'s literal Batch 2 text (which named only the primitives file + `StepWrapper.tsx` as StepContinueButton's consumer), because the baseline re-audit found the step files themselves carried the majority of onboarding's hex usage (275 of 275 occurrences migrated came from across all 7 files, not just the 2 originally named) — migrating only the primitives library would have left the pilot batch's own stated goal ("prove the pattern on a fully-consistent flow") half-done. Full detail in "Batch 2 details" below.
+**Batch 3 — Dashboard Layer 1: complete, with one scoped gap.** Migrated all 8 always-visible dashboard components (`DailyCheckIn`, `DailyStatus`, `TrainingCard`, `SafetyConstraintBanner`, `ConfidenceBadge`, `WorkoutCard`, `TodayHighlights`, `BodyStatusCard`) to design tokens, plus their upstream color-logic dependencies (`lib/intelligence/confidence/ConfidenceEngine.ts`, the `weightColors`-style inline-style helpers). Rolled out `EmptyState` to `BodyStatusCard`'s no-snapshot-yet case. **Did not** swap these files' hand-rolled card containers onto the shared `<Card>` component — see "Batch 3 details" for why, and why that's a documented gap against the plan's literal text rather than a silent omission.
 
-**Next up:** Batch 3 (Dashboard Layer 1) — awaiting review sign-off before starting.
+**Next up:** Batch 4 (Navigation + overlays) — awaiting review sign-off before starting.
 
 ## Commit History
 
@@ -51,8 +51,15 @@ Batch 2 migrated 7 files (all of `components/onboarding/` + `components/ui/onboa
 | 2 | `refactor: migrate onboarding-primitives.tsx to design tokens` | `components/ui/onboarding-primitives.tsx` |
 | 2 | `refactor: migrate onboarding step files to design tokens` | `components/onboarding/{StepWrapper,Steps1to5,Steps6to10,EquipmentStep,ProfileSummary,ProgressBar}.tsx` |
 | 2 | `docs: update DS2Progress.md — Batch 2 complete` | `docs/design/DS2Progress.md` |
+| 3 | `refactor: migrate Confidence Engine color helpers to design tokens` | `lib/intelligence/confidence/ConfidenceEngine.ts` |
+| 3 | `refactor: migrate DailyCheckIn and DailyStatus to design tokens` | `components/dashboard/DailyCheckIn.tsx`, `components/dashboard/DailyStatus.tsx` |
+| 3 | `refactor: migrate SafetyConstraintBanner to design tokens` | `components/intelligence/SafetyConstraintBanner.tsx` |
+| 3 | `refactor: migrate TrainingCard (RecommendationCards.tsx) to design tokens` | `components/dashboard/RecommendationCards.tsx` |
+| 3 | `refactor: migrate WorkoutCard to design tokens` | `components/dashboard/WorkoutCard.tsx` |
+| 3 | `refactor: migrate TodayHighlights and BodyStatusCard to design tokens, add EmptyState` | `components/dashboard/TodayHighlights.tsx`, `components/dashboard/BodyStatusCard.tsx` |
+| 3 | `docs: update DS2Progress.md — Batch 3 complete` | `docs/design/DS2Progress.md` |
 
-(Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/` for the authoritative record.)
+(Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/ components/dashboard/ components/intelligence/ lib/intelligence/` for the authoritative record.)
 
 ## Verification Status (Batch 1)
 
@@ -157,9 +164,61 @@ With the Playwright tooling now working (per Batch 1's resolution), ran the actu
 
 This was a plain JS object feeding inline `style={{ background: color }}`, not a className string — exactly the documented use case for the TS token mirror. Now imports `color` from `@/lib/design/tokens` instead of hardcoding hex, e.g. `sleep: tokenColor.brand` instead of `sleep: "#534AB7"`.
 
+## Verification Status (Batch 3)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ Clean (0 errors) |
+| `vitest run` | ✅ 323/323 passing, 6 files (unchanged) |
+| Dev server launches | ✅ Confirmed clean startup |
+| Automated browser QA (gstack) | ✅ Full walkthrough — see "Batch 3 details" below |
+| Console errors | ✅ none, across the whole dashboard QA session |
+| git status clean of unrelated changes | ✅ Confirmed |
+
+## Batch 3 details
+
+### `ConfidenceBadge`'s color logic lived one layer up — migrated `ConfidenceEngine.ts`, not the component
+
+`ConfidenceBadge.tsx` itself has zero hardcoded styling; it delegates to `getConfidenceLevelColor`/`getConfidenceLevelBg`/`getConfidenceLevelBorder` in `lib/intelligence/confidence/ConfidenceEngine.ts`. Those returned raw Tailwind palette classes across 5 confidence levels (`text-green-400`, `text-yellow-400`, `text-orange-400`, `text-red-400`, plus `bg-green-900/20`-style dark-theme translucent overlays with no light-mode equivalent — already a latent bug in this light-mode-only app). Consolidated onto the real 4-step semantic scale (success/brand/caution/danger); **Building and Limited now both map to `caution`**, since the original yellow/orange split was never a deliberate design-system distinction — just two adjacent off-the-shelf Tailwind swatches. Documented in the source as a judgment call, not asserted silently. Confirmed via browser QA: renders as "● Limited Confidence" with a correct caution-colored dot.
+
+### The stale/broken token-family bug (found in `ErrorBoundary.tsx` and `/dev` during Batch 1) recurred in `SafetyConstraintBanner.tsx`
+
+Same pattern as Batch 1's finding: `bg-ui-surface`, `border-ui-border`, `text-ink-base`, `text-ink-subtle` — none of these are real Tailwind utilities under the current token system (they don't match any `@theme` key), so they were generating no styling at all. Replaced with the real tokens (`bg-surface`, `border-border`, `text-ink`, `text-ink-secondary`). This is now confirmed as a recurring pattern across at least 3 files (`components/dev/`, `components/resilience/`, `components/intelligence/`) — worth a repo-wide grep for `-ui-surface|-ui-border|ink-base|ink-subtle` before closing out DS-2, in case it recurs elsewhere in Batches 4–6.
+
+### `TrainingCard` lives inside a shared file with two out-of-scope siblings
+
+`components/dashboard/RecommendationCards.tsx` defines `TrainingCard` (Layer 1, in scope), `NutritionCard`, and `RecoveryCard` (both Layer 2, out of scope until Batch 5). Migrated `TrainingCard` plus the genuinely shared helpers at the top of the file (`CardLabel`, `ListItem`, `PillTag`, `BADGE_CONFIG` — all `TrainingCard`-only or shared-but-harmless to migrate now) to tokens; left `NutritionCard`'s and `RecoveryCard`'s own top-level container styling (their independent hex) untouched for Batch 5, as originally scoped. `NutritionCard`/`RecoveryCard` incidentally benefit from the shared-helper migration (free, zero-risk win) without being fully migrated themselves.
+
+### `EmptyState` rollout: `BodyStatusCard` only
+
+Of the 8 files, only `BodyStatusCard` had a genuine "no data yet" silent-null case (`if (!snapshot) return null`) — replaced with a `Card`-chrome-wrapped `EmptyState` ("Body Intelligence not started yet"). `DailyCheckIn` and `TodayHighlights` also have early-return/conditional-render patterns, but neither is a "hidden feature" case: `DailyCheckIn` always renders *something* (compact state or the form, never nothing), and `TodayHighlights` returning nothing when there's genuinely no noteworthy insight is correct, intentional behavior, not a bug — added no `EmptyState` to either, to avoid manufacturing noise where the current silence is actually the right call.
+
+### Scoped gap: did not swap hand-rolled card containers onto `<Card>`
+
+`DS2ImplementationPlan.md`'s Batch 3 text said "hand-rolled card container/buttons → Card/Button." Evaluated this for all 8 files and **deliberately did not do it**: `<Card>` applies a uniform `space-y-4` between children, but every one of these 8 files has its own specific internal spacing (`mb-3`, `mb-4`, per-child margins) that doesn't map cleanly onto a uniform gap — swapping would have meant reworking each file's internal spacing to match Card's model, which is a real risk of introducing spacing regressions I couldn't fully verify pixel-for-pixel, not a mechanical rename. Given the explicit instruction to prioritize low regression risk over completeness, chose to keep the hand-rolled `<div className="bg-surface rounded-2xl border border-border shadow-card p-5">` structure — now fully token-compliant, just not componentized. This is a real, acknowledged gap against the plan's literal text, not a silent omission. Flagged for a dedicated future pass (possibly worth a `Card` API addition — e.g. an `unstyled`/no-default-gap variant — rather than reworking 8+ files' internal spacing by hand).
+
+### Full dashboard browser QA
+
+Lost the Batch 2 QA session's onboarding-completed state (gstack's browser server had crashed/restarted between sessions), so re-completed onboarding to reach real dashboard data rather than test against a redirect-to-onboarding empty state. With real data:
+
+| Area | Result |
+|---|---|
+| `DailyCheckIn` — sleep-quality selection state, enabled/disabled Next button | ✅ correct brand-tinted selected state, correct disabled→enabled transition |
+| `DailyCheckIn` — stress slider (step 2) | ✅ brand-purple fill/thumb |
+| `DailyCheckIn` — symptom severity rows, all 3 active tiers (Mild/Mod/Sev) | ✅ Mild renders brand-tinted, Mod/Sev both render caution-tinted (matches the intentional 4-tier consolidation) |
+| `DailyCheckIn` — compact "already checked in" state | **Not directly observed** — `app/dashboard/page.tsx` wraps `DailyCheckIn` in `{!checkinComplete && (...)}`, which removes the component from the tree entirely once checked in, so `DailyCheckIn.tsx`'s own compact-state branch never gets a chance to render on the live dashboard (pre-existing behavior, not something this batch touched or should fix — a "no logic changes" boundary). Verified via code review only: the migration is a straightforward class substitution identical in pattern to the surrounding code that *was* visually confirmed elsewhere the same session. |
+| `DailyStatus` tiles (Readiness/Recovery/Phase) | ✅ correct brand/success/brand-bg-mid tile colors, live-recalculated after check-in submission (84→75) |
+| `TrainingCard` | ✅ "Peak Performance" card, "MAINTAIN" badge, serif headline, caution-tinted avoid-note box |
+| `SafetyConstraintBanner` | **Not triggered** by the seeded data (`safetyResult` was falsy) — not independently screenshotted. Verified via code review only, same reasoning as the `DailyCheckIn` compact state above. |
+| `ConfidenceBadge` | ✅ "● Limited Confidence" with correct caution dot |
+| `WorkoutCard` (idle state via `WorkoutHeroView`) | ✅ renders correctly (environment tabs, workout summary, "Start Workout" CTA) — note `WorkoutHeroView.tsx` itself is a separate file, not migrated this batch, its correct appearance here is incidental |
+| `TodayHighlights` | ✅ success-toned insight box rendered correctly |
+| `BodyStatusCard` (populated state) | ✅ silhouette, status chips, "Today's Targets" pills all correct — did not observe the new `EmptyState` branch live (would require a snapshot-less profile) but it uses the same `EmptyState` + `Card`-chrome pattern already confirmed working in Batch 1's `/dev` showcase |
+| Console errors, entire session | ✅ none |
+
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 3–7. Batches 1 and 2 are both code-reviewed and browser-verified — no outstanding QA debt carried forward.
+Everything in `DS2ImplementationPlan.md` Batches 4–7, plus the acknowledged Card/Button-componentization gap from Batch 3 (see above) if it gets picked up as a follow-up. Recommend a repo-wide grep for the stale `-ui-surface|-ui-border|ink-base|ink-subtle` token family (found 3x now) before or during Batch 4/5, since it's proven to recur.
 
 ## Known Issues
 
@@ -168,6 +227,8 @@ Everything in `DS2ImplementationPlan.md` Batches 3–7. Batches 1 and 2 are both
 2b. **New, found in Batch 2**: `text-[#D3D1C7]` in `ProfileSummary.tsx`'s dark "what happens next" block — light text on a dark surface, and this app has **no on-dark-surface text token scale at all** (confirmed: no dark-mode tokens exist per Batch 0/DS-1 findings). Left as a documented, scoped hex exception rather than forcing a poor-fit light-mode token. Real fix is a dark-surface text scale, which belongs to dark-mode work (DS-7), not this batch.
 2c. **New, found in Batch 2**: a third pill-button treatment exists (`ProfileSummary.tsx`'s "Go to my dashboard" CTA — brand-purple glow, distinct from both `Button`'s `primary` and the new `dark`+`pill` combo). Tokenized in place, **not consolidated onto `Button`** — that's a consolidation decision (DS-3/DS-6 territory per DS-2 rules), not this batch's job. Now three known button treatments in the app: `Button primary`, `Button dark+pill` (onboarding steps), and this one (profile-summary completion CTA).
 2d. **New, found in Batch 2**: the brand-purple "glow" shadow family (`rgba(83,74,183,0.3)` etc., ~10+ occurrences per `DS2Baseline.md`) still has no token — confirmed present in `ProfileSummary.tsx`'s final CTA, left as-is (not tokenized) since inventing a new global shadow token is a small but real design decision outside pure adoption scope. Candidate for a future token if DS-6 or a dedicated token-expansion review picks it up.
+2e. **New, found in Batch 3**: the `bg-ui-surface`/`border-ui-border`/`text-ink-base`/`text-ink-subtle` stale token family has now been found and fixed in 3 files (`ErrorBoundary.tsx`, `SafetyConstraintBanner.tsx`, and it's still present, unfixed, in `app/dev/page.tsx` — that one was explicitly out of scope in Batch 1 and remains out of scope, low-priority since it's dev-tooling-only, not user-facing).
+2f. **New, found in Batch 3**: `<Card>` component's uniform `space-y-4` doesn't fit these 8 files' bespoke internal spacing — Card/Button componentization deliberately deferred for this batch (see "Batch 3 details"), color-token migration completed instead.
 3. **Fixed in Batch 1**: `VisuallyHidden`'s initial implementation (`<Tag className=... >{children}</Tag>` with a dynamic `ElementType`) failed `tsc` — TypeScript couldn't reconcile the polymorphic tag's children type. Fixed by using `createElement` directly instead of JSX for the dynamic-tag case.
 4. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `Sheet.tsx` always renders its children (needed for the slide-in/out transition) and only marked the closed state via `aria-hidden` + a CSS transform pushing it off-screen. `aria-hidden` alone doesn't reliably stop keyboard focus from reaching off-screen content in every browser. Fixed by adding `inert={!isOpen}` (React 19 passes this through natively) so closed-sheet content is genuinely unfocusable, not just visually hidden.
 5. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `useFocusTrap`'s effect originally depended on `[active, onEscape, initialFocus]`. Since `onEscape` is normally an inline arrow function from the caller (e.g. `onClose={() => setDialogOpen(false)}`), its identity changes on every render of the parent — meaning *any* unrelated re-render of the parent while a Dialog/Sheet was open would re-run the effect, re-capture "previously focused element," and yank focus back to the trap's first focusable element, potentially interrupting a user mid-interaction (e.g. typing). Fixed by reading `onEscape` through a ref updated every render, with the effect itself depending only on `[active]`.
@@ -214,9 +275,10 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 
 ---
 
-## Notes for Batch 3 kickoff
+## Notes for Batch 4 kickoff
 
-- Browser QA tooling remains flaky at the *server-restart* level (gstack's browse server crashed and auto-restarted twice mid-session during Batch 2, unrelated to app code) but was recoverable every time by re-running the command — not a blocker, just expect an occasional retry.
-- Batch 3 scope per `DS2ImplementationPlan.md`: migrate the 8 Layer-1 "always visible" dashboard cards (`DailyCheckIn`, `DailyStatus`, `TrainingCard`, `SafetyConstraintBanner`, `ConfidenceBadge`, `WorkoutCard`, `TodayHighlights`, `BodyStatusCard`) to tokens/`components/ui/` primitives, one commit per component. This is the highest-traffic surface in the app — treat with the same care as onboarding, but note it's rated Medium-High risk in the plan (small file count, but live user data on every visit).
-- `WorkoutCard.tsx` already got a light touch in Batch 1 (ErrorBoundary wrap only, styling untouched) — Batch 3 will do its full token migration; don't be surprised the file already has one recent edit in git history.
-- Three known button treatments now exist in the app (`Button primary`, `Button dark+pill`, `ProfileSummary`'s glow CTA) and a fourth-treatment temptation will arise the moment Batch 3 touches any dashboard card with its own CTA — resist consolidating on sight; that's DS-3 territory per the DS-2 rules, this batch is styling-in-place only.
+- Browser QA tooling remains flaky at the *server-restart* level (gstack's browse server crashed and lost session state twice more during Batch 3, unrelated to app code) — expect to occasionally need to redo a data-seeding walkthrough (e.g. re-complete onboarding) if the browser session resets mid-batch. Not a blocker.
+- Batch 4 scope per `DS2ImplementationPlan.md`: extend `DashboardShell` navigation to `/body`, `/exercises`, `/profile`, `/settings`; migrate the settings-page toast to the real `Toast`/`ToastProvider` (built in Batch 1, still has zero production call sites); migrate `BodyIntelligenceViewer`'s hand-rolled mobile sheet to the real `Sheet` component, which also fixes its known focus-trap gap as a side effect.
+- The stale `-ui-surface`/`-ui-border`/`ink-base`/`ink-subtle` token family has now recurred 3 times (`ErrorBoundary.tsx`, `SafetyConstraintBanner.tsx`, and still-unfixed `app/dev/page.tsx`) — worth a quick repo-wide grep at the start of Batch 4 in case any navigation/overlay code shares the same stale pattern.
+- Four known button/CTA treatments now exist (`Button primary`, `Button dark+pill`, `ProfileSummary`'s glow CTA, plus whatever `WorkoutHeroView`'s "Start Workout" button turns out to be — not yet audited, it wasn't in Batch 3's file list). Continue resisting consolidation on sight — that's DS-3 territory.
+- Recovery card consolidation (12 cards, 3 style conventions per the original Audit) is Batch 5, not Batch 4 — don't get pulled into it early just because Batch 4 touches `BodyIntelligenceViewer`, which sits structurally near but not inside that accordion section.
