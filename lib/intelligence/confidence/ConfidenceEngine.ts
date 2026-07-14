@@ -43,32 +43,41 @@ export function buildConfidenceProfile(inputs: ConfidenceInputs): ConfidenceProf
 
 // ── Styling helpers used by UI components ─────────────────────────────────────
 
+// Design-token 4-step semantic scale (success/brand/caution/danger) mapped
+// onto the 5-level confidence scale. Building and Limited both map to
+// "caution" — the original used raw Tailwind palette swatches (yellow-400 vs
+// orange-400) for these two, which was never a deliberate design-system
+// distinction, just an off-the-shelf gradient; consolidating onto the real
+// token scale loses that fine-grained (untokenized) split rather than
+// inventing a token to preserve it. Also: the original bg-*-900/20 values
+// were dark-theme translucent overlays with no light-mode equivalent — this
+// app is light-mode only, so those were already a latent visual bug.
 export function getConfidenceLevelColor(level: ConfidenceLevel): string {
   switch (level) {
-    case "High":         return "text-green-400";
+    case "High":         return "text-success";
     case "Moderate":     return "text-brand";
-    case "Building":     return "text-yellow-400";
-    case "Limited":      return "text-orange-400";
-    case "Insufficient": return "text-red-400";
+    case "Building":     return "text-caution";
+    case "Limited":      return "text-caution";
+    case "Insufficient": return "text-danger";
   }
 }
 
 export function getConfidenceLevelBg(level: ConfidenceLevel): string {
   switch (level) {
-    case "High":         return "bg-green-900/20";
-    case "Moderate":     return "bg-brand/10";
-    case "Building":     return "bg-yellow-900/20";
-    case "Limited":      return "bg-orange-900/20";
-    case "Insufficient": return "bg-red-900/20";
+    case "High":         return "bg-success-bg";
+    case "Moderate":     return "bg-brand-bg-mid";
+    case "Building":     return "bg-caution-bg";
+    case "Limited":      return "bg-caution-bg";
+    case "Insufficient": return "bg-danger-bg";
   }
 }
 
 export function getConfidenceLevelBorder(level: ConfidenceLevel): string {
   switch (level) {
-    case "High":         return "border-green-400/40";
-    case "Moderate":     return "border-brand/40";
-    case "Building":     return "border-yellow-400/40";
-    case "Limited":      return "border-orange-400/40";
-    case "Insufficient": return "border-red-400/40";
+    case "High":         return "border-success-border";
+    case "Moderate":     return "border-brand-border";
+    case "Building":     return "border-caution-border";
+    case "Limited":      return "border-caution-border";
+    case "Insufficient": return "border-danger-border";
   }
 }
