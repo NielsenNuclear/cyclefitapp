@@ -23,13 +23,13 @@ const SEVERITY_LABELS: Record<0 | 1 | 2 | 3, string> = {
 };
 
 const SEVERITY_ACTIVE: Record<0 | 1 | 2 | 3, string> = {
-  0: "bg-[#F5F3EE] text-[#9B9690] border-[#E0DDD4]",
-  1: "bg-[#EEEDFE] text-[#3C3489] border-[#C9C5EE]",
-  2: "bg-[#FDF6EC] text-[#633806] border-[#E8C98A]",
-  3: "bg-[#FAEEDA] text-[#633806] border-[#E4C88A]",
+  0: "bg-surface-subtle text-ink-muted border-border-strong",
+  1: "bg-brand-bg-mid text-brand-text border-brand-border",
+  2: "bg-caution-bg text-caution-text border-caution-border",
+  3: "bg-caution-bg text-caution-text border-caution-border",
 };
 
-const SEVERITY_INACTIVE = "bg-[#F5F3EE] text-[#C8C5BC] border-[#EDE9DE]";
+const SEVERITY_INACTIVE = "bg-surface-subtle text-ink-faint border-border";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -38,10 +38,10 @@ function ProgressBar({ step }: { step: 1 | 2 | 3 | 4 }) {
   const pct   = step >= 3 ? 100 : Math.round((step / 3) * 100);
   return (
     <div className="mb-4">
-      <div className="text-[10px] text-[#9B9690] mb-1.5">{label}</div>
-      <div className="h-[3px] bg-[#F0EDE4] rounded-full">
+      <div className="text-[10px] text-ink-muted mb-1.5">{label}</div>
+      <div className="h-[3px] bg-border rounded-full">
         <div
-          className="h-full bg-[#534AB7] rounded-full transition-all duration-300"
+          className="h-full bg-brand rounded-full transition-all duration-slow"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -59,8 +59,8 @@ function SymptomRow({
   onChange: (id: string, sev: 0 | 1 | 2 | 3) => void;
 }) {
   return (
-    <div className="py-2.5 border-b border-[#F0EDE4] last:border-0">
-      <div className="text-[12px] font-medium text-[#1C1B18] mb-1.5">{symptom.name}</div>
+    <div className="py-2.5 border-b border-border last:border-0">
+      <div className="text-[12px] font-medium text-ink mb-1.5">{symptom.name}</div>
       <div className="flex gap-1.5">
         {([0, 1, 2, 3] as const).map(sev => (
           <button
@@ -138,15 +138,15 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
   if (priorCheckin && !isEditing) {
     const symptomCount = priorCheckin.symptoms?.filter(s => s.severity > 0).length ?? 0;
     return (
-      <div className="bg-white rounded-2xl border border-[#EAE7DE] px-5 py-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)] flex items-center gap-3">
-        <div className="w-7 h-7 rounded-full bg-[#E1F5EE] border border-[#A3DCCA] flex items-center justify-center flex-shrink-0">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="bg-surface rounded-2xl border border-border px-5 py-4 shadow-card flex items-center gap-3">
+        <div className="w-7 h-7 rounded-full bg-success-bg border border-success-border flex items-center justify-center flex-shrink-0">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[12px] font-semibold text-[#1C1B18]">Checked in for today</div>
-          <div className="text-[11px] text-[#9B9690]">
+          <div className="text-[12px] font-semibold text-ink">Checked in for today</div>
+          <div className="text-[11px] text-ink-muted">
             Sleep: {priorCheckin.sleepQuality} · Stress: {priorCheckin.stressLevel}/10
             {symptomCount > 0 && ` · ${symptomCount} symptom${symptomCount > 1 ? "s" : ""}`}
           </div>
@@ -154,7 +154,7 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
         <button
           type="button"
           onClick={handleEdit}
-          className="flex-shrink-0 text-[11px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
+          className="flex-shrink-0 text-[11px] font-semibold text-brand hover:text-brand-dark transition-colors"
         >
           Edit
         </button>
@@ -165,18 +165,18 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
   // ── Multi-step form ───────────────────────────────────────────────────────
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-surface rounded-2xl border border-border p-5 shadow-card">
 
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Daily Check-In
         </div>
         {step > 1 && (
           <button
             type="button"
             onClick={() => setStep(prev => (prev - 1) as 1 | 2 | 3 | 4)}
-            className="text-[11px] text-[#9B9690] hover:text-[#534AB7] transition-colors"
+            className="text-[11px] text-ink-muted hover:text-brand transition-colors"
           >
             ← Back
           </button>
@@ -188,16 +188,13 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
       {/* ── Step 1: Sleep quality ─────────────────────────────────────────── */}
       {step === 1 && (
         <>
-          <h3
-            className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-4"
-            style={{ fontFamily: "'Lora', Georgia, serif" }}
-          >
+          <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug mb-4">
             How did you sleep last night?
           </h3>
 
           {lowReadinessAlert && (
-            <div className="mb-4 p-3 bg-[#FDF6EC] rounded-xl border border-[#E8C98A]">
-              <p className="text-[11px] text-[#633806] leading-relaxed">
+            <div className="mb-4 p-3 bg-caution-bg rounded-xl border border-caution-border">
+              <p className="text-[11px] text-caution-text leading-relaxed">
                 Yesterday&apos;s readiness was in the cautious range. Sleep and stress carry the most
                 weight in the model — taking a moment to reflect before selecting may improve
                 today&apos;s recommendations.
@@ -213,8 +210,8 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
                 onClick={() => setSleepQuality(value)}
                 className={`py-2 rounded-xl text-[11px] font-semibold border transition-colors ${
                   sleepQuality === value
-                    ? "bg-[#EEEDFE] text-[#3C3489] border-[#C9C5EE]"
-                    : "bg-[#F1EFE8] text-[#5C5850] border-[#E0DDD4] hover:bg-[#EEEDFE] hover:text-[#3C3489] hover:border-[#C9C5EE]"
+                    ? "bg-brand-bg-mid text-brand-text border-brand-border"
+                    : "bg-surface-hover text-ink-secondary border-border-strong hover:bg-brand-bg-mid hover:text-brand-text hover:border-brand-border"
                 }`}
               >
                 {label}
@@ -228,14 +225,14 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
             disabled={!sleepQuality}
             className={`w-full py-3 rounded-xl text-[13px] font-semibold transition-colors ${
               sleepQuality
-                ? "bg-[#534AB7] text-white hover:bg-[#3C3489]"
-                : "bg-[#F1EFE8] text-[#C8C5BC] cursor-not-allowed"
+                ? "bg-brand text-white hover:bg-brand-dark"
+                : "bg-surface-hover text-ink-faint cursor-not-allowed"
             }`}
           >
             Next
           </button>
           {!sleepQuality && (
-            <p className="text-center text-[11px] text-[#9B9690] mt-2">
+            <p className="text-center text-[11px] text-ink-muted mt-2">
               Select your sleep quality to continue
             </p>
           )}
@@ -245,21 +242,18 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
       {/* ── Step 2: Stress level ──────────────────────────────────────────── */}
       {step === 2 && (
         <>
-          <h3
-            className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-4"
-            style={{ fontFamily: "'Lora', Georgia, serif" }}
-          >
+          <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug mb-4">
             What&apos;s your stress level today?
           </h3>
 
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-[#9B9690]">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
                 Stress level
               </div>
-              <div className="text-[13px] font-semibold text-[#1C1B18]">
+              <div className="text-[13px] font-semibold text-ink">
                 {stressLevel}
-                <span className="text-[#9B9690] font-normal">/10</span>
+                <span className="text-ink-muted font-normal">/10</span>
               </div>
             </div>
             <input
@@ -268,18 +262,18 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
               max="10"
               value={stressLevel}
               onChange={e => setStressLevel(Number(e.target.value))}
-              className="w-full accent-[#534AB7] cursor-pointer"
+              className="w-full accent-brand cursor-pointer"
             />
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-[#9B9690]">Low</span>
-              <span className="text-[10px] text-[#9B9690]">High</span>
+              <span className="text-[10px] text-ink-muted">Low</span>
+              <span className="text-[10px] text-ink-muted">High</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setStep(3)}
-            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-[#534AB7] text-white hover:bg-[#3C3489] transition-colors"
+            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-brand text-white hover:bg-brand-dark transition-colors"
           >
             Next
           </button>
@@ -289,13 +283,10 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
       {/* ── Step 3: Quick symptoms ────────────────────────────────────────── */}
       {step === 3 && (
         <>
-          <h3
-            className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-1"
-            style={{ fontFamily: "'Lora', Georgia, serif" }}
-          >
+          <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug mb-1">
             Any symptoms today?
           </h3>
-          <p className="text-[11px] text-[#9B9690] mb-4">
+          <p className="text-[11px] text-ink-muted mb-4">
             Select a severity, or leave at — if not present.
           </p>
 
@@ -313,14 +304,14 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-[#534AB7] text-white hover:bg-[#3C3489] transition-colors mb-2"
+            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-brand text-white hover:bg-brand-dark transition-colors mb-2"
           >
             Update today&apos;s recommendations
           </button>
           <button
             type="button"
             onClick={() => setStep(4)}
-            className="w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
+            className="w-full py-2.5 rounded-xl text-[12px] font-semibold text-brand hover:text-brand-dark transition-colors"
           >
             Track more symptoms →
           </button>
@@ -330,13 +321,10 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
       {/* ── Step 4: Other symptoms (optional) ────────────────────────────── */}
       {step === 4 && (
         <>
-          <h3
-            className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-1"
-            style={{ fontFamily: "'Lora', Georgia, serif" }}
-          >
+          <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug mb-1">
             Additional symptoms
           </h3>
-          <p className="text-[11px] text-[#9B9690] mb-4">
+          <p className="text-[11px] text-ink-muted mb-4">
             Track anything else you&apos;re noticing today.
           </p>
 
@@ -354,7 +342,7 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-[#534AB7] text-white hover:bg-[#3C3489] transition-colors"
+            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-brand text-white hover:bg-brand-dark transition-colors"
           >
             Update today&apos;s recommendations
           </button>
