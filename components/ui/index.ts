@@ -43,3 +43,6 @@ export type { TabItem }                                     from "./Tabs";
 
 export { Select }                                           from "./Select";
 export type { SelectOption }                                from "./Select";
+
+export { AxisIcon }                                         from "./Icon";
+export type { IconName, AxisIconProps }                     from "./Icon";
