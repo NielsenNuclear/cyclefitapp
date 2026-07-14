@@ -16,9 +16,9 @@ interface Highlight {
 }
 
 const TONE: Record<Highlight["tone"], { container: string; text: string }> = {
-  positive: { container: "bg-[#E1F5EE] border-[#A8DFC8]", text: "text-[#085041]" },
-  warning:  { container: "bg-[#FAEEDA] border-[#E4C88A]", text: "text-[#633806]" },
-  neutral:  { container: "bg-[#F1EFE8] border-[#EAE7DE]", text: "text-[#5C5850]" },
+  positive: { container: "bg-success-bg border-success-border", text: "text-success-text" },
+  warning:  { container: "bg-caution-bg border-caution-border", text: "text-caution-text" },
+  neutral:  { container: "bg-surface-hover border-border",      text: "text-ink-secondary" },
 };
 
 function deriveHighlights(props: TodayHighlightsProps): Highlight[] {
