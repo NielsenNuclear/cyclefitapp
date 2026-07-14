@@ -12,6 +12,7 @@ import type { SetRecord }        from "./types";
 import { ExerciseFocusCard }     from "./ExerciseFocusCard";
 import { WarmupScreen }          from "./WarmupScreen";
 import { CooldownScreen }        from "./CooldownScreen";
+import { AddExerciseSheet }      from "./AddExerciseSheet";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,8 @@ interface GuidedExerciseFlowProps {
    *  and a cooldown step after the last, both skippable. */
   warmupBlock?:    WarmupBlock;
   recoveryBlock?:  RecoveryBlock;
+  /** Appends a new exercise to the in-progress session (UX Stabilization #9). */
+  onAddExercise:   (exercise: Exercise) => void;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -88,8 +91,10 @@ export function GuidedExerciseFlow({
   onDifficultyChange,
   warmupBlock,
   recoveryBlock,
+  onAddExercise,
 }: GuidedExerciseFlowProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [showAddExercise, setShowAddExercise] = useState(false);
 
   // Only show warmup if it exists and the user hasn't already made progress
   // (e.g. resuming an in-progress session after a refresh shouldn't re-show it).
@@ -246,6 +251,25 @@ export function GuidedExerciseFlow({
           </button>
         )}
       </div>
+
+      {/* Add exercise (UX Stabilization #9) — available at any point mid-session */}
+      <button
+        type="button"
+        onClick={() => setShowAddExercise(true)}
+        className="w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
+      >
+        + Add Exercise
+      </button>
+
+      <AddExerciseSheet
+        isOpen={showAddExercise}
+        onClose={() => setShowAddExercise(false)}
+        environment={environment}
+        onSelect={exercise => {
+          onAddExercise(exercise);
+          setShowAddExercise(false);
+        }}
+      />
     </div>
   );
 }

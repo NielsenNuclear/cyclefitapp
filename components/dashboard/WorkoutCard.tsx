@@ -36,6 +36,8 @@ import { ErrorBoundary }          from "@/components/resilience/ErrorBoundary";
 
 type WorkoutMode = "idle" | "active" | "done";
 
+const REST_TIMER_STORAGE_KEY = "axis_rest_timer_enabled";
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function defaultSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
@@ -91,6 +93,26 @@ export function WorkoutCard({
     ));
   }
 
+  // Add an exercise mid-session (UX Stabilization #9). Uses sensible defaults —
+  // it logs identically to a generated exercise, no special-casing downstream.
+  function handleAddExercise(newExercise: Exercise) {
+    const added: WorkoutExercise = {
+      name:      newExercise.name,
+      exercise:  newExercise,
+      sets:      3,
+      reps:      "8-12",
+      rest:      "90 sec",
+      rationale: "Added mid-session.",
+    };
+    const newIdx = exercises.length;
+    setExercises(prev => [...prev, added]);
+    const history    = getExerciseHistory(added.name);
+    const lastWeight = (history.bestSet && history.bestSet.weight > 0)
+      ? history.bestSet.weight
+      : undefined;
+    setActuals(prev => ({ ...prev, [newIdx]: defaultSets(added, lastWeight) }));
+  }
+
   // Restore in-progress state from localStorage on mount
   const [mode, setMode] = useState<WorkoutMode>(() => {
     if (typeof window === "undefined" || completionStatus !== "pending") return "idle";
@@ -129,6 +151,15 @@ export function WorkoutCard({
     exerciseName:  string;
     nextExercise:  string | null;
   } | null>(null);
+
+  // Rest-timer preference (Settings → Workout preferences) — defaults to on.
+  // onRestStart still fires either way; when off, we simply don't surface the
+  // forced rest screen, so exercises continue without interruption.
+  const [restTimerEnabled] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : (localStorage.getItem(REST_TIMER_STORAGE_KEY) ?? "true") === "true"
+  );
 
   // ── Timer ────────────────────────────────────────────────────────────────────
 
@@ -309,6 +340,7 @@ export function WorkoutCard({
           actuals={actuals}
           onChange={(idx, sets) => setActuals(prev => ({ ...prev, [idx]: sets }))}
           onRestStart={(totalSeconds, exerciseName) => {
+            if (!restTimerEnabled) return; // preference off — continue without a forced screen
             // Find the next exercise name for the rest screen preview
             const currentIdx  = exercises.findIndex(e => e.name === exerciseName);
             const nextExercise = currentIdx >= 0 && currentIdx < exercises.length - 1
@@ -324,6 +356,7 @@ export function WorkoutCard({
           onDifficultyChange={setOverallDifficulty}
           warmupBlock={workout.warmupBlock}
           recoveryBlock={workout.recoveryBlock}
+          onAddExercise={handleAddExercise}
         />
       )}
 

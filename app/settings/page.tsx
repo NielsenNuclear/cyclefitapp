@@ -9,6 +9,7 @@ import { ToastProvider, useToast } from "@/components/ui/Toast";
 import { AxisIcon } from "@/components/ui/Icon";
 
 const ENV_STORAGE_KEY  = "axis_training_env";
+const REST_TIMER_STORAGE_KEY = "axis_rest_timer_enabled";
 const APP_VERSION      = "0.5.0";
 const ENGINE_VERSION   = "adaptive-v2";
 const EXERCISE_COUNT   = allExercises.length;
@@ -126,17 +127,26 @@ function SettingsPageInner() {
   const router = useRouter();
   const { show: showToast } = useToast();
   const [environment, setEnvironment] = useState<TrainingEnvironment>("gym");
+  const [restTimerEnabled, setRestTimerEnabled] = useState(true);
   const [dialog, setDialog]           = useState<Dialog>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(ENV_STORAGE_KEY) as TrainingEnvironment | null;
     if (saved) setEnvironment(saved);
+    const savedRestTimer = localStorage.getItem(REST_TIMER_STORAGE_KEY);
+    if (savedRestTimer !== null) setRestTimerEnabled(savedRestTimer === "true");
   }, []);
 
   function handleEnvChange(env: TrainingEnvironment) {
     setEnvironment(env);
     localStorage.setItem(ENV_STORAGE_KEY, env);
     showToast("Environment updated");
+  }
+
+  function handleRestTimerChange(enabled: boolean) {
+    setRestTimerEnabled(enabled);
+    localStorage.setItem(REST_TIMER_STORAGE_KEY, String(enabled));
+    showToast(enabled ? "Rest timer enabled" : "Rest timer disabled");
   }
 
   function handleExportOnboarding() {
@@ -194,6 +204,15 @@ function SettingsPageInner() {
               }
             />
           ))}
+        </Section>
+
+        {/* Workout preferences */}
+        <Section title="Workout preferences">
+          <Row
+            label="Rest timer"
+            desc="Show a rest screen with countdown between sets"
+            right={<Toggle on={restTimerEnabled} onChange={handleRestTimerChange} />}
+          />
         </Section>
 
         {/* Data management */}
@@ -273,4 +292,31 @@ function ChevronRight({ destructive = false }: { destructive?: boolean }) {
 
 function InfoValue({ children }: { children: React.ReactNode }) {
   return <span className="text-[12px] text-[#9B9690] font-medium">{children}</span>;
+}
+
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex gap-0.5 bg-[#F5F3EE] rounded-full p-0.5 border border-[#E0DDD4]">
+      <button
+        type="button"
+        onClick={() => onChange(true)}
+        aria-pressed={on}
+        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+          on ? "bg-[#534AB7] text-white" : "text-[#9B9690]"
+        }`}
+      >
+        ON
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(false)}
+        aria-pressed={!on}
+        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+          !on ? "bg-[#534AB7] text-white" : "text-[#9B9690]"
+        }`}
+      >
+        OFF
+      </button>
+    </div>
+  );
 }

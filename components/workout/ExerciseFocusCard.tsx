@@ -137,6 +137,19 @@ export function ExerciseFocusCard({
     onChange(sets.map((s, i) => i === idx ? { ...s, completed: false } : s));
   }
 
+  // Flexible completion (UX Stabilization #6) — for users tracking sets their
+  // own way, or who just want to move faster. Fills every remaining set with
+  // its prescribed target as the logged value and marks it complete, so the
+  // exercise satisfies the same "all sets completed" check the guided flow
+  // already uses — no changes needed to that gating logic.
+  function markAllSetsComplete() {
+    onChange(sets.map(s => ({
+      ...s,
+      completed:  true,
+      actualReps: s.actualReps || s.targetReps,
+    })));
+  }
+
   const alternatives = useMemo(
     () => getExerciseSubstitutions({ exercise: ex.exercise, environment }).slice(0, 4),
     [ex.exercise, environment]
@@ -244,6 +257,15 @@ export function ExerciseFocusCard({
             aria-label={`Complete set ${activeSetIdx + 1}`}
           >
             Complete Set {activeSetIdx + 1}
+          </button>
+
+          {/* Flexible completion — for own-method tracking or a faster flow */}
+          <button
+            type="button"
+            onClick={markAllSetsComplete}
+            className="mt-2.5 w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors"
+          >
+            Mark all {sets.length} sets complete
           </button>
         </div>
       )}
