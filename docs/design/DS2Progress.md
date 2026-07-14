@@ -13,7 +13,7 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 1 — New shared primitives | ✅ Complete |
 | 2 — Onboarding (pilot) | ✅ Complete |
 | 3 — Dashboard Layer 1 | ✅ Complete (with one scoped gap — see below) |
-| 4 — Navigation + overlays | ⏳ Not started |
+| 4 — Navigation + overlays | ✅ Complete |
 | 5 — Dashboard Layer 2 (accordion sections) | ⏳ Not started |
 | 6 — Dashboard Layer 3 ("Axis Intelligence") | ⏳ Not started |
 | 7 — Icon system | ⏳ Not started |
@@ -31,9 +31,9 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 
 ## Current Batch
 
-**Batch 3 — Dashboard Layer 1: complete, with one scoped gap.** Migrated all 8 always-visible dashboard components (`DailyCheckIn`, `DailyStatus`, `TrainingCard`, `SafetyConstraintBanner`, `ConfidenceBadge`, `WorkoutCard`, `TodayHighlights`, `BodyStatusCard`) to design tokens, plus their upstream color-logic dependencies (`lib/intelligence/confidence/ConfidenceEngine.ts`, the `weightColors`-style inline-style helpers). Rolled out `EmptyState` to `BodyStatusCard`'s no-snapshot-yet case. **Did not** swap these files' hand-rolled card containers onto the shared `<Card>` component — see "Batch 3 details" for why, and why that's a documented gap against the plan's literal text rather than a silent omission.
+**Batch 4 — Navigation + overlays: complete.** Extended `DashboardShell` (previously `/dashboard`-only) to `app/body/page.tsx`, `app/exercises/page.tsx`, `app/profile/page.tsx`, and `app/settings/page.tsx`, replacing each route's bespoke back-button-only header with the shared top nav. Migrated `app/settings/page.tsx`'s local `setState`+`setTimeout` toast onto the `Toast`/`ToastProvider` primitive built in Batch 1 (its first production call site). Migrated `BodyIntelligenceViewer.tsx`'s hand-rolled `BottomSheet` onto the shared `Sheet` primitive, which as a side effect gives it the `useFocusTrap` behavior it never had. All three literal checklist items from `DS2ImplementationPlan.md`'s Batch 4 section are done; see "Batch 4 details" below for the `DashboardShell` API additions this required and a tooling-limitation note on one QA check.
 
-**Next up:** Batch 4 (Navigation + overlays) — awaiting review sign-off before starting.
+**Next up:** Batch 5 (Dashboard Layer 2 accordion sections) — awaiting review sign-off before starting.
 
 ## Commit History
 
@@ -58,6 +58,9 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 3 | `refactor: migrate WorkoutCard to design tokens` | `components/dashboard/WorkoutCard.tsx` |
 | 3 | `refactor: migrate TodayHighlights and BodyStatusCard to design tokens, add EmptyState` | `components/dashboard/TodayHighlights.tsx`, `components/dashboard/BodyStatusCard.tsx` |
 | 3 | `docs: update DS2Progress.md — Batch 3 complete` | `docs/design/DS2Progress.md` |
+| 4 | `refactor(ui): extend DashboardShell (fullBleed/hideMobileNav) to /body /exercises /profile /settings, migrate settings toast to shared Toast` | `components/dashboard/DashboardShell.tsx`, `components/ui/Toast.tsx`, `app/body/page.tsx`, `app/exercises/page.tsx`, `app/profile/page.tsx`, `app/settings/page.tsx` |
+| 4 | `refactor(ui): migrate BodyIntelligenceViewer overlay to shared Sheet component` | `components/ui/Sheet.tsx`, `components/body/BodyIntelligenceViewer.tsx` |
+| 4 | `docs: update DS2Progress.md — Batch 4 complete` | `docs/design/DS2Progress.md` |
 
 (Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/ components/dashboard/ components/intelligence/ lib/intelligence/` for the authoritative record.)
 
@@ -216,9 +219,56 @@ Lost the Batch 2 QA session's onboarding-completed state (gstack's browser serve
 | `BodyStatusCard` (populated state) | ✅ silhouette, status chips, "Today's Targets" pills all correct — did not observe the new `EmptyState` branch live (would require a snapshot-less profile) but it uses the same `EmptyState` + `Card`-chrome pattern already confirmed working in Batch 1's `/dev` showcase |
 | Console errors, entire session | ✅ none |
 
+## Verification Status (Batch 4)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ Clean (0 errors) |
+| `vitest run` | ✅ 323/323 passing, 6 files (unchanged) |
+| Dev server launches | ✅ Confirmed clean startup |
+| `/dashboard`, `/body`, `/exercises`, `/profile`, `/settings` return HTTP 200 | ✅ Confirmed via direct request |
+| Automated browser QA (gstack) | ⚠️ Partial — see "Batch 4 details" below |
+| Console errors (routes actually reached) | ✅ none (pre-existing THREE.js/WebGL deprecation warnings only, unrelated to this batch) |
+| git status clean of unrelated changes | ✅ Confirmed |
+
+## Batch 4 details
+
+### `DashboardShell` needed two new opt-in props, not just new consumers
+
+`DashboardShell` was built in earlier batches for `/dashboard` alone, which assumes a `max-w-2xl` centered scrolling column and always wants the mobile bottom tab bar. Neither assumption holds for `/body`:
+
+- **`fullBleed`** — Body Intelligence owns a full-height, full-width WebGL canvas layout with its own internal scroll regions (side panels, mobile bottom sheet). Forcing it into `max-w-2xl mx-auto pb-20` would have broken the 3D viewport. `fullBleed` swaps the shell to `h-screen overflow-hidden flex flex-col` and drops the max-width/padding constraint on `<main>`, while the top nav bar itself is unchanged (still full-width via the same conditional).
+- **`hideMobileNav`** — Body Intelligence has its own bottom-anchored mobile layer-picker pill bar (`MobilePillBar`). Stacking the shared mobile tab bar underneath it would collide. `hideMobileNav` skips rendering the shared bottom tab bar entirely for that one route.
+
+Both default to `false`/off, so `/exercises`, `/profile`, and `/settings` get the exact same shell behavior `/dashboard` already had — no behavior change for those three beyond the header swap itself.
+
+### `/profile`'s sticky save bar had to move up to clear the new mobile tab bar
+
+`/profile` didn't have a mobile bottom tab bar before (bespoke header, no shell). Its `fixed bottom-0` save button bar would now sit directly underneath — and get covered by — `DashboardShell`'s mobile tab bar on small screens. Changed to `bottom-14 sm:bottom-0` (14 = the shell's tab bar height) so the save bar clears it on mobile but sits flush on desktop, where the tab bar is `sm:hidden` anyway. Also bumped the scroll content's bottom padding (`pb-32` → `pb-40`) so the last section isn't hidden behind the now-taller stack of (save bar + tab bar) on mobile.
+
+### Settings toast migration was a straight swap, not a redesign
+
+`app/settings/page.tsx`'s original toast was local `useState<string|null>` + `setTimeout`, single-toast-at-a-time, fixed bottom-center pill. Replaced with `ToastProvider` wrapping the page and `useToast().show(msg)` at each of the existing call sites — same call-site shape (`showToast("message")`), so no logic changes at the 4-5 call sites themselves, only the declaration and rendering mechanism. `ToastProvider` needed a real mount point since Batch 1 built it with zero production consumers; this is that first consumer.
+
+### `Sheet` gained three new props to fit `BodyIntelligenceViewer`'s exact prior behavior
+
+The hand-rolled `BottomSheet` it replaced had three behaviors `Sheet` didn't yet support, all added as opt-in props defaulting to the shape `Sheet`'s existing consumers already expect (no change for `Dialog`/other `Sheet` call sites):
+
+- `showHandle` — the drag-handle bar (`w-10 h-1 rounded-full`) `BottomSheet` always rendered above its content; `Sheet` had no title-less "just a handle" mode.
+- `bodyPadding` (default `true`, set `false` here) — `BottomSheet` didn't pad its content (`RegionDetailsPanel` manages its own internal spacing); `Sheet`'s default `p-5` would have double-padded it.
+- `wrapperClassName` — `BottomSheet` was `lg:hidden` on the *whole thing including the backdrop*, not just visually hidden above that breakpoint. `Sheet` had no way to conditionally not-exist above a breakpoint without also hiding a `Dialog`-style backdrop unconditionally, so added a wrapper-level className hook.
+
+Wiring is otherwise a direct swap: `isOpen={!!selectedId}` / `onClose={onDeselect}` map onto the same state `BottomSheet` used (`isOpen`/`onDismiss`), and `RegionDetailsPanel`'s own `onDeselect` prop is untouched — it was never coupled to the sheet implementation.
+
+### Tooling limitation: could not automate the keyboard focus-trap check on `/body`'s sheet
+
+Per the plan's Batch 4 verification note, the sheet migration is "the one place in the whole plan introducing genuinely new interactive behavior" and calls for a dedicated keyboard-only pass (Tab-containment, Escape-closes). Confirmed nav consistency (identical `DashboardShell` nav tree via `snapshot` on `/body`, `/exercises`, `/settings`) and the settings toast (fired, rendered with `role="status"`, correct token styling — screenshot-verified) via `gstack` successfully. But triggering the sheet itself requires clicking a body region on the WebGL canvas, and every attempt to dispatch a synthetic `PointerEvent` at the canvas crashed gstack's headless Chromium server outright (not a timeout — the server process died and had to restart, losing page state each time; reproduced 3 times). The `GL Driver Message ... GPU stall due to ReadPixels` warnings already present in this environment's console output (visible on every WebGL page load, pre-existing, unrelated to this diff) point to a headless GPU/driver instability specific to this machine, not a regression from this batch — the same instability class `DS2Progress.md`'s "Notes for Batch 4 kickoff" already flagged as recurring at the *server-restart* level.
+
+**Given that, the focus-trap/Escape check was verified by code review instead:** `Sheet`'s `useFocusTrap` integration (the hook itself, its Tab-cycle/Escape/focus-restore logic) was already exercised end-to-end via real browser interaction in Batch 1's QA pass against the `/dev` Design System showcase — same hook, same component, unmodified in this batch. `BodyIntelligenceViewer`'s change is purely a consumer swap (`BottomSheet` → `Sheet` with the props above); the trigger condition (`isOpen={!!selectedId}`) and dismiss path (`onClose={onDeselect}`) are identical to what `BottomSheet` used, and `RegionDetailsPanel`'s internal close button already calls the same `onDeselect` prop it always has. No new logic sits between the click-to-select interaction and the sheet open state. Flagged here as a real gap against the plan's literal verification instruction, not a silent skip — worth a manual (non-automated) keyboard pass in a real browser before considering DS-2 fully closed out, since headless WebGL instability makes this specific check unautomatable in this environment as currently configured.
+
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 4–7, plus the acknowledged Card/Button-componentization gap from Batch 3 (see above) if it gets picked up as a follow-up. Recommend a repo-wide grep for the stale `-ui-surface|-ui-border|ink-base|ink-subtle` token family (found 3x now) before or during Batch 4/5, since it's proven to recur.
+Everything in `DS2ImplementationPlan.md` Batches 5–7, plus the acknowledged Card/Button-componentization gap from Batch 3 (see above) if it gets picked up as a follow-up, plus the manual (non-headless) keyboard QA pass on the Body Intelligence sheet flagged above. Recommend a repo-wide grep for the stale `-ui-surface|-ui-border|ink-base|ink-subtle` token family (found 3x now) before or during Batch 5, since it's proven to recur.
 
 ## Known Issues
 
@@ -275,10 +325,17 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 
 ---
 
-## Notes for Batch 4 kickoff
+## Notes for Batch 4 kickoff (historical)
 
 - Browser QA tooling remains flaky at the *server-restart* level (gstack's browse server crashed and lost session state twice more during Batch 3, unrelated to app code) — expect to occasionally need to redo a data-seeding walkthrough (e.g. re-complete onboarding) if the browser session resets mid-batch. Not a blocker.
 - Batch 4 scope per `DS2ImplementationPlan.md`: extend `DashboardShell` navigation to `/body`, `/exercises`, `/profile`, `/settings`; migrate the settings-page toast to the real `Toast`/`ToastProvider` (built in Batch 1, still has zero production call sites); migrate `BodyIntelligenceViewer`'s hand-rolled mobile sheet to the real `Sheet` component, which also fixes its known focus-trap gap as a side effect.
 - The stale `-ui-surface`/`-ui-border`/`ink-base`/`ink-subtle` token family has now recurred 3 times (`ErrorBoundary.tsx`, `SafetyConstraintBanner.tsx`, and still-unfixed `app/dev/page.tsx`) — worth a quick repo-wide grep at the start of Batch 4 in case any navigation/overlay code shares the same stale pattern.
 - Four known button/CTA treatments now exist (`Button primary`, `Button dark+pill`, `ProfileSummary`'s glow CTA, plus whatever `WorkoutHeroView`'s "Start Workout" button turns out to be — not yet audited, it wasn't in Batch 3's file list). Continue resisting consolidation on sight — that's DS-3 territory.
 - Recovery card consolidation (12 cards, 3 style conventions per the original Audit) is Batch 5, not Batch 4 — don't get pulled into it early just because Batch 4 touches `BodyIntelligenceViewer`, which sits structurally near but not inside that accordion section.
+
+## Notes for Batch 5 kickoff
+
+- The stale token grep came back clean for all Batch 4 files (`bg-ui-surface|border-ui-border|ink-base|ink-subtle` — zero matches across the 8 touched files). Still recurs elsewhere (confirmed unfixed in `app/dev/page.tsx`, out of scope); keep grepping each new file touched in Batch 5.
+- gstack's headless browser server is now confirmed to crash specifically on synthetic WebGL canvas pointer events on this machine (not just idle server-restart flakiness noted previously) — reproduced 3/3 attempts trying to click a body region on `/body`. This didn't block Batch 4 (Body Intelligence's canvas itself wasn't modified, only its overlay), but Batch 5/6 have no WebGL surfaces in scope, so this shouldn't recur there. If any future batch needs to interact with the 3D viewer, expect to fall back to manual/handoff browser testing rather than automated `gstack` clicks.
+- Batch 4 left `/body`, `/exercises`, `/profile`, `/settings` with plenty of remaining hardcoded hex in their own page-level markup (filter chips, section headers, dialogs, etc.) — this was correctly out of scope per the plan's literal Batch 4 text (shell/nav + toast + sheet only, not a full color pass on those routes' content), but it means those 4 files are not "done" in the Batch 0 compliance-metric sense. No batch in the 5-7 range currently covers them (5-6 are the dashboard accordion sections, 7 is icons) — flag for a scoping decision on where standalone route content lives before declaring DS-2 complete.
+- `DashboardShell`'s new `fullBleed`/`hideMobileNav` props are additive and default off; no reason Batch 5/6 (both pure dashboard-accordion work, no shell changes) should need to touch `DashboardShell.tsx` at all.
