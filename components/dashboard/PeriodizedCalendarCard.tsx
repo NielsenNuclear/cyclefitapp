@@ -3,22 +3,22 @@
 import type { PeriodizedCalendar, CalendarWeek, WeekLabel } from "@/lib/planning/periodizedCalendar";
 
 const LABEL_CONFIG: Record<WeekLabel, { badge: string }> = {
-  Foundation: { badge: "bg-[#F5F3EE] text-[#5C5850]"   },
-  Build:      { badge: "bg-[#EEEDFE] text-[#3C3489]"   },
-  Push:       { badge: "bg-[#E1F5EE] text-[#085041]"   },
-  Deload:     { badge: "bg-[#FDF6EC] text-[#854F0B]"   },
-  Recovery:   { badge: "bg-[#FEF2F2] text-[#991B1B]"   },
+  Foundation: { badge: "bg-surface-subtle text-ink-secondary"   },
+  Build:      { badge: "bg-brand-bg-mid text-brand-dark"   },
+  Push:       { badge: "bg-success-bg text-success-text"   },
+  Deload:     { badge: "bg-caution-bg text-caution"   },
+  Recovery:   { badge: "bg-danger-bg text-danger"   },
 };
 
 const INTENSITY_BAR: Record<CalendarWeek["intensity"], { filled: number; color: string }> = {
-  high:     { filled: 5, color: "bg-[#6B5CE7]" },
-  moderate: { filled: 3, color: "bg-[#6B5CE7]" },
-  low:      { filled: 1, color: "bg-[#C8C5BC]" },
+  high:     { filled: 5, color: "bg-brand-light" },
+  moderate: { filled: 3, color: "bg-brand-light" },
+  low:      { filled: 1, color: "bg-ink-faint" },
 };
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -31,7 +31,7 @@ function IntensityDots({ intensity }: { intensity: CalendarWeek["intensity"] }) 
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
-          className={`w-2 h-2 rounded-full ${i < config.filled ? config.color : "bg-[#EBEBEB]"}`}
+          className={`w-2 h-2 rounded-full ${i < config.filled ? config.color : "bg-border"}`}
         />
       ))}
     </div>
@@ -50,17 +50,17 @@ function WeekRow({ week }: { week: CalendarWeek }) {
   const weekLabel   = formatWeekStart(week.weekStart, week.weekOffset);
 
   return (
-    <div className="py-3 border-b border-[#F0EDE4] last:border-0">
+    <div className="py-3 border-b border-surface-hover last:border-0">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-medium text-[#1C1B18] w-20 shrink-0">
+          <span className="text-[12px] font-medium text-ink w-20 shrink-0">
             {weekLabel}
           </span>
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${labelConfig.badge}`}>
             {week.label}
           </span>
         </div>
-        <span className="text-[11px] text-[#9B9690]">
+        <span className="text-[11px] text-ink-muted">
           {week.sessions} session{week.sessions !== 1 ? "s" : ""}
         </span>
       </div>
@@ -68,7 +68,7 @@ function WeekRow({ week }: { week: CalendarWeek }) {
       <div className="flex items-center justify-between">
         <IntensityDots intensity={week.intensity} />
         {week.notes.length > 0 && week.weekOffset > 0 && (
-          <span className="text-[10px] text-[#C8870E] leading-tight max-w-[160px] text-right">
+          <span className="text-[10px] text-caution leading-tight max-w-[160px] text-right">
             {week.notes[0]}
           </span>
         )}
@@ -85,7 +85,7 @@ export function PeriodizedCalendarCard({ calendar }: PeriodizedCalendarCardProps
   if (!calendar) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Upcoming 4 weeks</CardLabel>
 
       <div>
@@ -94,7 +94,7 @@ export function PeriodizedCalendarCard({ calendar }: PeriodizedCalendarCardProps
         ))}
       </div>
 
-      <p className="text-[10px] text-[#C8C5BC] mt-3 leading-relaxed">
+      <p className="text-[10px] text-ink-faint mt-3 leading-relaxed">
         Projected from your training block and current signals · Subject to change
       </p>
     </div>

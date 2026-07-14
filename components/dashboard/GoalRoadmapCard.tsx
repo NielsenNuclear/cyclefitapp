@@ -11,10 +11,10 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  ahead:           "text-[#0F6E56]",
-  on_track:        "text-[#1B4FA0]",
-  slightly_behind: "text-[#854F0B]",
-  behind:          "text-[#C0392B]",
+  ahead:           "text-success",
+  on_track:        "text-info",
+  slightly_behind: "text-caution",
+  behind:          "text-danger",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,14 +31,14 @@ function formatDate(d: string): string {
 export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
   if (!roadmap || !roadmap.dataReady) return null;
 
-  const timelineColor = timeline ? STATUS_COLOR[timeline.status] : "text-[#1B4FA0]";
+  const timelineColor = timeline ? STATUS_COLOR[timeline.status] : "text-info";
   const timelineLabel = timeline ? STATUS_LABEL[timeline.status] : "On track";
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Goal Roadmap</h3>
+        <h3 className="text-sm font-semibold text-ink">Goal Roadmap</h3>
         {timeline && (
           <span className={`text-xs font-semibold ${timelineColor}`}>{timelineLabel}</span>
         )}
@@ -47,14 +47,14 @@ export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
       {/* Progress overview */}
       <div className="flex items-end justify-between gap-2">
         <div>
-          <div className="text-2xl font-bold text-[#1C1B18]">{roadmap.completionPercent}%</div>
-          <div className="text-[10px] text-[#9B9690] mt-0.5">
+          <div className="text-2xl font-bold text-ink">{roadmap.completionPercent}%</div>
+          <div className="text-[10px] text-ink-muted mt-0.5">
             of {roadmap.metricLabel} target
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-[#5C5850]">{roadmap.weeklyRate > 0 ? `+${roadmap.weeklyRate}%/wk` : "No data yet"}</div>
-          <div className="text-[10px] text-[#9B9690]">
+          <div className="text-xs text-ink-secondary">{roadmap.weeklyRate > 0 ? `+${roadmap.weeklyRate}%/wk` : "No data yet"}</div>
+          <div className="text-[10px] text-ink-muted">
             {roadmap.estimatedWeeks > 0
               ? `Est. ${formatDate(roadmap.estimatedEndDate)}`
               : "Goal reached"}
@@ -70,9 +70,9 @@ export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
             style={{ width: `${roadmap.completionPercent}%` }}
           />
         </div>
-        <div className="flex justify-between text-[9px] text-[#C8C5BC]">
+        <div className="flex justify-between text-[9px] text-ink-faint">
           <span>{typeof roadmap.startValue === "number" ? roadmap.startValue.toFixed(1) : "—"}</span>
-          <span className="text-[#9B9690] font-medium">
+          <span className="text-ink-muted font-medium">
             {typeof roadmap.currentValue === "number" ? roadmap.currentValue.toFixed(1) : "—"} now
           </span>
           <span>{typeof roadmap.targetValue === "number" ? roadmap.targetValue.toFixed(1) : "—"}</span>
@@ -86,14 +86,14 @@ export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
             <div key={i} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${m.achieved ? "bg-emerald-500/30" : "bg-black/8"}`}>
                 {m.achieved
-                  ? <span className="text-[#0F6E56] text-[9px]">✓</span>
-                  : <span className="text-[#C8C5BC] text-[9px]">{i + 1}</span>}
+                  ? <span className="text-success text-[9px]">✓</span>
+                  : <span className="text-ink-faint text-[9px]">{i + 1}</span>}
               </div>
-              <span className={`text-[11px] flex-1 ${m.achieved ? "text-[#5C5850] line-through" : "text-[#6B6860]"}`}>
+              <span className={`text-[11px] flex-1 ${m.achieved ? "text-ink-secondary line-through" : "text-ink-secondary"}`}>
                 {m.label}
               </span>
               {!m.achieved && (
-                <span className="text-[10px] text-[#C8C5BC]">{formatDate(m.estimatedDate)}</span>
+                <span className="text-[10px] text-ink-faint">{formatDate(m.estimatedDate)}</span>
               )}
             </div>
           ))}
@@ -102,10 +102,10 @@ export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
 
       {/* Feasibility note */}
       {feasibility && (
-        <div className="pt-1 border-t border-[#EAE7DE]">
+        <div className="pt-1 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#9B9690]">Feasibility confidence</span>
-            <span className={`text-xs font-semibold ${feasibility.confidence >= 70 ? "text-[#0F6E56]" : feasibility.confidence >= 50 ? "text-[#854F0B]" : "text-[#C0392B]"}`}>
+            <span className="text-[10px] text-ink-muted">Feasibility confidence</span>
+            <span className={`text-xs font-semibold ${feasibility.confidence >= 70 ? "text-success" : feasibility.confidence >= 50 ? "text-caution" : "text-danger"}`}>
               {feasibility.confidence}%
             </span>
           </div>
@@ -113,8 +113,8 @@ export function GoalRoadmapCard({ roadmap, feasibility, timeline }: Props) {
             <div className="mt-1.5 space-y-1">
               {feasibility.limitingFactors.slice(0, 2).map((f, i) => (
                 <div key={i} className="flex gap-1.5 items-start">
-                  <span className={`text-[9px] mt-0.5 ${f.severity === "significant" ? "text-[#C0392B]" : f.severity === "moderate" ? "text-[#854F0B]" : "text-[#1B4FA0]"}`}>▲</span>
-                  <span className="text-[10px] text-[#9B9690]">{f.factor}</span>
+                  <span className={`text-[9px] mt-0.5 ${f.severity === "significant" ? "text-danger" : f.severity === "moderate" ? "text-caution" : "text-info"}`}>▲</span>
+                  <span className="text-[10px] text-ink-muted">{f.factor}</span>
                 </div>
               ))}
             </div>

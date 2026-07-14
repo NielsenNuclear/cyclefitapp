@@ -120,27 +120,27 @@ export function TrainingCard({
 
 export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendation }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Nutrition</CardLabel>
 
       <h3
-        className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-1.5"
+        className="text-[1.1rem] font-light text-ink leading-snug mb-1.5"
         style={{ fontFamily: "'Lora', Georgia, serif" }}
       >
         {nutrition.focus}
       </h3>
 
-      <p className="text-[12px] text-[#6B6860] leading-relaxed mb-4">{nutrition.body}</p>
+      <p className="text-[12px] text-ink-secondary leading-relaxed mb-4">{nutrition.body}</p>
 
       {/* Macro emphasis */}
-      <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-[#F5F3EE] rounded-xl">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690]">Macro emphasis</span>
-        <span className="text-[12px] font-medium text-[#1C1B18]">{nutrition.macroEmphasis}</span>
+      <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-surface-subtle rounded-xl">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Macro emphasis</span>
+        <span className="text-[12px] font-medium text-ink">{nutrition.macroEmphasis}</span>
       </div>
 
       {/* Priorities */}
       <div className="mb-4">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-2">Priorities</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Priorities</div>
         <ul className="space-y-1.5">
           {nutrition.priorities?.map((p, i) => (
   <ListItem key={i}>{p}</ListItem>
@@ -150,7 +150,7 @@ export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendatio
 
       {/* Key nutrients */}
       <div className="mb-3">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-2">Key nutrients</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Key nutrients</div>
         <div className="flex flex-wrap gap-1.5">
           {nutrition.keyNutrients.map(n => (
             <PillTag key={n} variant="teal">{n}</PillTag>
@@ -159,22 +159,22 @@ export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendatio
       </div>
 
       {/* Hydration */}
-      <div className="flex items-start gap-2 mt-3 pt-3 border-t border-[#F0EDE4]">
-        <span className="text-[#534AB7] mt-0.5">
+      <div className="flex items-start gap-2 mt-3 pt-3 border-t border-surface-hover">
+        <span className="text-brand mt-0.5">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
           </svg>
         </span>
-        <p className="text-[11px] text-[#6B6860] leading-relaxed">
-          <span className="font-semibold text-[#1C1B18]">Hydration: </span>
+        <p className="text-[11px] text-ink-secondary leading-relaxed">
+          <span className="font-semibold text-ink">Hydration: </span>
           {nutrition.hydration}
         </p>
       </div>
 
       {/* Timing note */}
       {nutrition.timingNote && (
-        <div className="mt-3 p-3 bg-[#F3F2FD] rounded-xl border border-[#C9C5EE]">
-          <p className="text-[11px] text-[#3C3489] leading-relaxed">{nutrition.timingNote}</p>
+        <div className="mt-3 p-3 bg-brand-bg-mid rounded-xl border border-brand-border">
+          <p className="text-[11px] text-brand-dark leading-relaxed">{nutrition.timingNote}</p>
         </div>
       )}
     </div>
@@ -185,32 +185,32 @@ export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendatio
 
 export function RecoveryCard({ recovery }: { recovery: RecoveryRecommendation }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Recovery</CardLabel>
 
       <h3
-        className="text-[1.1rem] font-light text-[#1C1B18] leading-snug mb-3"
+        className="text-[1.1rem] font-light text-ink leading-snug mb-3"
         style={{ fontFamily: "'Lora', Georgia, serif" }}
       >
         {recovery.focus}
       </h3>
 
-      <p className="text-[12px] text-[#6B6860] leading-relaxed mb-4">{recovery.body}</p>
+      <p className="text-[12px] text-ink-secondary leading-relaxed mb-4">{recovery.body}</p>
 
       {/* Sleep target */}
-      <div className="flex items-start gap-2.5 p-3 bg-[#F5F3EE] rounded-xl mb-4">
-        <span className="text-[#534AB7] mt-0.5">
+      <div className="flex items-start gap-2.5 p-3 bg-surface-subtle rounded-xl mb-4">
+        <span className="text-brand mt-0.5">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </span>
-        <p className="text-[11px] text-[#5C5850] leading-relaxed">{recovery.sleepTarget}</p>
+        <p className="text-[11px] text-ink-secondary leading-relaxed">{recovery.sleepTarget}</p>
       </div>
 
       {/* Practices */}
       {recovery.practices.length > 0 && (
         <div className="mb-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9690] mb-2">Practices</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Practices</div>
           <ul className="space-y-1.5">
             {recovery.practices.map((p, i) => <ListItem key={i}>{p}</ListItem>)}
           </ul>
@@ -219,8 +219,8 @@ export function RecoveryCard({ recovery }: { recovery: RecoveryRecommendation })
 
       {/* Stress note */}
       {recovery.stressNote && (
-        <div className="mt-3 p-3 bg-[#FDF6EC] rounded-xl border border-[#E8C98A]">
-          <p className="text-[11px] text-[#633806] leading-relaxed">{recovery.stressNote}</p>
+        <div className="mt-3 p-3 bg-caution-bg rounded-xl border border-caution-border">
+          <p className="text-[11px] text-caution-text leading-relaxed">{recovery.stressNote}</p>
         </div>
       )}
     </div>

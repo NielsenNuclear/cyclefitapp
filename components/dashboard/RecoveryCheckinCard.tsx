@@ -22,8 +22,8 @@ function StrategyChip({ item, selected, onToggle }: ChipProps) {
       className={[
         "px-3 py-1.5 rounded-xl border text-[11px] font-medium transition-colors",
         selected
-          ? "bg-[#EEF1FD] border-[#534AB7] text-[#3C3489]"
-          : "bg-[#F9F8F4] border-[#EAE7DE] text-[#6B6560]",
+          ? "bg-brand-bg-mid border-brand text-brand-dark"
+          : "bg-surface-subtle border-border text-ink-secondary",
       ].join(" ")}
       title={item.description}
     >
@@ -63,16 +63,16 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
 
   if (saved) {
     return (
-      <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm px-4 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-1">
+      <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm px-4 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-1">
           Recovery Check-in
         </p>
-        <p className="text-[13px] font-semibold text-[#1C1B18]">
+        <p className="text-[13px] font-semibold text-ink">
           {selected.size > 0
             ? `${selected.size} strateg${selected.size === 1 ? "y" : "ies"} logged`
             : "Rest day logged"}
         </p>
-        <p className="text-[11px] text-[#6B6560] mt-0.5">
+        <p className="text-[11px] text-ink-secondary mt-0.5">
           Axis is tracking what works best for you.
         </p>
       </div>
@@ -84,15 +84,15 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
   const lifestyleItems = RECOVERY_STRATEGY_CATALOG.filter(s => s.category === "lifestyle");
 
   return (
-    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
-      <div className="px-4 py-3 border-b border-[#F0EDE4]">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+    <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm">
+      <div className="px-4 py-3 border-b border-surface-hover">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Recovery Check-in
         </p>
-        <p className="text-[13px] font-semibold text-[#1C1B18] mt-0.5">
+        <p className="text-[13px] font-semibold text-ink mt-0.5">
           What did you do for recovery today?
         </p>
-        <p className="text-[11px] text-[#9B9690] mt-0.5">
+        <p className="text-[11px] text-ink-muted mt-0.5">
           Select all that apply. Axis learns what works for you.
         </p>
       </div>
@@ -100,7 +100,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
       <div className="px-4 py-3 space-y-3">
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-[#9B9690] mb-1.5">Active</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-ink-muted mb-1.5">Active</p>
           <div className="flex flex-wrap gap-1.5">
             {activeItems.map(item => (
               <StrategyChip key={item.id} item={item} selected={selected.has(item.id)} onToggle={handleToggle} />
@@ -109,7 +109,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
         </div>
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-[#9B9690] mb-1.5">Passive</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-ink-muted mb-1.5">Passive</p>
           <div className="flex flex-wrap gap-1.5">
             {passiveItems.map(item => (
               <StrategyChip key={item.id} item={item} selected={selected.has(item.id)} onToggle={handleToggle} />
@@ -118,7 +118,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
         </div>
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-[#9B9690] mb-1.5">Lifestyle</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-ink-muted mb-1.5">Lifestyle</p>
           <div className="flex flex-wrap gap-1.5">
             {lifestyleItems.map(item => (
               <StrategyChip key={item.id} item={item} selected={selected.has(item.id)} onToggle={handleToggle} />
@@ -128,7 +128,7 @@ export function RecoveryCheckinCard({ date, onComplete }: Props) {
 
         <button
           onClick={handleSave}
-          className="w-full py-2.5 rounded-xl bg-[#534AB7] text-white text-[12px] font-semibold active:opacity-90"
+          className="w-full py-2.5 rounded-xl bg-brand text-white text-[12px] font-semibold active:opacity-90"
         >
           {selected.size === 0 ? "Log Rest Day" : `Log ${selected.size} Strateg${selected.size === 1 ? "y" : "ies"}`}
         </button>

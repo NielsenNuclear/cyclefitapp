@@ -19,8 +19,8 @@ function Toggle({ label, value, onChange }: ToggleProps) {
       className={[
         "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-[12px] font-medium transition-colors",
         value
-          ? "bg-[#EAF8EF] border-[#A8ECC1] text-[#1A7A3E]"
-          : "bg-[#F9F8F4] border-[#EAE7DE] text-[#6B6560]",
+          ? "bg-success-bg border-success-border text-success"
+          : "bg-surface-subtle border-border text-ink-secondary",
       ].join(" ")}
     >
       <span>{label}</span>
@@ -60,14 +60,14 @@ export function NutritionCheckinCard({ date, onComplete }: Props) {
   if (saved) {
     const count = [hitProtein, hitHydration, hitVeggies].filter(Boolean).length;
     return (
-      <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm px-4 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-1">
+      <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm px-4 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-1">
           Nutrition Check-in
         </p>
-        <p className="text-[13px] font-semibold text-[#1C1B18]">
+        <p className="text-[13px] font-semibold text-ink">
           {count}/3 targets hit today
         </p>
-        <p className="text-[11px] text-[#6B6560] mt-0.5">
+        <p className="text-[11px] text-ink-secondary mt-0.5">
           Axis is learning from your nutrition patterns.
         </p>
       </div>
@@ -75,15 +75,15 @@ export function NutritionCheckinCard({ date, onComplete }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-[#EAE7DE] bg-white overflow-hidden shadow-sm">
-      <div className="px-4 py-3 border-b border-[#F0EDE4]">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+    <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm">
+      <div className="px-4 py-3 border-b border-surface-hover">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Nutrition Check-in
         </p>
-        <p className="text-[13px] font-semibold text-[#1C1B18] mt-0.5">
+        <p className="text-[13px] font-semibold text-ink mt-0.5">
           How did you eat today?
         </p>
-        <p className="text-[11px] text-[#9B9690] mt-0.5">
+        <p className="text-[11px] text-ink-muted mt-0.5">
           30 seconds — no calorie counting.
         </p>
       </div>
@@ -107,7 +107,7 @@ export function NutritionCheckinCard({ date, onComplete }: Props) {
 
         <button
           onClick={handleSave}
-          className="w-full mt-1 py-2.5 rounded-xl bg-[#534AB7] text-white text-[12px] font-semibold active:opacity-90"
+          className="w-full mt-1 py-2.5 rounded-xl bg-brand text-white text-[12px] font-semibold active:opacity-90"
         >
           Save
         </button>

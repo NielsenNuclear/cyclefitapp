@@ -13,15 +13,15 @@ const CONFIDENCE_BADGE: Record<
   ReturnType<typeof computeConfidenceScore>["level"],
   { label: string; badge: string }
 > = {
-  none:     { label: "No data",          badge: "bg-[#F5F3EE] text-[#9B9690]" },
-  low:      { label: "Low confidence",   badge: "bg-[#F5F3EE] text-[#5C5850]" },
-  moderate: { label: "Moderate",         badge: "bg-[#FDF6EC] text-[#854F0B]" },
-  high:     { label: "High confidence",  badge: "bg-[#E1F5EE] text-[#085041]" },
+  none:     { label: "No data",          badge: "bg-surface-subtle text-ink-muted" },
+  low:      { label: "Low confidence",   badge: "bg-surface-subtle text-ink-secondary" },
+  moderate: { label: "Moderate",         badge: "bg-caution-bg text-caution" },
+  high:     { label: "High confidence",  badge: "bg-success-bg text-success-text" },
 };
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -29,7 +29,7 @@ function CardLabel({ children }: { children: React.ReactNode }) {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-bold uppercase tracking-[0.10em] text-[#C8B89A] mb-2">
+    <p className="text-[10px] font-bold uppercase tracking-[0.10em] text-ink-muted mb-2">
       {children}
     </p>
   );
@@ -38,14 +38,14 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 function MetricRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-baseline mb-1.5">
-      <span className="text-[11px] text-[#9B9690]">{label}</span>
-      <span className="text-[12px] font-semibold text-[#1C1B18]">{value}</span>
+      <span className="text-[11px] text-ink-muted">{label}</span>
+      <span className="text-[12px] font-semibold text-ink">{value}</span>
     </div>
   );
 }
 
 function Divider() {
-  return <div className="border-t border-[#F0EDE6] my-4" />;
+  return <div className="border-t border-surface-hover my-4" />;
 }
 
 // ─── Section: Cycle Metrics ───────────────────────────────────────────────────
@@ -121,7 +121,7 @@ function SymptomPatternsSection({
       {dominantCluster && (
         <>
           <MetricRow label="Strongest cluster" value={dominantCluster.label} />
-          <p className="text-[11px] text-[#9B9690] mt-1">
+          <p className="text-[11px] text-ink-muted mt-1">
             {dominantCluster.symptoms.slice(0, 3).join(", ")}
             {dominantCluster.symptoms.length > 3 ? ` +${dominantCluster.symptoms.length - 3} more` : ""}
           </p>
@@ -162,8 +162,8 @@ function CycleHealthSection({ report }: { report: CycleHealthReport }) {
       <ul className="space-y-2">
         {report.observations.map(obs => (
           <li key={obs.id} className="flex items-start gap-2">
-            <span className="mt-[4px] w-1.5 h-1.5 rounded-full bg-[#C8B89A] flex-shrink-0" />
-            <p className="text-[11px] text-[#5C5850] leading-relaxed">{obs.observation}</p>
+            <span className="mt-[4px] w-1.5 h-1.5 rounded-full bg-ink-muted flex-shrink-0" />
+            <p className="text-[11px] text-ink-secondary leading-relaxed">{obs.observation}</p>
           </li>
         ))}
       </ul>
@@ -199,9 +199,9 @@ export function CycleIntelligenceCard({
   const confStyle  = CONFIDENCE_BADGE[confidence.level];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Cycle intelligence
         </span>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${confStyle.badge}`}>
@@ -242,7 +242,7 @@ export function CycleIntelligenceCard({
         </>
       )}
 
-      <p className="text-[10px] text-[#BCBAB4] leading-relaxed border-t border-[#F0EDE6] pt-3 mt-4">
+      <p className="text-[10px] text-ink-faint leading-relaxed border-t border-surface-hover pt-3 mt-4">
         All cycle insights are behavioral estimates based on your logged data — not medical assessments.
       </p>
     </div>

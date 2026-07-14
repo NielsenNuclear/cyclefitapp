@@ -101,7 +101,7 @@ function computeInsights(): ProgressInsight {
 // ─── Atoms ────────────────────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="h-px bg-[#F0EDE4] my-3" />;
+  return <div className="h-px bg-surface-hover my-3" />;
 }
 
 function MetricRow({
@@ -116,15 +116,15 @@ function MetricRow({
   accent?: "green" | "amber" | "purple";
 }) {
   const valueColor =
-    accent === "green"  ? "text-[#085041]" :
-    accent === "amber"  ? "text-[#B25E1B]" :
-    accent === "purple" ? "text-[#534AB7]" :
-                          "text-[#1C1B18]";
+    accent === "green"  ? "text-success-text" :
+    accent === "amber"  ? "text-nutrition" :
+    accent === "purple" ? "text-brand" :
+                          "text-ink";
   return (
     <div className="flex items-start justify-between gap-3">
       <div>
-        <div className="text-[11px] text-[#6B6860]">{label}</div>
-        {sub && <div className="text-[10px] text-[#9B9690] mt-0.5">{sub}</div>}
+        <div className="text-[11px] text-ink-secondary">{label}</div>
+        {sub && <div className="text-[10px] text-ink-muted mt-0.5">{sub}</div>}
       </div>
       <div className={`text-[13px] font-semibold ${valueColor} text-right flex-shrink-0`}>
         {value}
@@ -144,11 +144,11 @@ export function ProgressInsightsCard() {
 
   if (trackedCount === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+      <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
           Progress Insights
         </div>
-        <p className="text-[12px] text-[#9B9690] leading-relaxed">
+        <p className="text-[12px] text-ink-muted leading-relaxed">
           Complete 3+ workouts with set logging to unlock progression insights.
         </p>
       </div>
@@ -156,13 +156,13 @@ export function ProgressInsightsCard() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Progress Insights
         </div>
-        <span className="text-[10px] text-[#9B9690]">
+        <span className="text-[10px] text-ink-muted">
           {trackedCount} exercise{trackedCount !== 1 ? "s" : ""} · {sessionCount} session{sessionCount !== 1 ? "s" : ""}
         </span>
       </div>
@@ -207,7 +207,7 @@ export function ProgressInsightsCard() {
 
         {/* Nothing interesting yet */}
         {!insights.strongestLift && !insights.biggestPlateau && insights.totalStrengthGain === 0 && (
-          <p className="text-[12px] text-[#9B9690] leading-relaxed">
+          <p className="text-[12px] text-ink-muted leading-relaxed">
             Keep logging sets — progression patterns appear after a few sessions per exercise.
           </p>
         )}

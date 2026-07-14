@@ -3,20 +3,20 @@
 import type { RecoveryCapacity, CapacityLevel } from "@/lib/adaptive/recoveryCapacity";
 
 const LEVEL_CONFIG: Record<CapacityLevel, { label: string; badge: string; bar: string }> = {
-  high:     { label: "High capacity",     badge: "bg-[#E1F5EE] text-[#085041]", bar: "bg-[#0E9F6E]" },
-  moderate: { label: "Moderate capacity", badge: "bg-[#EEEDFE] text-[#3C3489]", bar: "bg-[#6B5CE7]" },
-  low:      { label: "Low capacity",      badge: "bg-[#FDF6EC] text-[#854F0B]", bar: "bg-[#F59E0B]" },
+  high:     { label: "High capacity",     badge: "bg-success-bg text-success-text", bar: "bg-success" },
+  moderate: { label: "Moderate capacity", badge: "bg-brand-bg-mid text-brand-dark", bar: "bg-brand-light" },
+  low:      { label: "Low capacity",      badge: "bg-caution-bg text-caution", bar: "bg-caution" },
 };
 
 const CONFIDENCE_CHIP: Record<RecoveryCapacity["confidence"], { label: string; cls: string }> = {
-  established: { label: "Established", cls: "bg-[#E1F5EE] text-[#085041]" },
-  growing:     { label: "Growing",     cls: "bg-[#EEEDFE] text-[#3C3489]" },
-  early:       { label: "Early data",  cls: "bg-[#F5F3EE] text-[#9B9690]" },
+  established: { label: "Established", cls: "bg-success-bg text-success-text" },
+  growing:     { label: "Growing",     cls: "bg-brand-bg-mid text-brand-dark" },
+  early:       { label: "Early data",  cls: "bg-surface-subtle text-ink-muted" },
 };
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -34,7 +34,7 @@ export function RecoveryCapacityCard({ capacity }: RecoveryCapacityCardProps) {
   const scorePct   = Math.min(100, capacity.score);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Recovery capacity</CardLabel>
 
       <div className="flex items-center justify-between mb-3">
@@ -47,19 +47,19 @@ export function RecoveryCapacityCard({ capacity }: RecoveryCapacityCardProps) {
       </div>
 
       {/* Score bar */}
-      <div className="h-1.5 bg-[#F0EDE4] rounded-full mb-4 overflow-hidden">
+      <div className="h-1.5 bg-surface-hover rounded-full mb-4 overflow-hidden">
         <div
           className={`h-full rounded-full ${config.bar}`}
           style={{ width: `${scorePct}%` }}
         />
       </div>
 
-      <p className="text-[11px] text-[#5C5850] leading-relaxed mb-2">
+      <p className="text-[11px] text-ink-secondary leading-relaxed mb-2">
         {capacity.rationale}
       </p>
 
       {capacity.dataPoints > 0 && (
-        <p className="text-[10px] text-[#C8C5BC]">
+        <p className="text-[10px] text-ink-faint">
           Based on {capacity.dataPoints} logged session{capacity.dataPoints !== 1 ? "s" : ""}
         </p>
       )}

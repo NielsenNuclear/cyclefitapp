@@ -3,6 +3,7 @@
 import type { AnnualForecast, ForecastConfidence } from "@/lib/planning/annualForecast";
 import type { MacroCyclePlan } from "@/lib/planning/macrocyclePlanner";
 import type { GoalConflictReport } from "@/lib/planning/goalConflict";
+import { color as tokenColor } from "@/lib/design/tokens";
 
 interface Props {
   forecast:     AnnualForecast | undefined;
@@ -11,9 +12,9 @@ interface Props {
 }
 
 const CONF_COLOR: Record<ForecastConfidence, string> = {
-  high:   "text-[#0F6E56]",
-  medium: "text-[#1B4FA0]",
-  low:    "text-[#854F0B]",
+  high:   "text-success",
+  medium: "text-info",
+  low:    "text-caution",
 };
 
 const CONF_LABEL: Record<ForecastConfidence, string> = {
@@ -23,22 +24,22 @@ const CONF_LABEL: Record<ForecastConfidence, string> = {
 };
 
 const PROB_COLOR = (p: number) =>
-  p >= 70 ? "text-[#0F6E56]"
-  : p >= 50 ? "text-[#1B4FA0]"
-  : p >= 30 ? "text-[#854F0B]"
-  : "text-[#C0392B]";
+  p >= 70 ? "text-success"
+  : p >= 50 ? "text-info"
+  : p >= 30 ? "text-caution"
+  : "text-danger";
 
 function ProbRing({ prob }: { prob: number }) {
   const r    = 32;
   const circ = 2 * Math.PI * r;
   const dash = (prob / 100) * circ;
-  const color = prob >= 70 ? "#34d399" : prob >= 50 ? "#38bdf8" : prob >= 30 ? "#fbbf24" : "#f87171";
+  const ringColor = prob >= 70 ? tokenColor.success : prob >= 50 ? tokenColor.info : prob >= 30 ? tokenColor.caution : tokenColor.danger;
   return (
     <svg width="82" height="82" viewBox="0 0 82 82">
       <circle cx="41" cy="41" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
       <circle
         cx="41" cy="41" r={r} fill="none"
-        stroke={color} strokeWidth="7"
+        stroke={ringColor} strokeWidth="7"
         strokeDasharray={`${dash} ${circ}`}
         strokeLinecap="round"
         transform="rotate(-90 41 41)"
@@ -53,9 +54,9 @@ function ProbRing({ prob }: { prob: number }) {
 export function ForecastCard({ forecast, macrocycle, goalConflict }: Props) {
   if (!forecast || forecast.dataMaturity === "early") {
     return (
-      <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-        <h3 className="text-sm font-semibold text-[#1C1B18] mb-2">Annual Forecast</h3>
-        <p className="text-[11px] text-[#9B9690]">Log 4+ weeks of sessions to generate your annual forecast.</p>
+      <div className="bg-white border border-border rounded-2xl p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <h3 className="text-sm font-semibold text-ink mb-2">Annual Forecast</h3>
+        <p className="text-[11px] text-ink-muted">Log 4+ weeks of sessions to generate your annual forecast.</p>
       </div>
     );
   }
@@ -69,10 +70,10 @@ export function ForecastCard({ forecast, macrocycle, goalConflict }: Props) {
   const m12 = forecast.strengthProjection.find(p => p.month === 12);
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Annual Forecast</h3>
+        <h3 className="text-sm font-semibold text-ink">Annual Forecast</h3>
         <span className={`text-xs font-semibold ${confColor}`}>{confLabel}</span>
       </div>
 
@@ -82,10 +83,10 @@ export function ForecastCard({ forecast, macrocycle, goalConflict }: Props) {
         <div className="flex-1 space-y-2">
           {macrocycle && (
             <div>
-              <div className="text-[10px] text-[#C8C5BC] uppercase tracking-widest mb-0.5">Macrocycle Phase</div>
-              <div className="text-sm font-semibold text-[#1C1B18]">{macrocycle.currentPhase.name}</div>
-              <div className="text-[11px] text-[#9B9690]">{macrocycle.currentPhase.focus}</div>
-              <div className="text-[10px] text-[#C8C5BC] mt-0.5">
+              <div className="text-[10px] text-ink-faint uppercase tracking-widest mb-0.5">Macrocycle Phase</div>
+              <div className="text-sm font-semibold text-ink">{macrocycle.currentPhase.name}</div>
+              <div className="text-[11px] text-ink-muted">{macrocycle.currentPhase.focus}</div>
+              <div className="text-[10px] text-ink-faint mt-0.5">
                 Week {macrocycle.weekInPhase} of {macrocycle.currentPhase.durationWeeks}
               </div>
             </div>
@@ -94,27 +95,27 @@ export function ForecastCard({ forecast, macrocycle, goalConflict }: Props) {
       </div>
 
       {/* Headline */}
-      <p className="text-[11px] text-[#5C5850] leading-relaxed">{forecast.headline}</p>
+      <p className="text-[11px] text-ink-secondary leading-relaxed">{forecast.headline}</p>
 
       {/* Strength projections */}
       {(m3 || m6 || m12) && (
         <div className="grid grid-cols-3 gap-2">
           {m3 && (
-            <div className="bg-[#F1EFE8] rounded-xl py-2 px-1 text-center">
-              <div className="text-sm font-semibold text-[#1C1B18]">{m3.value.toFixed(1)}</div>
-              <div className="text-[9px] text-[#9B9690] mt-0.5">3 months</div>
+            <div className="bg-surface-hover rounded-xl py-2 px-1 text-center">
+              <div className="text-sm font-semibold text-ink">{m3.value.toFixed(1)}</div>
+              <div className="text-[9px] text-ink-muted mt-0.5">3 months</div>
             </div>
           )}
           {m6 && (
-            <div className="bg-[#F1EFE8] rounded-xl py-2 px-1 text-center">
-              <div className="text-sm font-semibold text-[#1C1B18]">{m6.value.toFixed(1)}</div>
-              <div className="text-[9px] text-[#9B9690] mt-0.5">6 months</div>
+            <div className="bg-surface-hover rounded-xl py-2 px-1 text-center">
+              <div className="text-sm font-semibold text-ink">{m6.value.toFixed(1)}</div>
+              <div className="text-[9px] text-ink-muted mt-0.5">6 months</div>
             </div>
           )}
           {m12 && (
-            <div className="bg-[#F1EFE8] rounded-xl py-2 px-1 text-center">
-              <div className="text-sm font-semibold text-[#1C1B18]">{m12.value.toFixed(1)}</div>
-              <div className="text-[9px] text-[#9B9690] mt-0.5">12 months</div>
+            <div className="bg-surface-hover rounded-xl py-2 px-1 text-center">
+              <div className="text-sm font-semibold text-ink">{m12.value.toFixed(1)}</div>
+              <div className="text-[9px] text-ink-muted mt-0.5">12 months</div>
             </div>
           )}
         </div>
@@ -122,19 +123,19 @@ export function ForecastCard({ forecast, macrocycle, goalConflict }: Props) {
 
       {/* ETA note */}
       {forecast.etaMonths !== null && (
-        <div className="text-[11px] text-[#9B9690] text-center">
-          Current trajectory: goal in ~<span className="text-[#5C5850]">{forecast.etaMonths} month{forecast.etaMonths !== 1 ? "s" : ""}</span>
+        <div className="text-[11px] text-ink-muted text-center">
+          Current trajectory: goal in ~<span className="text-ink-secondary">{forecast.etaMonths} month{forecast.etaMonths !== 1 ? "s" : ""}</span>
         </div>
       )}
 
       {/* Goal conflict warning */}
       {goalConflict?.hasConflicts && (
-        <div className="pt-1 border-t border-[#EAE7DE] space-y-1.5">
-          <div className="text-[10px] text-[#854F0B] font-semibold uppercase tracking-wide">Goal conflict detected</div>
+        <div className="pt-1 border-t border-border space-y-1.5">
+          <div className="text-[10px] text-caution font-semibold uppercase tracking-wide">Goal conflict detected</div>
           {goalConflict.conflicts.slice(0, 1).map((c, i) => (
             <div key={i}>
-              <div className="text-[11px] text-[#5C5850]">{c.conflict}</div>
-              <div className="text-[10px] text-[#9B9690]">{c.resolution}</div>
+              <div className="text-[11px] text-ink-secondary">{c.conflict}</div>
+              <div className="text-[10px] text-ink-muted">{c.resolution}</div>
             </div>
           ))}
         </div>

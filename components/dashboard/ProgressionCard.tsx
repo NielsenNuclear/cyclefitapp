@@ -2,6 +2,7 @@
 
 import type { ProgressionProfile, RecommendedAction } from "@/lib/progression/progressionProfile";
 import type { CoachingAdjustment } from "@/lib/progression/progressionRules";
+import { color as tokenColor } from "@/lib/design/tokens";
 
 // ─── Style maps ───────────────────────────────────────────────────────────────
 
@@ -9,27 +10,27 @@ const ACTION_STYLES: Record<RecommendedAction, {
   badge: string; bar: string; dot: string; label: string;
 }> = {
   progress: {
-    badge: "bg-[#E1F5EE] text-[#085041] border-[#A8DFC8]",
-    bar:   "#0F6E56",
-    dot:   "bg-[#0F6E56]",
+    badge: "bg-success-bg text-success-text border-success-border",
+    bar:   tokenColor.success,
+    dot:   "bg-success",
     label: "Progress",
   },
   maintain: {
-    badge: "bg-[#EEEDFE] text-[#3C3489] border-[#C4C0EE]",
-    bar:   "#534AB7",
-    dot:   "bg-[#534AB7]",
+    badge: "bg-brand-bg-mid text-brand-dark border-brand-border",
+    bar:   tokenColor.brand,
+    dot:   "bg-brand",
     label: "Maintain",
   },
   reduce: {
-    badge: "bg-[#FAEEDA] text-[#633806] border-[#E4C88A]",
-    bar:   "#854F0B",
-    dot:   "bg-[#854F0B]",
+    badge: "bg-caution-bg text-caution-text border-caution-border",
+    bar:   tokenColor.caution,
+    dot:   "bg-caution",
     label: "Reduce",
   },
   deload: {
-    badge: "bg-[#EEF0F2] text-[#3D4451] border-[#CBD0D8]",
-    bar:   "#6B7280",
-    dot:   "bg-[#6B7280]",
+    badge: "bg-neutral-bg text-neutral-text border-neutral-border",
+    bar:   tokenColor.neutral,
+    dot:   "bg-neutral",
     label: "Deload",
   },
 };
@@ -38,7 +39,7 @@ const ACTION_STYLES: Record<RecommendedAction, {
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -48,10 +49,10 @@ function ScoreBar({ label, score, barColor }: { label: string; score: number; ba
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] text-[#6B6860]">{label}</span>
-        <span className="text-[11px] font-semibold text-[#1C1B18]">{score}/100</span>
+        <span className="text-[11px] text-ink-secondary">{label}</span>
+        <span className="text-[11px] font-semibold text-ink">{score}/100</span>
       </div>
-      <div className="h-1.5 bg-[#F0EDE4] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-surface-hover rounded-full overflow-hidden">
         <div
           className="h-full rounded-full"
           style={{ width: `${score}%`, backgroundColor: barColor }}
@@ -71,11 +72,11 @@ function ConfidenceDots({ confidence }: { confidence: number }) {
         {Array.from({ length: TOTAL }).map((_, i) => (
           <div
             key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i < filled ? "bg-[#534AB7]" : "bg-[#E0DDD4]"}`}
+            className={`w-1.5 h-1.5 rounded-full ${i < filled ? "bg-brand" : "bg-border-strong"}`}
           />
         ))}
       </div>
-      <span className="text-[10px] text-[#9B9690]">{pct}% data confidence</span>
+      <span className="text-[10px] text-ink-muted">{pct}% data confidence</span>
     </div>
   );
 }
@@ -90,9 +91,9 @@ interface ProgressionCardProps {
 export function ProgressionCard({ profile, adjustment }: ProgressionCardProps) {
   if (!profile) {
     return (
-      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Adaptive Coaching</CardLabel>
-        <p className="text-[12px] text-[#9B9690] leading-relaxed">
+        <p className="text-[12px] text-ink-muted leading-relaxed">
           Log your first workout to activate the progression engine.
         </p>
       </div>
@@ -102,7 +103,7 @@ export function ProgressionCard({ profile, adjustment }: ProgressionCardProps) {
   const style = ACTION_STYLES[profile.recommendedAction];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between mb-4">
         <CardLabel>Adaptive Coaching</CardLabel>
         <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${style.badge}`}>
@@ -124,8 +125,8 @@ export function ProgressionCard({ profile, adjustment }: ProgressionCardProps) {
 
       {/* Rationale */}
       {adjustment && (
-        <div className="pt-3 border-t border-[#F0EDE4]">
-          <p className="text-[11px] text-[#6B6860] leading-relaxed">{adjustment.rationale}</p>
+        <div className="pt-3 border-t border-surface-hover">
+          <p className="text-[11px] text-ink-secondary leading-relaxed">{adjustment.rationale}</p>
         </div>
       )}
     </div>

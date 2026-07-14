@@ -13,9 +13,9 @@ interface Props {
 }
 
 const RISK_COLOR: Record<string, string> = {
-  low:      "text-[#0F6E56]",
-  moderate: "text-[#854F0B]",
-  high:     "text-[#C0392B]",
+  low:      "text-success",
+  moderate: "text-caution",
+  high:     "text-danger",
 };
 
 const RISK_BG: Record<string, string> = {
@@ -52,38 +52,38 @@ export function HabitIntelligenceCard({ analytics, patterns, risk, profile }: Pr
     "No active streak";
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Habit Intelligence</h3>
-        <span className="text-xs text-[#9B9690]">{analytics.sampleSize} sessions</span>
+        <h3 className="text-sm font-semibold text-ink">Habit Intelligence</h3>
+        <span className="text-xs text-ink-muted">{analytics.sampleSize} sessions</span>
       </div>
 
       {/* Consistency score */}
       <div className="space-y-1.5">
         <div className="flex justify-between text-xs">
-          <span className="text-[#5C5850]">Consistency Score</span>
-          <span className="text-[#1C1B18] font-medium">{analytics.consistencyScore}/100</span>
+          <span className="text-ink-secondary">Consistency Score</span>
+          <span className="text-ink font-medium">{analytics.consistencyScore}/100</span>
         </div>
         <ScoreBar value={analytics.consistencyScore} />
       </div>
 
       {/* Streak + 30-day rate */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#F1EFE8] rounded-xl p-3 text-center">
-          <div className="text-lg font-semibold text-[#1C1B18]">{streakLabel}</div>
-          <div className="text-[10px] text-[#6B6860] mt-0.5">Current streak</div>
+        <div className="bg-surface-hover rounded-xl p-3 text-center">
+          <div className="text-lg font-semibold text-ink">{streakLabel}</div>
+          <div className="text-[10px] text-ink-secondary mt-0.5">Current streak</div>
         </div>
-        <div className="bg-[#F1EFE8] rounded-xl p-3 text-center">
-          <div className="text-lg font-semibold text-[#1C1B18]">
+        <div className="bg-surface-hover rounded-xl p-3 text-center">
+          <div className="text-lg font-semibold text-ink">
             {Math.round(analytics.completionRates.rate30d * 100)}%
           </div>
-          <div className="text-[10px] text-[#6B6860] mt-0.5">30-day rate</div>
+          <div className="text-[10px] text-ink-secondary mt-0.5">30-day rate</div>
         </div>
-        <div className="bg-[#F1EFE8] rounded-xl p-3 text-center">
-          <div className="text-lg font-semibold text-[#1C1B18]">
+        <div className="bg-surface-hover rounded-xl p-3 text-center">
+          <div className="text-lg font-semibold text-ink">
             {Math.round(analytics.resilience * 100)}%
           </div>
-          <div className="text-[10px] text-[#6B6860] mt-0.5">Resilience</div>
+          <div className="text-[10px] text-ink-secondary mt-0.5">Resilience</div>
         </div>
       </div>
 
@@ -95,13 +95,13 @@ export function HabitIntelligenceCard({ analytics, patterns, risk, profile }: Pr
               {RISK_LABEL[risk.riskLevel]}
             </span>
             {risk.confidence >= 0.6 && (
-              <span className="text-[10px] text-[#C8C5BC] ml-auto">
+              <span className="text-[10px] text-ink-faint ml-auto">
                 {Math.round(risk.confidence * 100)}% confidence
               </span>
             )}
           </div>
           {risk.reasons.length > 0 && (
-            <p className="text-[11px] text-[#5C5850] leading-relaxed">
+            <p className="text-[11px] text-ink-secondary leading-relaxed">
               {risk.reasons[0]}
             </p>
           )}
@@ -113,18 +113,18 @@ export function HabitIntelligenceCard({ analytics, patterns, risk, profile }: Pr
         <div className="grid grid-cols-2 gap-3">
           {patterns.bestWeekday && (
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-              <div className="text-[10px] text-[#0F6E56] mb-0.5">Best day</div>
-              <div className="text-sm font-semibold text-[#1C1B18]">{patterns.bestWeekday.label}</div>
-              <div className="text-[10px] text-[#9B9690]">
+              <div className="text-[10px] text-success mb-0.5">Best day</div>
+              <div className="text-sm font-semibold text-ink">{patterns.bestWeekday.label}</div>
+              <div className="text-[10px] text-ink-muted">
                 {Math.round(patterns.bestWeekday.completionRate * 100)}% completion
               </div>
             </div>
           )}
           {patterns.worstWeekday && patterns.worstWeekday.completionRate < 0.65 && (
             <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
-              <div className="text-[10px] text-[#C0392B] mb-0.5">Hardest day</div>
-              <div className="text-sm font-semibold text-[#1C1B18]">{patterns.worstWeekday.label}</div>
-              <div className="text-[10px] text-[#9B9690]">
+              <div className="text-[10px] text-danger mb-0.5">Hardest day</div>
+              <div className="text-sm font-semibold text-ink">{patterns.worstWeekday.label}</div>
+              <div className="text-[10px] text-ink-muted">
                 {Math.round(patterns.worstWeekday.completionRate * 100)}% completion
               </div>
             </div>
@@ -137,8 +137,8 @@ export function HabitIntelligenceCard({ analytics, patterns, risk, profile }: Pr
         <div className="space-y-2">
           {profile.coachingInsights.slice(0, 2).map((ins, i) => (
             <div key={i} className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
-              <div className="text-xs font-semibold text-[#3C3489] mb-0.5">{ins.headline}</div>
-              <p className="text-[11px] text-[#5C5850] leading-relaxed">{ins.detail}</p>
+              <div className="text-xs font-semibold text-brand-dark mb-0.5">{ins.headline}</div>
+              <p className="text-[11px] text-ink-secondary leading-relaxed">{ins.detail}</p>
             </div>
           ))}
         </div>
@@ -146,7 +146,7 @@ export function HabitIntelligenceCard({ analytics, patterns, risk, profile }: Pr
 
       {/* Early state nudge */}
       {analytics.dataMaturity === "early" && (
-        <p className="text-[11px] text-[#9B9690] text-center">
+        <p className="text-[11px] text-ink-muted text-center">
           Personalised habit insights will appear after 14 sessions.
         </p>
       )}

@@ -7,18 +7,18 @@ import type { AthleteIdentity }                    from "@/lib/athlete/athleteId
 import type { MilestoneReport }                    from "@/lib/athlete/milestoneDetection";
 
 const MATURITY_COLORS: Record<string, string> = {
-  beginner:     "text-[#9B9690]",
-  developing:   "text-[#854F0B]",
-  intermediate: "text-[#0F6E56]",
-  advanced:     "text-[#085041]",
-  veteran:      "text-[#534AB7]",
+  beginner:     "text-ink-muted",
+  developing:   "text-caution",
+  intermediate: "text-success",
+  advanced:     "text-success-text",
+  veteran:      "text-brand",
 };
 
 const RESILIENCE_COLORS: Record<string, string> = {
-  low:      "text-[#C0392B]",
-  moderate: "text-[#854F0B]",
-  high:     "text-[#0F6E56]",
-  elite:    "text-[#534AB7]",
+  low:      "text-danger",
+  moderate: "text-caution",
+  high:     "text-success",
+  elite:    "text-brand",
 };
 
 const ARCHETYPE_ICON: Record<string, string> = {
@@ -45,14 +45,14 @@ export function AthleteDevelopmentCard({
   const recentMilestones = milestones?.recentlyAchieved ?? [];
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-4 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <h3 className="text-[15px] font-semibold text-[#1C1B18]">Athlete development</h3>
+    <div className="bg-white rounded-2xl border border-border p-4 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <h3 className="text-[15px] font-semibold text-ink">Athlete development</h3>
 
       {/* Athlete identity / archetype */}
       {athleteIdentity?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Archetype</span>
-          <span className="text-[12px] font-medium text-[#1C1B18]">
+          <span className="text-[12px] text-ink-muted">Archetype</span>
+          <span className="text-[12px] font-medium text-ink">
             {ARCHETYPE_ICON[athleteIdentity.archetype]} {athleteIdentity.label}
           </span>
         </div>
@@ -61,27 +61,27 @@ export function AthleteDevelopmentCard({
       {/* Training age / maturity */}
       {trainingAge?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Training maturity</span>
+          <span className="text-[12px] text-ink-muted">Training maturity</span>
           <div className="text-right">
             <span className={`text-[14px] font-semibold ${MATURITY_COLORS[trainingAge.maturity]}`}>
               {trainingAge.maturity.charAt(0).toUpperCase() + trainingAge.maturity.slice(1)}
             </span>
-            <span className="text-[11px] text-[#9B9690] ml-1">({trainingAge.estimatedAge})</span>
+            <span className="text-[11px] text-ink-muted ml-1">({trainingAge.estimatedAge})</span>
           </div>
         </div>
       )}
 
       {trainingAge?.dataReady && (
-        <p className="text-[12px] text-[#6B6860]">{trainingAge.headline}</p>
+        <p className="text-[12px] text-ink-secondary">{trainingAge.headline}</p>
       )}
 
       {/* Resilience index */}
       {resilienceIndex?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Resilience</span>
+          <span className="text-[12px] text-ink-muted">Resilience</span>
           <span className={`text-[14px] font-semibold ${RESILIENCE_COLORS[resilienceIndex.level]}`}>
             {resilienceIndex.level.charAt(0).toUpperCase() + resilienceIndex.level.slice(1)}
-            <span className="text-[11px] text-[#9B9690] font-normal ml-1">({resilienceIndex.score}/100)</span>
+            <span className="text-[11px] text-ink-muted font-normal ml-1">({resilienceIndex.score}/100)</span>
           </span>
         </div>
       )}
@@ -89,29 +89,29 @@ export function AthleteDevelopmentCard({
       {/* Progression velocity */}
       {progressionVelocity?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Adaptation speed</span>
-          <span className="text-[12px] font-medium text-[#1C1B18]">{progressionVelocity.label}</span>
+          <span className="text-[12px] text-ink-muted">Adaptation speed</span>
+          <span className="text-[12px] font-medium text-ink">{progressionVelocity.label}</span>
         </div>
       )}
 
       {progressionVelocity?.dataReady && (
-        <p className="text-[12px] text-[#6B6860]">{progressionVelocity.implication}</p>
+        <p className="text-[12px] text-ink-secondary">{progressionVelocity.implication}</p>
       )}
 
       {/* Next milestone */}
       {milestones?.nextMilestone && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-[#9B9690]">Next milestone</span>
-            <span className="text-[12px] text-[#1C1B18]">{milestones.nextMilestone.label}</span>
+            <span className="text-[12px] text-ink-muted">Next milestone</span>
+            <span className="text-[12px] text-ink">{milestones.nextMilestone.label}</span>
           </div>
           <div className="w-full h-[3px] bg-black/8 rounded-full overflow-hidden">
             <div
-              className="bg-[#534AB7] h-full rounded-full"
+              className="bg-brand h-full rounded-full"
               style={{ width: `${milestones.nextMilestone.progressPct}%` }}
             />
           </div>
-          <p className="text-[11px] text-[#9B9690] text-right">
+          <p className="text-[11px] text-ink-muted text-right">
             {milestones.nextMilestone.remaining} to go
           </p>
         </div>
@@ -121,9 +121,9 @@ export function AthleteDevelopmentCard({
       {recentMilestones.length > 0 && (
         <div className="space-y-1.5">
           {recentMilestones.slice(0, 2).map(m => (
-            <div key={m.type} className="flex items-center gap-2 bg-[#E1F5EE] border border-[#A8DFC8] rounded-xl px-3 py-1.5">
+            <div key={m.type} className="flex items-center gap-2 bg-success-bg border border-success-border rounded-xl px-3 py-1.5">
               <span className="text-[12px]">🏆</span>
-              <span className="text-[12px] text-[#085041] font-medium">{m.label}</span>
+              <span className="text-[12px] text-success-text font-medium">{m.label}</span>
             </div>
           ))}
         </div>

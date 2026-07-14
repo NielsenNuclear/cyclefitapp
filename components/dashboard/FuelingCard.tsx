@@ -24,16 +24,16 @@ const LEVEL_LABELS: Record<FuelingLevel, string> = {
 };
 
 const LEVEL_COLORS: Record<FuelingLevel, string> = {
-  high_output: "bg-[#EEEDFE] text-[#3C3489]",
-  performance: "bg-[#E1F5EE] text-[#085041]",
-  maintenance: "bg-[#FAEEDA] text-[#633806]",
-  recovery:    "bg-[#EEF0F2] text-[#3D4451]",
+  high_output: "bg-brand-bg-mid text-brand-dark",
+  performance: "bg-success-bg text-success-text",
+  maintenance: "bg-caution-bg text-caution-text",
+  recovery:    "bg-neutral-bg text-neutral-text",
 };
 
 const PRIORITY_CHIPS: Record<NutritionPriority, string> = {
-  high:     "bg-[#E1F5EE]  text-[#085041]  border border-[#A8DFC8]",
-  moderate: "bg-[#F1EFE8]  text-[#5C5850]  border border-[#EAE7DE]",
-  low:      "bg-[#FAF9F5]  text-[#9B9690]  border border-[#EAE7DE]",
+  high:     "bg-success-bg  text-success-text  border border-success-border",
+  moderate: "bg-surface-hover  text-ink-secondary  border border-border",
+  low:      "bg-canvas  text-ink-muted  border border-border",
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ function PriorityChip({ label, priority }: { label: string; priority: NutritionP
 
 function FocusTag({ label }: { label: string }) {
   return (
-    <span className="text-xs px-2 py-0.5 rounded-full bg-[#FDF3F2] text-[#9B2015] border border-[#F5C5C0] font-medium">
+    <span className="text-xs px-2 py-0.5 rounded-full bg-danger-bg text-danger border border-danger-border font-medium">
       {label}
     </span>
   );
@@ -57,8 +57,8 @@ function FocusTag({ label }: { label: string }) {
 function FuelingWindow({ timing, recommendation }: { timing: string; recommendation: string }) {
   return (
     <div className="space-y-0.5">
-      <p className="text-[#6B6860] text-xs uppercase tracking-wide">{timing}</p>
-      <p className="text-[13px] text-[#1C1B18]">{recommendation}</p>
+      <p className="text-ink-secondary text-xs uppercase tracking-wide">{timing}</p>
+      <p className="text-[13px] text-ink">{recommendation}</p>
     </div>
   );
 }
@@ -106,11 +106,11 @@ export function FuelingCard({
   );
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold text-[#1C1B18]">Today's Fueling</h2>
+        <h2 className="text-[15px] font-semibold text-ink">Today's Fueling</h2>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${levelColor}`}>
           {levelLabel}
         </span>
@@ -118,12 +118,12 @@ export function FuelingCard({
 
       {/* ── Protein range ── */}
       <div>
-        <p className="text-[#6B6860] text-xs uppercase tracking-wide mb-1">Protein target</p>
-        <p className="text-[1.8rem] font-light text-[#1C1B18]">
+        <p className="text-ink-secondary text-xs uppercase tracking-wide mb-1">Protein target</p>
+        <p className="text-[1.8rem] font-light text-ink">
           {proteinRange.min}–{proteinRange.max}
-          <span className="text-[#6B6860] text-sm font-normal ml-1">g</span>
+          <span className="text-ink-secondary text-sm font-normal ml-1">g</span>
         </p>
-        <p className="text-[#9B9690] text-xs mt-0.5">Approximate daily total</p>
+        <p className="text-ink-muted text-xs mt-0.5">Approximate daily total</p>
       </div>
 
       {/* ── Macro & hydration priorities ── */}
@@ -143,16 +143,16 @@ export function FuelingCard({
       )}
 
       {/* ── Phase note ── */}
-      <p className="text-[#6B6860] text-sm leading-snug">{fuelingNote}</p>
+      <p className="text-ink-secondary text-sm leading-snug">{fuelingNote}</p>
 
       {/* ── Symptom-driven adjustments ── */}
       {topSymptoms.length > 0 && (
         <div className="space-y-3 pt-1 border-t border-black/6">
-          <p className="text-[#6B6860] text-xs uppercase tracking-wide">Based on today's symptoms</p>
+          <p className="text-ink-secondary text-xs uppercase tracking-wide">Based on today's symptoms</p>
           {topSymptoms.map(adj => (
             <div key={adj.symptomId} className="space-y-0.5">
-              <p className="text-[13px] font-medium text-[#1C1B18]">{adj.focus}</p>
-              <p className="text-[#6B6860] text-xs">{adj.suggestion}</p>
+              <p className="text-[13px] font-medium text-ink">{adj.focus}</p>
+              <p className="text-ink-secondary text-xs">{adj.suggestion}</p>
             </div>
           ))}
         </div>
@@ -161,7 +161,7 @@ export function FuelingCard({
       {/* ── Workout fueling windows ── */}
       {hasTiming && (
         <div className="space-y-3 pt-1 border-t border-black/6">
-          <p className="text-[#6B6860] text-xs uppercase tracking-wide">Fueling windows</p>
+          <p className="text-ink-secondary text-xs uppercase tracking-wide">Fueling windows</p>
           {workoutFueling!.preWorkout && (
             <FuelingWindow
               timing={`Pre-workout · ${workoutFueling!.preWorkout.timing}`}
@@ -186,8 +186,8 @@ export function FuelingCard({
       {/* ── Personalized outcome note ── */}
       {outcomeNote && (
         <div className="pt-1 border-t border-black/6">
-          <p className="text-[#6B6860] text-xs uppercase tracking-wide mb-1">Personalised insight</p>
-          <p className="text-[#0F6E56] text-sm">{outcomeNote}</p>
+          <p className="text-ink-secondary text-xs uppercase tracking-wide mb-1">Personalised insight</p>
+          <p className="text-success text-sm">{outcomeNote}</p>
         </div>
       )}
 

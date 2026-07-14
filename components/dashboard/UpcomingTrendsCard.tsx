@@ -24,7 +24,7 @@ function symptomPhrase(confidence: number, severity: number): string {
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -32,9 +32,9 @@ function CardLabel({ children }: { children: React.ReactNode }) {
 
 function TrendBullet({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 py-2 border-b border-[#F0EDE4] last:border-0">
-      <span className="text-[#534AB7] mt-0.5 flex-shrink-0">•</span>
-      <span className="text-[12px] text-[#1C1B18] leading-relaxed">{children}</span>
+    <div className="flex items-start gap-2 py-2 border-b border-surface-hover last:border-0">
+      <span className="text-brand mt-0.5 flex-shrink-0">•</span>
+      <span className="text-[12px] text-ink leading-relaxed">{children}</span>
     </div>
   );
 }
@@ -51,7 +51,7 @@ function SymptomBullet({ event }: { event: ForecastEvent }) {
     <TrendBullet>
       <span className="font-medium">{name}</span>
       {" "}
-      <span className="text-[#5C5850]">{phrase} {time}</span>
+      <span className="text-ink-secondary">{phrase} {time}</span>
     </TrendBullet>
   );
 }
@@ -65,7 +65,7 @@ function ReadinessBullet({ day }: { day: DayForecast }) {
 
   return (
     <TrendBullet>
-      <span className="text-[#5C5850]">{text}</span>
+      <span className="text-ink-secondary">{text}</span>
     </TrendBullet>
   );
 }
@@ -95,10 +95,10 @@ export function UpcomingTrendsCard({ forecast }: UpcomingTrendsCardProps) {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Upcoming trends</CardLabel>
 
-      <p className="text-[11px] text-[#9B9690] mb-1 leading-relaxed">
+      <p className="text-[11px] text-ink-muted mb-1 leading-relaxed">
         Based on your previous cycles:
       </p>
 
@@ -111,7 +111,7 @@ export function UpcomingTrendsCard({ forecast }: UpcomingTrendsCardProps) {
         )}
       </div>
 
-      <p className="text-[10px] text-[#C8C5BC] mt-3">
+      <p className="text-[10px] text-ink-faint mt-3">
         Historical estimates only · May, likely, tends to — not guarantees
       </p>
     </div>

@@ -14,26 +14,28 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 2 — Onboarding (pilot) | ✅ Complete |
 | 3 — Dashboard Layer 1 | ✅ Complete (with one scoped gap — see below) |
 | 4 — Navigation + overlays | ✅ Complete |
-| 5 — Dashboard Layer 2 (accordion sections) | ⏳ Not started |
+| 5 — Dashboard Layer 2 (accordion sections) | ✅ Complete |
 | 6 — Dashboard Layer 3 ("Axis Intelligence") | ⏳ Not started |
 | 7 — Icon system | ⏳ Not started |
 
-**Compliance headline — re-measured after Batch 3** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`, 195 `.tsx` files):
+**Compliance headline — re-measured after Batch 5** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`). The file count itself grew from 195 → 202 `.tsx` files between Batch 3 and Batch 5 (ordinary feature work landing on the branch in parallel, not a migration artifact) — percentages below are recomputed against the current 202 for Batch 5's column rather than left stale against the old denominator:
 
-| Metric | Baseline (Batch 0) | After Batch 2 | After Batch 3 |
-|---|---|---|---|
-| Fully compliant files | 15 (7.7%) | 22 (11.3%) | **22 (11.3%) — see note below** |
-| Files using ≥1 token color class | 49 (25%) | 62 (32%) | **68 (35%)** |
-| Files with ≥1 hardcoded hex | 133 (68%) | 127 (65%) | **122 (63%)** |
-| Total hardcoded hex occurrences | 3,500 | 3,227 | **3,049** |
+| Metric | Baseline (Batch 0) | After Batch 2 | After Batch 3 | After Batch 5 |
+|---|---|---|---|---|
+| Fully compliant files | 15 (7.7%) | 22 (11.3%) | 22 (11.3%) | **22 (10.9% of 202) — see note below** |
+| Files using ≥1 token color class | 49 (25%) | 62 (32%) | 68 (35%) | **121 (60% of 202)** |
+| Files with ≥1 hardcoded hex | 133 (68%) | 127 (65%) | 122 (63%) | **73 (36% of 202)** |
+| Total hardcoded hex occurrences | 3,500 | 3,227 | 3,049 | **1,755** |
+
+Batch 5 alone replaced **~1,270 hardcoded hex occurrences across 50 files** with token classes — by a wide margin the largest single-batch reduction of the whole DS-2 effort so far. "Fully compliant files" still doesn't move (same reason as Batch 3: it also requires zero arbitrary `text-[Npx]` sizing, which this batch — a color-only pass, per scope — didn't touch), but every other metric moved sharply.
 
 **Why "fully compliant files" didn't move in Batch 3** despite real progress: that metric requires *zero* hardcoded hex **and** zero arbitrary `text-[Npx]` sizing **and** zero raw Tailwind palette classes. Batch 3 fully eliminated hardcoded hex from all 8 Layer-1 files (their color-token adoption is complete), but did not convert their arbitrary pixel font sizes (`text-[11px]`, `text-[13px]`, etc.) to the `.type-*` semantic scale — that's the typography-migration effort flagged in `DS2Baseline.md` as the single largest compliance gap in the app (154 files, 1,451 occurrences), and doing it properly for 8 files in the middle of a color-migration batch risked scope creep into a second, much larger unplanned effort. Color-token adoption (the metric that actually moved) is the more consequential of the two per the baseline's own analysis.
 
 ## Current Batch
 
-**Batch 4 — Navigation + overlays: complete.** Extended `DashboardShell` (previously `/dashboard`-only) to `app/body/page.tsx`, `app/exercises/page.tsx`, `app/profile/page.tsx`, and `app/settings/page.tsx`, replacing each route's bespoke back-button-only header with the shared top nav. Migrated `app/settings/page.tsx`'s local `setState`+`setTimeout` toast onto the `Toast`/`ToastProvider` primitive built in Batch 1 (its first production call site). Migrated `BodyIntelligenceViewer.tsx`'s hand-rolled `BottomSheet` onto the shared `Sheet` primitive, which as a side effect gives it the `useFocusTrap` behavior it never had. All three literal checklist items from `DS2ImplementationPlan.md`'s Batch 4 section are done; see "Batch 4 details" below for the `DashboardShell` API additions this required and a tooling-limitation note on one QA check.
+**Batch 5 — Dashboard Layer 2 accordion sections: complete.** Migrated all 9 Layer-2 `AccordionSection`s (Recovery, Cycle Intelligence, Nutrition, Progress & Performance, Athlete Development, Training Plan, Performance Tracking, Insights & Analytics, Lifestyle & Adherence — 50 card files, ~61 individual card components, 793+477 pre-migration hex occurrences) from hardcoded hex to design tokens, per the plan's sequencing rule (smallest section first, Recovery last regardless of its card count). Category vocabulary (`optimal/ready/moderate/cautious/recover`, `Ahead/On Track/Behind/Stalled`, etc.) was left completely untouched — only the *colors* backing each category changed, never the categories themselves. See "Batch 5 details" below for the migration methodology, the three deliberate categorical-color exceptions, and the scoped gaps (Card/Button componentization, EmptyState rollout) carried forward from Batch 3's precedent at a larger scale.
 
-**Next up:** Batch 5 (Dashboard Layer 2 accordion sections) — awaiting review sign-off before starting.
+**Next up:** Batch 6 (Dashboard Layer 3 "Axis Intelligence") — awaiting review sign-off before starting.
 
 ## Commit History
 
@@ -61,6 +63,7 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 4 | `refactor(ui): extend DashboardShell (fullBleed/hideMobileNav) to /body /exercises /profile /settings, migrate settings toast to shared Toast` | `components/dashboard/DashboardShell.tsx`, `components/ui/Toast.tsx`, `app/body/page.tsx`, `app/exercises/page.tsx`, `app/profile/page.tsx`, `app/settings/page.tsx` |
 | 4 | `refactor(ui): migrate BodyIntelligenceViewer overlay to shared Sheet component` | `components/ui/Sheet.tsx`, `components/body/BodyIntelligenceViewer.tsx` |
 | 4 | `docs: update DS2Progress.md — Batch 4 complete` | `docs/design/DS2Progress.md` |
+| 5 | `refactor: adopt design system for Batch 5 dashboard Layer 2 accordion sections` | 50 files across `components/dashboard/`, `components/intelligence/`, `components/insights/`, `components/athlete/`, plus `docs/design/DS2Progress.md` — single commit per this batch's instructions (contrast with Batches 1–4's per-concern granularity) |
 
 (Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/ components/dashboard/ components/intelligence/ lib/intelligence/` for the authoritative record.)
 
@@ -266,9 +269,75 @@ Per the plan's Batch 4 verification note, the sheet migration is "the one place 
 
 **Given that, the focus-trap/Escape check was verified by code review instead:** `Sheet`'s `useFocusTrap` integration (the hook itself, its Tab-cycle/Escape/focus-restore logic) was already exercised end-to-end via real browser interaction in Batch 1's QA pass against the `/dev` Design System showcase — same hook, same component, unmodified in this batch. `BodyIntelligenceViewer`'s change is purely a consumer swap (`BottomSheet` → `Sheet` with the props above); the trigger condition (`isOpen={!!selectedId}`) and dismiss path (`onClose={onDeselect}`) are identical to what `BottomSheet` used, and `RegionDetailsPanel`'s internal close button already calls the same `onDeselect` prop it always has. No new logic sits between the click-to-select interaction and the sheet open state. Flagged here as a real gap against the plan's literal verification instruction, not a silent skip — worth a manual (non-automated) keyboard pass in a real browser before considering DS-2 fully closed out, since headless WebGL instability makes this specific check unautomatable in this environment as currently configured.
 
+## Verification Status (Batch 5)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ Clean (0 errors) |
+| `vitest run` | ✅ 323/323 passing, 6 files (unchanged) |
+| Dev server launches | ✅ Confirmed clean startup |
+| `/dashboard` returns HTTP 200 | ✅ Confirmed via direct request |
+| Stale `-ui-surface`/`-ui-border`/`ink-base`/`ink-subtle` token family | ✅ Zero matches across all 50 touched files |
+| Automated browser QA (gstack) | ✅ Full walkthrough — see "Batch 5 details" below |
+| Console errors across entire session (onboarding + all 9 sections expanded) | ✅ none |
+| git status clean of unrelated changes | ✅ Confirmed |
+
+## Batch 5 details
+
+### Scale required a systematic approach, not a file-by-file manual pass
+
+Batches 1–4 topped out at 8 files in a single batch. Batch 5 is 50 files and ~1,270 hardcoded hex occurrences — doing each one by hand at Batch 3's pace was not tractable in a single pass. Instead:
+
+1. Extracted the actual token table from `app/globals.css`'s `@theme` block (the source of truth) and cross-referenced every distinct hex value found across the 50 files against it.
+2. The vast majority of occurrences turned out to be either **exact** matches to an existing token (e.g. `#9B9690` → `ink-muted`, 225 occurrences alone) or **near-exact** matches (off by a few points in one RGB channel — e.g. `#C0392B` vs. the real `danger` token `#C0390B`, a popular "flat-UI-colors" red that several files had independently reached for instead of the app's own token). This is exactly the kind of hex-drift the Design System Audit describes: multiple components inventing their own near-identical swatch for the same concept instead of sharing one.
+3. Built a verified hex→token lookup table and applied it mechanically across all 50 files via a script (Tailwind arbitrary-value classes like `text-[#HEX]`, `bg-[#HEX]`, `border-[#HEX]`, `ring-[#HEX]`, gradient stops, etc.) — this handled **1,143 of the ~1,270 occurrences** in the first pass alone.
+4. The remaining stragglers were resolved individually by hand, then re-run through the same script until zero unmapped Tailwind-class hex remained.
+5. A separate pass covered hex embedded in **inline JS color-map objects** (`{ color: "#1A7A3E", label: "Building" }`-style status scales feeding `style={{ backgroundColor: ... }}`) that the class-name script couldn't reach — these were migrated to import `color`/`statusColors` from `lib/design/tokens.ts` (the TS mirror built for exactly this use case, and the same pattern Batch 2 established for `ProfileSummary.tsx`'s `weightColors`).
+
+Every near-match substitution is a judgment call in the same spirit as Batch 2's `#8A8880` → `ink-muted` precedent: pick the closest real token rather than inventing a new one for a value that's clearly drift, not a deliberate distinct color.
+
+### Three deliberate exceptions — categorical identity colors, not status colors, left unmapped
+
+Not everything is a status scale. Three places use color to *distinguish between categories* (each category needs its own recognizable hue) rather than to *judge* good/bad — forcing these onto the 4-step success/caution/danger/brand semantic ramp would be a real behavior change (colors colliding or implying a value judgment that isn't there), not adoption:
+
+- **`PhaseCard.tsx`'s "Late Luteal" phase** (`accent: "#6B4F8C"`, `bg-[#F5F0FA]`, `border-[#C9AEDC]`, `text-[#4A2E70]`) — the other 4 cycle phases (Menstrual/Follicular/Ovulatory/Luteal) happened to already match real tokens (danger/brand/success/caution respectively) almost exactly, and are now token-driven via `lib/design/tokens.ts`'s `color` export instead of hardcoded hex. "Late Luteal" has no 5th matching token, and mapping it onto an existing one (e.g. reusing `brand` from Follicular) would make two different cycle phases visually indistinguishable — a real functional regression for a feature whose whole point is phase-at-a-glance color coding. Left as documented hex, with a code comment explaining why.
+- **`NutritionIntelligenceCard.tsx`'s `MacroBar` colors** (6 distinct hues for Calories/Protein/Carbs/Fats/Hydration/Fiber) — a categorical chart legend, not a status judgment. Some of the 6 hex values happen to numerically resemble `brand`/`success`/`caution`/`danger`, but using those tokens here would incorrectly imply "Fats = danger" (bad) and "Protein = success" (good), which isn't the intended meaning — it's just each macro's assigned legend color. Left as-is with a code comment; this is squarely `DS-6` (shared chart/categorical-palette) territory, not a DS-2 gap.
+- **`lib/periodization/goalProfiles.ts`'s `PHASE_COLORS`** (accumulation/intensification/peak/deload, consumed by `PeriodizationCard.tsx`) — same reasoning, a 4-way categorical badge palette for training-block phases, left untouched. Only the two `?? "#9B9690"`/`?? "#534AB7"` *fallback* defaults in `PeriodizationCard.tsx` (used when a phase key doesn't match) were tokenized, since those aren't part of the categorical set itself.
+
+One additional resolved-in-place case: `CycleIntelligenceCard.tsx` had a tan `#C8B89A` used for an eyebrow label and a bullet dot, while its sibling `CardLabel` helper in the same file used `text-ink-muted` for what is visibly the same "eyebrow label" role. Concluded this was drift, not an intentional third label treatment, and consolidated it onto `ink-muted` (documented judgment call, same category as the `CardLabel`/`SectionHeader` type of near-duplicate resolution).
+
+### `RecommendationCards.tsx`'s `RecoveryCard` incidentally migrated — the mirror image of Batch 3's note
+
+Batch 3 migrated `TrainingCard` in this shared file and explicitly left `NutritionCard`/`RecoveryCard`'s own container styling untouched (out of scope at the time). This batch's scope includes `NutritionCard` (Nutrition section) but `RecoveryCard` is Layer 3 (Batch 6). Since the token-migration script operates on the whole file rather than cherry-picking JSX blocks, `RecoveryCard`'s hex incidentally got migrated too — free, zero-risk (same exact/near-match tokens, no restructuring), consistent with Batch 3's own precedent of accepting incidental migration of an out-of-scope sibling in a shared file. `RecoveryCard`'s Card/Button componentization and any Layer-3-specific gaps remain fully deferred to Batch 6.
+
+### Scoped gaps carried forward from Batch 3, at 50-file scale
+
+Both of Batch 3's documented judgment calls apply here too, now across a much larger file set:
+
+- **Card/Button componentization**: not done, for the same reason as Batch 3 — every one of these 50 files has its own bespoke internal spacing that doesn't map cleanly onto `<Card>`'s uniform `space-y-4`, and forcing it risks spacing regressions across 50 files that would be expensive to verify pixel-for-pixel. Color-token adoption (the metric that actually moved this batch) was prioritized over componentization, per the same reasoning Batch 3 used.
+- **`EmptyState` rollout**: not done in bulk. 37 of the 50 files have a `return null` (or equivalent silent) branch for missing data. Unlike Batch 3's 8 files (where exactly one, `BodyStatusCard`, was a genuine "hidden feature" case), these 50 files sit inside dense accordion sections where several cards can simultaneously be in a "not enough data yet" state for a new user — during QA, most of these already surface an inline explanatory sentence ("No workout data yet. Start logging sessions to track training quality.", "Track 3 more sessions to see your goal progress.") rather than vanishing silently, which is a reasonable low-noise pattern already in place. Wrapping all 37 in the full `EmptyState` component would risk turning a newly-onboarded user's expanded accordion section into a wall of repeated empty-state cards — a real UX/IA call that belongs to product judgment, not a styling pass. Flagged here as a real, acknowledged gap rather than silently skipped; a follow-up pass should decide section-by-section (not file-by-file) whether the existing inline messages are sufficient or warrant the full component.
+
+### Full dashboard browser QA
+
+Completed onboarding fresh (fillable date field for last-period-start, equipment preset selection) to reach real dashboard data, then expanded all 9 Layer-2 sections simultaneously and screenshotted representative cards from each:
+
+| Section | Result |
+|---|---|
+| Recovery (10 cards, incl. hand-edited `PersonalRecoveryCard` status maps) | ✅ "Your Personal Recovery Profile" — success-tinted header, brand-purple "STABLE" pill, mint 7-day outlook tiles, all colors correct |
+| Cycle Intelligence (9 cards, incl. hand-edited `PhaseCard`) | ✅ "Ovulatory" phase card — success-green ring/bar/text throughout, matches the phase's semantic color exactly |
+| Nutrition (4 cards, incl. hand-edited `NutritionIntelligenceCard`) | ✅ `FuelingCard`'s success/neutral/danger-tinted pills all correct; `NutritionCard`'s serif headline + success-tinted nutrient pills correct |
+| Progress & Performance (10 cards) | ✅ Caution-tinted "Adjustments" box, orange-fill milestone progress bar, all new-user empty-state messages render legibly |
+| Athlete Development (6 cards) | ✅ Brand-tinted "Learning…" pills, "Maintain" badge in brand-purple, empty stat tiles clean |
+| Training Plan (9 cards, incl. hand-edited `PeriodizationCard`) | ✅ Categorical "ACCUMULATION"/"INTENSIFICATION" badges (left as designed, untouched) render distinctly from the now-tokenized "Neutral"/"On Track" status badges alongside them — confirms the categorical-vs-status distinction actually reads correctly in the live UI, not just in theory |
+| Performance Tracking (4 cards) | ✅ Success-tinted "Opportunity detected" callout, green readiness-forecast pills |
+| Insights & Analytics (3 cards) | ✅ All 3 render their existing inline empty-state text cleanly (new-user state, no data yet) |
+| Lifestyle & Adherence (6 cards, incl. hand-edited `AdherenceCard`) | ✅ Danger-red "At Risk" ring + text, success-green "Risk: Low" text, correctly distinct |
+| Keyboard focus (Tab through nav) | ✅ Visible brand-purple focus ring on nav icons — confirms Batch 5's pure color-only changes didn't disturb existing focus/keyboard behavior (expected, since no interactive elements or event handlers were touched, only className/color-prop values) |
+| Console errors, entire session (onboarding + full dashboard + all 9 sections expanded) | ✅ none |
+
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 5–7, plus the acknowledged Card/Button-componentization gap from Batch 3 (see above) if it gets picked up as a follow-up, plus the manual (non-headless) keyboard QA pass on the Body Intelligence sheet flagged above. Recommend a repo-wide grep for the stale `-ui-surface|-ui-border|ink-base|ink-subtle` token family (found 3x now) before or during Batch 5, since it's proven to recur.
+Everything in `DS2ImplementationPlan.md` Batches 6–7, plus the acknowledged Card/Button-componentization gap (Batch 3, now also Batch 5) and the `EmptyState` rollout gap (Batch 5) if either gets picked up as a follow-up, plus the manual (non-headless) keyboard QA pass on the Body Intelligence sheet flagged in Batch 4. The three categorical-color exceptions (PhaseCard's Late Luteal, MacroBar, PeriodizationCard's PHASE_COLORS) are candidates for a future shared categorical-palette token (DS-6), not a DS-2 gap.
 
 ## Known Issues
 
@@ -283,6 +352,9 @@ Everything in `DS2ImplementationPlan.md` Batches 5–7, plus the acknowledged Ca
 4. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `Sheet.tsx` always renders its children (needed for the slide-in/out transition) and only marked the closed state via `aria-hidden` + a CSS transform pushing it off-screen. `aria-hidden` alone doesn't reliably stop keyboard focus from reaching off-screen content in every browser. Fixed by adding `inert={!isOpen}` (React 19 passes this through natively) so closed-sheet content is genuinely unfocusable, not just visually hidden.
 5. **Fixed in Batch 1 (real bug, caught by manual review, not tooling)**: `useFocusTrap`'s effect originally depended on `[active, onEscape, initialFocus]`. Since `onEscape` is normally an inline arrow function from the caller (e.g. `onClose={() => setDialogOpen(false)}`), its identity changes on every render of the parent — meaning *any* unrelated re-render of the parent while a Dialog/Sheet was open would re-run the effect, re-capture "previously focused element," and yank focus back to the trap's first focusable element, potentially interrupting a user mid-interaction (e.g. typing). Fixed by reading `onEscape` through a ref updated every render, with the effect itself depending only on `[active]`.
 6. **Still open**: the "Weekly Insights" → Insights & Analytics accordion-section mapping (Pre-flight Decision 2) was implemented on the stated working assumption, unconfirmed. If wrong, the fix is a one-line addition of a fourth wrap point once the actual target is identified — not a structural problem.
+7. **New, found and resolved in Batch 5**: `CycleIntelligenceCard.tsx` had a tan `#C8B89A` used for its `SectionHeading` eyebrow label and a bullet dot, while the same file's `CardLabel` helper — visibly the same "eyebrow label" role — used `text-ink-muted`. Concluded this was drift rather than an intentional third label treatment and consolidated both onto `ink-muted`.
+8. **New, documented in Batch 5 (not a bug — a deliberate, permanent exception)**: three places use color categorically (to distinguish between items) rather than semantically (to judge good/bad), and were left as hardcoded hex rather than forced onto the success/caution/danger/brand ramp: `PhaseCard.tsx`'s "Late Luteal" cycle phase, `NutritionIntelligenceCard.tsx`'s `MacroBar` per-macro legend, and `lib/periodization/goalProfiles.ts`'s `PHASE_COLORS`. See "Batch 5 details" for the full reasoning. Candidates for a future categorical-palette token (DS-6), not a gap to close within DS-2.
+9. **New, found in Batch 5**: hex-drift near-misses of real tokens are common and now confirmed systemic — e.g. `#C0392B` (a popular "flat-UI-colors" red) used in place of the actual `danger` token `#C0390B` across at least half a dozen Batch 5 files. All resolved onto the real token. Worth expecting the same pattern in Batch 6/7.
 
 ---
 
@@ -333,9 +405,17 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 - Four known button/CTA treatments now exist (`Button primary`, `Button dark+pill`, `ProfileSummary`'s glow CTA, plus whatever `WorkoutHeroView`'s "Start Workout" button turns out to be — not yet audited, it wasn't in Batch 3's file list). Continue resisting consolidation on sight — that's DS-3 territory.
 - Recovery card consolidation (12 cards, 3 style conventions per the original Audit) is Batch 5, not Batch 4 — don't get pulled into it early just because Batch 4 touches `BodyIntelligenceViewer`, which sits structurally near but not inside that accordion section.
 
-## Notes for Batch 5 kickoff
+## Notes for Batch 5 kickoff (historical)
 
 - The stale token grep came back clean for all Batch 4 files (`bg-ui-surface|border-ui-border|ink-base|ink-subtle` — zero matches across the 8 touched files). Still recurs elsewhere (confirmed unfixed in `app/dev/page.tsx`, out of scope); keep grepping each new file touched in Batch 5.
 - gstack's headless browser server is now confirmed to crash specifically on synthetic WebGL canvas pointer events on this machine (not just idle server-restart flakiness noted previously) — reproduced 3/3 attempts trying to click a body region on `/body`. This didn't block Batch 4 (Body Intelligence's canvas itself wasn't modified, only its overlay), but Batch 5/6 have no WebGL surfaces in scope, so this shouldn't recur there. If any future batch needs to interact with the 3D viewer, expect to fall back to manual/handoff browser testing rather than automated `gstack` clicks.
 - Batch 4 left `/body`, `/exercises`, `/profile`, `/settings` with plenty of remaining hardcoded hex in their own page-level markup (filter chips, section headers, dialogs, etc.) — this was correctly out of scope per the plan's literal Batch 4 text (shell/nav + toast + sheet only, not a full color pass on those routes' content), but it means those 4 files are not "done" in the Batch 0 compliance-metric sense. No batch in the 5-7 range currently covers them (5-6 are the dashboard accordion sections, 7 is icons) — flag for a scoping decision on where standalone route content lives before declaring DS-2 complete.
 - `DashboardShell`'s new `fullBleed`/`hideMobileNav` props are additive and default off; no reason Batch 5/6 (both pure dashboard-accordion work, no shell changes) should need to touch `DashboardShell.tsx` at all.
+
+## Notes for Batch 6 kickoff
+
+- Batch 6 scope per `DS2ImplementationPlan.md`: the ~20 "Axis Intelligence" cards in the single Layer-3 accordion (`app/dashboard/page.tsx`'s `id="intelligence"` section) — same styling-only treatment as Batch 5 (tokens, no `Card`/`Button` componentization forced, no `EmptyState` rollout forced), explicitly **not** a license to merge/consolidate the 7 confidence or 5 explainability components living in that section, or to relocate any of them out of Layer 3 — both are DS-3 decisions.
+- `components/dashboard/RecommendationCards.tsx`'s `RecoveryCard` was already incidentally migrated to tokens as a side effect of Batch 5's file-level script pass (see "Batch 5 details" above) — when Batch 6 opens this file, expect it to already be token-compliant; don't re-do the migration, just confirm and move on.
+- The three categorical-color exceptions documented in Batch 5 (`PhaseCard`'s Late Luteal phase, `NutritionIntelligenceCard`'s `MacroBar`, `lib/periodization/goalProfiles.ts`'s `PHASE_COLORS`) are a pattern worth watching for in Layer 3 too — if any Axis Intelligence card uses color to distinguish between categories (not to judge good/bad), don't force it onto the success/caution/danger/brand ramp; document it as the same kind of exception instead.
+- The stale token grep (`bg-ui-surface|border-ui-border|ink-base|ink-subtle`) came back clean across all 50 Batch 5 files — still only unfixed in the known, out-of-scope `app/dev/page.tsx`. Keep grepping each new file touched in Batch 6 regardless, since it's recurred 3 times historically.
+- Batch 5's hex→token lookup table (built against `app/globals.css`'s real `@theme` values) is reusable for Batch 6 — most of Layer 3's confidence/explainability cards almost certainly draw from the same drifted palette (the Design System Audit's own finding: "Confidence UI has at least 7 divergent implementations" with inconsistent hex). Worth checking for the same near-match patterns (e.g. `#C0392B` vs. the real `danger` token `#C0390B`) before assuming Layer 3's hex is novel.

@@ -7,17 +7,17 @@ interface Props {
 }
 
 const ZONE_COLOR: Record<string, string> = {
-  fresh:       "text-[#0F6E56]",
-  normal:      "text-[#1B4FA0]",
-  fatigued:    "text-[#854F0B]",
-  overreached: "text-[#C0392B]",
+  fresh:       "text-success",
+  normal:      "text-info",
+  fatigued:    "text-caution",
+  overreached: "text-danger",
 };
 
 const ZONE_BAR: Record<string, string> = {
-  fresh:       "bg-[#0F6E56]",
-  normal:      "bg-[#1B4FA0]",
-  fatigued:    "bg-[#854F0B]",
-  overreached: "bg-[#C0392B]",
+  fresh:       "bg-success",
+  normal:      "bg-info",
+  fatigued:    "bg-caution",
+  overreached: "bg-danger",
 };
 
 const ZONE_LABEL: Record<string, string> = {
@@ -37,8 +37,8 @@ const ZONE_NOTE: Record<string, string> = {
 export function FatigueCard({ entry }: Props) {
   if (!entry) return null;
 
-  const zoneColor = ZONE_COLOR[entry.zone] ?? "text-[#1C1B18]";
-  const zoneBar   = ZONE_BAR[entry.zone]   ?? "bg-[#C8C5BC]";
+  const zoneColor = ZONE_COLOR[entry.zone] ?? "text-ink";
+  const zoneBar   = ZONE_BAR[entry.zone]   ?? "bg-ink-faint";
   const zoneLabel = ZONE_LABEL[entry.zone] ?? entry.zone;
   const zoneNote  = ZONE_NOTE[entry.zone]  ?? "";
 
@@ -51,17 +51,17 @@ export function FatigueCard({ entry }: Props) {
   ];
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Fatigue Status</h3>
+        <h3 className="text-sm font-semibold text-ink">Fatigue Status</h3>
         <span className={`text-xs font-semibold ${zoneColor}`}>{zoneLabel}</span>
       </div>
 
       {/* Score bar */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-baseline">
-          <span className="text-[10px] text-[#9B9690]">Accumulated fatigue</span>
+          <span className="text-[10px] text-ink-muted">Accumulated fatigue</span>
           <span className={`text-sm font-semibold ${zoneColor}`}>{entry.score}</span>
         </div>
         <div className="w-full h-2.5 rounded-full bg-black/8">
@@ -71,7 +71,7 @@ export function FatigueCard({ entry }: Props) {
           />
         </div>
         {/* Zone markers */}
-        <div className="flex justify-between text-[9px] text-[#C8C5BC]">
+        <div className="flex justify-between text-[9px] text-ink-faint">
           <span>Fresh</span>
           <span>Normal</span>
           <span>Fatigued</span>
@@ -83,19 +83,19 @@ export function FatigueCard({ entry }: Props) {
       <div className="space-y-1.5">
         {components.map(({ label, val }) => (
           <div key={label} className="flex items-center gap-3">
-            <span className="text-[10px] text-[#9B9690] w-28 flex-shrink-0">{label}</span>
+            <span className="text-[10px] text-ink-muted w-28 flex-shrink-0">{label}</span>
             <div className="flex-1 h-1.5 rounded-full bg-black/8">
               <div
                 className={`h-1.5 rounded-full ${zoneBar} transition-all`}
                 style={{ width: `${val}%` }}
               />
             </div>
-            <span className="text-[10px] text-[#9B9690] w-8 text-right">{val}</span>
+            <span className="text-[10px] text-ink-muted w-8 text-right">{val}</span>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] text-[#9B9690] leading-relaxed text-center">{zoneNote}</p>
+      <p className="text-[11px] text-ink-muted leading-relaxed text-center">{zoneNote}</p>
     </div>
   );
 }

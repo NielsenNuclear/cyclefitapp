@@ -7,17 +7,17 @@ import type { WorkoutSizeRecommendation } from "@/lib/adherence/adaptiveWorkoutS
 import type { HabitStrengthScore }        from "@/lib/adherence/habitStrength";
 
 const RISK_COLORS: Record<string, string> = {
-  low:      "text-[#0F6E56]",
-  moderate: "text-[#854F0B]",
-  high:     "text-[#C0392B]",
+  low:      "text-success",
+  moderate: "text-caution",
+  high:     "text-danger",
 };
 
 const HABIT_COLORS: Record<string, string> = {
-  nascent:     "text-[#9B9690]",
-  forming:     "text-[#854F0B]",
-  established: "text-[#0F6E56]",
-  strong:      "text-[#085041]",
-  automatic:   "text-[#534AB7]",
+  nascent:     "text-ink-muted",
+  forming:     "text-caution",
+  established: "text-success",
+  strong:      "text-success-text",
+  automatic:   "text-brand",
 };
 
 interface Props {
@@ -34,18 +34,18 @@ export function AdherenceIntelligenceCard({
   if (!patterns?.dataReady && !riskForecast?.dataReady && !habitStrength?.dataReady) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-4 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <h3 className="text-[15px] font-semibold text-[#1C1B18]">Training consistency</h3>
+    <div className="bg-white rounded-2xl border border-border p-4 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <h3 className="text-[15px] font-semibold text-ink">Training consistency</h3>
 
       {/* Habit strength */}
       {habitStrength?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Habit strength</span>
+          <span className="text-[12px] text-ink-muted">Habit strength</span>
           <div className="text-right">
             <span className={`text-[14px] font-semibold ${HABIT_COLORS[habitStrength.level]}`}>
               {habitStrength.level.charAt(0).toUpperCase() + habitStrength.level.slice(1)}
             </span>
-            <span className="text-[11px] text-[#9B9690] ml-1">({habitStrength.score}/100)</span>
+            <span className="text-[11px] text-ink-muted ml-1">({habitStrength.score}/100)</span>
           </div>
         </div>
       )}
@@ -53,7 +53,7 @@ export function AdherenceIntelligenceCard({
       {/* Next-session risk */}
       {riskForecast?.dataReady && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Skip risk today</span>
+          <span className="text-[12px] text-ink-muted">Skip risk today</span>
           <span className={`text-[14px] font-semibold ${RISK_COLORS[riskForecast.risk]}`}>
             {riskForecast.risk.charAt(0).toUpperCase() + riskForecast.risk.slice(1)}
           </span>
@@ -64,7 +64,7 @@ export function AdherenceIntelligenceCard({
       {riskForecast?.reasons && riskForecast.reasons.length > 0 && (
         <div className="space-y-1">
           {riskForecast.reasons.slice(0, 2).map((r, i) => (
-            <p key={i} className="text-[12px] text-[#C0392B]">• {r}</p>
+            <p key={i} className="text-[12px] text-danger">• {r}</p>
           ))}
         </div>
       )}
@@ -73,7 +73,7 @@ export function AdherenceIntelligenceCard({
       {riskForecast?.protectiveFactors && riskForecast.protectiveFactors.length > 0 && (
         <div className="space-y-1">
           {riskForecast.protectiveFactors.slice(0, 2).map((p, i) => (
-            <p key={i} className="text-[12px] text-[#0F6E56]">✓ {p}</p>
+            <p key={i} className="text-[12px] text-success">✓ {p}</p>
           ))}
         </div>
       )}
@@ -81,16 +81,16 @@ export function AdherenceIntelligenceCard({
       {/* Best day */}
       {patterns?.dataReady && patterns.bestWeekday !== null && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Best day to train</span>
-          <span className="text-[12px] font-medium text-[#1C1B18]">{patterns.bestWeekday}s</span>
+          <span className="text-[12px] text-ink-muted">Best day to train</span>
+          <span className="text-[12px] font-medium text-ink">{patterns.bestWeekday}s</span>
         </div>
       )}
 
       {/* Adaptive sizing */}
       {workoutSize && (
         <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[#9B9690]">Recommended duration</span>
-          <span className="text-[12px] font-medium text-[#1C1B18]">
+          <span className="text-[12px] text-ink-muted">Recommended duration</span>
+          <span className="text-[12px] font-medium text-ink">
             {workoutSize.recommendedMinMin}–{workoutSize.recommendedMaxMin} min
           </span>
         </div>
@@ -98,9 +98,9 @@ export function AdherenceIntelligenceCard({
 
       {/* Miss analysis */}
       {missedAnalysis?.dataReady && missedAnalysis.readinessDiff !== undefined && (
-        <p className="text-[12px] text-[#6B6860]">
+        <p className="text-[12px] text-ink-secondary">
           You miss workouts when readiness is{" "}
-          <span className="text-[#C0392B] font-medium">
+          <span className="text-danger font-medium">
             {Math.abs(Math.round(missedAnalysis.readinessDiff))} pts lower
           </span>{" "}
           than usual.

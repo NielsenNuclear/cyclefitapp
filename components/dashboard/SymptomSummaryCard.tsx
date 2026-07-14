@@ -10,14 +10,14 @@ const SEVERITY_LABEL: Record<1 | 2 | 3, string> = {
 };
 
 const SEVERITY_COLOR: Record<1 | 2 | 3, string> = {
-  1: "text-[#534AB7]",
-  2: "text-[#854F0B]",
-  3: "text-[#C0390B]",
+  1: "text-brand",
+  2: "text-caution",
+  3: "text-danger",
 };
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
@@ -34,11 +34,11 @@ export function SymptomSummaryCard({ symptoms }: SymptomSummaryCardProps) {
     .slice(0, 3);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Today&apos;s Symptoms</CardLabel>
 
       {present.length === 0 ? (
-        <p className="text-[12px] text-[#9B9690] leading-relaxed">
+        <p className="text-[12px] text-ink-muted leading-relaxed">
           No symptoms logged today.
         </p>
       ) : (
@@ -49,7 +49,7 @@ export function SymptomSummaryCard({ symptoms }: SymptomSummaryCardProps) {
             const sev = entry.severity as 1 | 2 | 3;
             return (
               <div key={entry.symptomId} className="flex items-center justify-between">
-                <span className="text-[12px] text-[#1C1B18] font-medium">
+                <span className="text-[12px] text-ink font-medium">
                   {symptom.name}
                 </span>
                 <span className={`text-[11px] font-semibold ${SEVERITY_COLOR[sev]}`}>

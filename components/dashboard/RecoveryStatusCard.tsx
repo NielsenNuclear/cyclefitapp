@@ -5,17 +5,17 @@ import type { RecoveryStatus, WorkloadTrend } from "@/lib/analytics/trainingLoad
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+    <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
       {children}
     </div>
   );
 }
 
 const STATUS_STYLES: Record<RecoveryStatus, string> = {
-  "Recovered":        "bg-[#E1F5EE] text-[#085041] border-[#A3DCCA]",
-  "Normal":           "bg-[#F1EFE8] text-[#5C5850] border-[#E0DDD4]",
-  "Elevated Fatigue": "bg-[#FDF6EC] text-[#633806] border-[#E8C98A]",
-  "High Fatigue":     "bg-[#FDE8E8] text-[#8B1A1A] border-[#F5BCBC]",
+  "Recovered":        "bg-success-bg text-success-text border-success-border",
+  "Normal":           "bg-surface-hover text-ink-secondary border-border-strong",
+  "Elevated Fatigue": "bg-caution-bg text-caution-text border-caution-border",
+  "High Fatigue":     "bg-danger-bg text-danger border-danger-border",
 };
 
 const TREND_LABEL: Record<WorkloadTrend, string> = {
@@ -25,9 +25,9 @@ const TREND_LABEL: Record<WorkloadTrend, string> = {
 };
 
 const TREND_COLOR: Record<WorkloadTrend, string> = {
-  "Increasing": "text-[#633806]",
-  "Stable":     "text-[#5C5850]",
-  "Decreasing": "text-[#085041]",
+  "Increasing": "text-caution-text",
+  "Stable":     "text-ink-secondary",
+  "Decreasing": "text-success-text",
 };
 
 interface RecoveryStatusCardProps {
@@ -37,15 +37,15 @@ interface RecoveryStatusCardProps {
 export function RecoveryStatusCard({ report }: RecoveryStatusCardProps) {
   if (!report) {
     return (
-      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+      <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Recovery Status</CardLabel>
-        <p className="text-[12px] text-[#9B9690]">Building your training load profile…</p>
+        <p className="text-[12px] text-ink-muted">Building your training load profile…</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <CardLabel>Recovery Status</CardLabel>
 
       {/* Status badge + trend */}
@@ -62,19 +62,19 @@ export function RecoveryStatusCard({ report }: RecoveryStatusCardProps) {
 
       {/* Sub-stats */}
       <div className="grid grid-cols-2 gap-2">
-        <div className="px-3 py-2 bg-[#F5F3EE] rounded-xl">
-          <div className="text-[9px] text-[#9B9690] uppercase tracking-wider mb-0.5">
+        <div className="px-3 py-2 bg-surface-subtle rounded-xl">
+          <div className="text-[9px] text-ink-muted uppercase tracking-wider mb-0.5">
             This Week
           </div>
-          <div className="text-[13px] font-medium text-[#1C1B18]">
+          <div className="text-[13px] font-medium text-ink">
             {report.completedWorkouts} session{report.completedWorkouts !== 1 ? "s" : ""}
           </div>
         </div>
-        <div className="px-3 py-2 bg-[#F5F3EE] rounded-xl">
-          <div className="text-[9px] text-[#9B9690] uppercase tracking-wider mb-0.5">
+        <div className="px-3 py-2 bg-surface-subtle rounded-xl">
+          <div className="text-[9px] text-ink-muted uppercase tracking-wider mb-0.5">
             Weekly Sets
           </div>
-          <div className="text-[13px] font-medium text-[#1C1B18]">
+          <div className="text-[13px] font-medium text-ink">
             {report.weeklyVolume}
           </div>
         </div>

@@ -8,16 +8,16 @@ import type { FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
 
 function Divider() {
-  return <div className="h-px bg-[#F0EDE4] my-3" />;
+  return <div className="h-px bg-surface-hover my-3" />;
 }
 
 function RiskBadge({ level }: { level: string }) {
   const styles: Record<string, string> = {
-    low:      "bg-[#E1F5EE] text-[#085041]",
-    moderate: "bg-[#FDF6EC] text-[#633806]",
-    high:     "bg-[#FDE8E8] text-[#8B1A1A]",
-    critical: "bg-[#FDE8E8] text-[#8B1A1A] font-bold",
-    insufficient_data: "bg-[#F5F3EE] text-[#9B9690]",
+    low:      "bg-success-bg text-success-text",
+    moderate: "bg-caution-bg text-caution-text",
+    high:     "bg-danger-bg text-danger",
+    critical: "bg-danger-bg text-danger font-bold",
+    insufficient_data: "bg-surface-subtle text-ink-muted",
   };
   const labels: Record<string, string> = {
     low: "Low", moderate: "Moderate", high: "High", critical: "Critical", insufficient_data: "—",
@@ -51,11 +51,11 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
 
   if (entryCount < 3) {
     return (
-      <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-3">
+      <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">
           Recovery Intelligence
         </div>
-        <p className="text-[12px] text-[#9B9690] leading-relaxed">
+        <p className="text-[12px] text-ink-muted leading-relaxed">
           Complete 3+ daily check-ins to unlock recovery pattern insights.
         </p>
       </div>
@@ -76,13 +76,13 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
   const loadLabel = avgLoad >= 4 ? "High" : avgLoad >= 2 ? "Moderate" : "Low";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">
           Recovery Intelligence
         </div>
-        <span className="text-[10px] text-[#9B9690]">{entryCount} days tracked</span>
+        <span className="text-[10px] text-ink-muted">{entryCount} days tracked</span>
       </div>
 
       <div className="space-y-3">
@@ -90,23 +90,23 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
         {/* Fatigue risk forecast */}
         {hasPrediction && day3 && day7 && (
           <div>
-            <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">
+            <div className="text-[9px] font-bold uppercase tracking-widest text-ink-muted mb-2">
               Fatigue forecast
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="px-3 py-2 bg-[#FAFAF7] rounded-xl border border-[#E5E2DA]">
-                <div className="text-[10px] text-[#9B9690] mb-1">3-day risk</div>
+              <div className="px-3 py-2 bg-canvas rounded-xl border border-border">
+                <div className="text-[10px] text-ink-muted mb-1">3-day risk</div>
                 <RiskBadge level={day3.riskLevel} />
-                <div className="text-[10px] text-[#6B6860] mt-1">{day3.riskScore}%</div>
+                <div className="text-[10px] text-ink-secondary mt-1">{day3.riskScore}%</div>
               </div>
-              <div className="px-3 py-2 bg-[#FAFAF7] rounded-xl border border-[#E5E2DA]">
-                <div className="text-[10px] text-[#9B9690] mb-1">7-day risk</div>
+              <div className="px-3 py-2 bg-canvas rounded-xl border border-border">
+                <div className="text-[10px] text-ink-muted mb-1">7-day risk</div>
                 <RiskBadge level={day7.riskLevel} />
-                <div className="text-[10px] text-[#6B6860] mt-1">{day7.riskScore}%</div>
+                <div className="text-[10px] text-ink-secondary mt-1">{day7.riskScore}%</div>
               </div>
             </div>
             {day3.riskLevel !== "low" && (
-              <p className="text-[11px] text-[#5C5850] leading-relaxed mt-2">
+              <p className="text-[11px] text-ink-secondary leading-relaxed mt-2">
                 {day3.guidance}
               </p>
             )}
@@ -118,14 +118,14 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
           <>
             <Divider />
             <div>
-              <div className="text-[9px] font-bold uppercase tracking-widest text-[#9B9690] mb-2">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-ink-muted mb-2">
                 What predicts your recovery
               </div>
-              <p className="text-[12px] font-medium text-[#1C1B18] leading-snug">
+              <p className="text-[12px] font-medium text-ink leading-snug">
                 {topCorrelation.insight}
               </p>
               {correlationReport.correlations.slice(1, 3).map(c => (
-                <p key={c.signal} className="text-[11px] text-[#6B6860] leading-relaxed mt-1">
+                <p key={c.signal} className="text-[11px] text-ink-secondary leading-relaxed mt-1">
                   {c.insight}
                 </p>
               ))}
@@ -137,11 +137,11 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
         {hasConsecutiveData && consecutiveImpact.delta < -5 && (
           <>
             <Divider />
-            <div className="px-2.5 py-2 bg-[#FDF6EC] rounded-lg border border-[#E8C98A]">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-[#633806] mb-1">
+            <div className="px-2.5 py-2 bg-caution-bg rounded-lg border border-caution-border">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-caution-text mb-1">
                 Pattern detected
               </div>
-              <p className="text-[11px] text-[#633806] leading-relaxed">
+              <p className="text-[11px] text-caution-text leading-relaxed">
                 3 consecutive training sessions reduce your recovery score by{" "}
                 <span className="font-semibold">{Math.abs(consecutiveImpact.delta)} points</span>{" "}
                 on average ({consecutiveImpact.sampleSize} observations).
@@ -153,11 +153,11 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
         {/* Current week load */}
         <Divider />
         <div className="flex items-center justify-between">
-          <div className="text-[11px] text-[#6B6860]">This week's training load</div>
+          <div className="text-[11px] text-ink-secondary">This week's training load</div>
           <span className={`text-[11px] font-semibold ${
-            loadLabel === "High" ? "text-[#B25E1B]" :
-            loadLabel === "Moderate" ? "text-[#534AB7]" :
-            "text-[#085041]"
+            loadLabel === "High" ? "text-nutrition" :
+            loadLabel === "Moderate" ? "text-brand" :
+            "text-success-text"
           }`}>
             {loadLabel}
           </span>
@@ -165,7 +165,7 @@ export function FatigueInsightsCard({ prediction }: FatigueInsightsCardProps) {
 
         {/* Low data state for correlations */}
         {!correlationReport.hasEnoughData && (
-          <p className="text-[11px] text-[#9B9690] leading-relaxed">
+          <p className="text-[11px] text-ink-muted leading-relaxed">
             {correlationReport.minSampleRequired - correlationReport.totalDays} more check-ins needed to reveal your personal recovery patterns.
           </p>
         )}
