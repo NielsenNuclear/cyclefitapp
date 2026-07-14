@@ -15,10 +15,10 @@ interface Props {
 }
 
 const TIER_COLOR: Record<string, string> = {
-  accelerating: "text-[#0F6E56]",
-  on_track:     "text-[#1B4FA0]",
-  stalled:      "text-[#854F0B]",
-  declining:    "text-[#C0392B]",
+  accelerating: "text-success",
+  on_track:     "text-info",
+  stalled:      "text-caution",
+  declining:    "text-danger",
 };
 
 const SEVERITY_DOT: Record<string, string> = {
@@ -28,15 +28,15 @@ const SEVERITY_DOT: Record<string, string> = {
 };
 
 const PRIORITY_BOX: Record<string, string> = {
-  critical: "bg-rose-500/10 border-rose-500/25 text-[#9B2015]",
-  high:     "bg-amber-500/10 border-amber-500/25 text-[#633806]",
-  moderate: "bg-sky-500/10 border-sky-500/25 text-[#1B4FA0]",
+  critical: "bg-rose-500/10 border-rose-500/25 text-danger",
+  high:     "bg-amber-500/10 border-amber-500/25 text-caution-text",
+  moderate: "bg-sky-500/10 border-sky-500/25 text-info",
 };
 
 const CONF_COLOR: Record<string, string> = {
-  high:     "text-[#0F6E56]",
-  moderate: "text-[#1B4FA0]",
-  low:      "text-[#C8C5BC]",
+  high:     "text-success",
+  moderate: "text-info",
+  low:      "text-ink-faint",
 };
 
 export function OutcomeIntelligenceCard({
@@ -53,12 +53,12 @@ export function OutcomeIntelligenceCard({
 
   if (!hasContent) return null;
 
-  const tierColor = TIER_COLOR[successModel?.currentTier ?? ""] ?? "text-[#9B9690]";
+  const tierColor = TIER_COLOR[successModel?.currentTier ?? ""] ?? "text-ink-muted";
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Outcome Intelligence</h3>
+        <h3 className="text-sm font-semibold text-ink">Outcome Intelligence</h3>
         {successModel?.dataReady && (
           <span className={`text-xs font-semibold capitalize ${tierColor}`}>
             {successModel.currentTier.replace("_", " ")}
@@ -68,26 +68,26 @@ export function OutcomeIntelligenceCard({
 
       {/* Top predictor + bottleneck summary */}
       <div className="grid grid-cols-2 gap-2">
-        <div className="bg-[#F1EFE8] rounded-xl px-3 py-2.5">
-          <div className="text-[9px] text-[#C8C5BC] uppercase tracking-widest mb-1">Top predictor</div>
-          <div className="text-[11px] font-semibold text-[#1C1B18]">
+        <div className="bg-surface-hover rounded-xl px-3 py-2.5">
+          <div className="text-[9px] text-ink-faint uppercase tracking-widest mb-1">Top predictor</div>
+          <div className="text-[11px] font-semibold text-ink">
             {behaviorImpact?.behaviors[0]?.label ?? "—"}
           </div>
           {behaviorImpact?.behaviors[0] && (
-            <div className="text-[9px] text-[#9B9690] mt-0.5">
+            <div className="text-[9px] text-ink-muted mt-0.5">
               impact {behaviorImpact.behaviors[0].impactScore}/100
             </div>
           )}
         </div>
-        <div className="bg-[#F1EFE8] rounded-xl px-3 py-2.5">
-          <div className="text-[9px] text-[#C8C5BC] uppercase tracking-widest mb-1">Primary bottleneck</div>
-          <div className="text-[11px] font-semibold text-[#1C1B18]">
+        <div className="bg-surface-hover rounded-xl px-3 py-2.5">
+          <div className="text-[9px] text-ink-faint uppercase tracking-widest mb-1">Primary bottleneck</div>
+          <div className="text-[11px] font-semibold text-ink">
             {bottlenecks?.primaryBottleneck?.label ?? (bottlenecks?.dataReady ? "None detected" : "—")}
           </div>
           {bottlenecks?.primaryBottleneck && (
             <div className="flex items-center gap-1 mt-0.5">
               <div className={`w-1.5 h-1.5 rounded-full ${SEVERITY_DOT[bottlenecks.primaryBottleneck.severity]}`} />
-              <span className="text-[9px] text-[#9B9690]">{bottlenecks.primaryBottleneck.severity}</span>
+              <span className="text-[9px] text-ink-muted">{bottlenecks.primaryBottleneck.severity}</span>
             </div>
           )}
         </div>
@@ -96,12 +96,12 @@ export function OutcomeIntelligenceCard({
       {/* Bottleneck list */}
       {bottlenecks?.allBottlenecks && bottlenecks.allBottlenecks.length > 1 && (
         <div className="space-y-1.5">
-          <div className="text-[10px] text-[#C8C5BC] uppercase tracking-widest">All constraints</div>
+          <div className="text-[10px] text-ink-faint uppercase tracking-widest">All constraints</div>
           {bottlenecks.allBottlenecks.map((b) => (
             <div key={b.category} className="flex items-center gap-2.5">
               <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${SEVERITY_DOT[b.severity]}`} />
-              <div className="flex-1 text-[10px] text-[#5C5850]">{b.label}</div>
-              <div className="text-[9px] text-[#C8C5BC]">−{b.estimatedReadinessDrag} pts</div>
+              <div className="flex-1 text-[10px] text-ink-secondary">{b.label}</div>
+              <div className="text-[9px] text-ink-faint">−{b.estimatedReadinessDrag} pts</div>
               <div className="w-14 h-1 rounded-full bg-black/8">
                 <div
                   className={`h-1 rounded-full ${SEVERITY_DOT[b.severity].replace("bg-", "bg-")}`}
@@ -115,11 +115,11 @@ export function OutcomeIntelligenceCard({
 
       {/* Leverage point */}
       {leveragePoint && (
-        <div className={`border rounded-xl px-3 py-2.5 space-y-1 ${PRIORITY_BOX[leveragePoint.priority] ?? "bg-[#F1EFE8] border-[#EAE7DE] text-[#6B6860]"}`}>
+        <div className={`border rounded-xl px-3 py-2.5 space-y-1 ${PRIORITY_BOX[leveragePoint.priority] ?? "bg-surface-hover border-border text-ink-secondary"}`}>
           <div className="text-[9px] font-semibold uppercase tracking-widest opacity-70">
             Best leverage point
           </div>
-          <div className="text-[12px] font-semibold text-[#1C1B18]">{leveragePoint.label}</div>
+          <div className="text-[12px] font-semibold text-ink">{leveragePoint.label}</div>
           <div className="text-[10px] opacity-80">{leveragePoint.actionableAdvice}</div>
           <div className="text-[9px] opacity-55 italic">{leveragePoint.estimatedGain}</div>
         </div>
@@ -127,19 +127,19 @@ export function OutcomeIntelligenceCard({
 
       {/* Completion forecast */}
       {forecast?.dataReady && (
-        <div className="space-y-2 pt-1 border-t border-[#EAE7DE]">
-          <div className="text-[10px] text-[#C8C5BC] uppercase tracking-widest">Goal completion forecast</div>
+        <div className="space-y-2 pt-1 border-t border-border">
+          <div className="text-[10px] text-ink-faint uppercase tracking-widest">Goal completion forecast</div>
           <div className="grid grid-cols-3 gap-1.5">
             {forecast.periods.map((p) => (
-              <div key={p.days} className="bg-[#F1EFE8] rounded-xl py-2 px-1 text-center">
-                <div className="text-sm font-bold text-[#1C1B18]">{p.probability}%</div>
-                <div className="text-[9px] text-[#C8C5BC] mt-0.5">{p.label}</div>
+              <div key={p.days} className="bg-surface-hover rounded-xl py-2 px-1 text-center">
+                <div className="text-sm font-bold text-ink">{p.probability}%</div>
+                <div className="text-[9px] text-ink-faint mt-0.5">{p.label}</div>
                 <div className={`text-[8px] mt-0.5 ${CONF_COLOR[p.confidence]}`}>{p.confidence}</div>
               </div>
             ))}
           </div>
           {forecast.projectedEtaWeeks !== null && (
-            <div className="text-[10px] text-[#9B9690] text-center">
+            <div className="text-[10px] text-ink-muted text-center">
               Current velocity → goal in ~{forecast.projectedEtaWeeks}w
             </div>
           )}

@@ -15,27 +15,27 @@ Living document — updated at the end of every batch. For the frozen point-in-t
 | 3 — Dashboard Layer 1 | ✅ Complete (with one scoped gap — see below) |
 | 4 — Navigation + overlays | ✅ Complete |
 | 5 — Dashboard Layer 2 (accordion sections) | ✅ Complete |
-| 6 — Dashboard Layer 3 ("Axis Intelligence") | ⏳ Not started |
+| 6 — Dashboard Layer 3 ("Axis Intelligence") | ✅ Complete |
 | 7 — Icon system | ⏳ Not started |
 
-**Compliance headline — re-measured after Batch 5** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`). The file count itself grew from 195 → 202 `.tsx` files between Batch 3 and Batch 5 (ordinary feature work landing on the branch in parallel, not a migration artifact) — percentages below are recomputed against the current 202 for Batch 5's column rather than left stale against the old denominator:
+**Compliance headline — re-measured after Batch 6** (same methodology as `DS2Baseline.md`, app-wide across `components/`+`app/`, 202 `.tsx` files — unchanged since Batch 5):
 
-| Metric | Baseline (Batch 0) | After Batch 2 | After Batch 3 | After Batch 5 |
-|---|---|---|---|---|
-| Fully compliant files | 15 (7.7%) | 22 (11.3%) | 22 (11.3%) | **22 (10.9% of 202) — see note below** |
-| Files using ≥1 token color class | 49 (25%) | 62 (32%) | 68 (35%) | **121 (60% of 202)** |
-| Files with ≥1 hardcoded hex | 133 (68%) | 127 (65%) | 122 (63%) | **73 (36% of 202)** |
-| Total hardcoded hex occurrences | 3,500 | 3,227 | 3,049 | **1,755** |
+| Metric | Baseline (Batch 0) | After Batch 2 | After Batch 3 | After Batch 5 | After Batch 6 |
+|---|---|---|---|---|---|
+| Fully compliant files | 15 (7.7%) | 22 (11.3%) | 22 (11.3%) | 22 (10.9% of 202) | **22 (10.9% of 202) — see note below** |
+| Files using ≥1 token color class | 49 (25%) | 62 (32%) | 68 (35%) | 121 (60% of 202) | **140 (69% of 202)** |
+| Files with ≥1 hardcoded hex | 133 (68%) | 127 (65%) | 122 (63%) | 73 (36% of 202) | **54 (27% of 202)** |
+| Total hardcoded hex occurrences | 3,500 | 3,227 | 3,049 | 1,755 | **1,321** |
 
-Batch 5 alone replaced **~1,270 hardcoded hex occurrences across 50 files** with token classes — by a wide margin the largest single-batch reduction of the whole DS-2 effort so far. "Fully compliant files" still doesn't move (same reason as Batch 3: it also requires zero arbitrary `text-[Npx]` sizing, which this batch — a color-only pass, per scope — didn't touch), but every other metric moved sharply.
+Batch 6 replaced **434 hardcoded hex occurrences across 19 files** — smaller in absolute count than Batch 5 (expected: ~20 cards vs. ~61), but a similar proportion of that section's own hex debt. "Fully compliant files" still hasn't moved since Batch 2 for the same reason each batch has documented: it also requires zero arbitrary `text-[Npx]` sizing, and no batch since 2 has touched typography (deliberately — see Batch 3's note on scope discipline). Color-token adoption is now at 69% of the app's `.tsx` files, up from 25% at baseline.
 
 **Why "fully compliant files" didn't move in Batch 3** despite real progress: that metric requires *zero* hardcoded hex **and** zero arbitrary `text-[Npx]` sizing **and** zero raw Tailwind palette classes. Batch 3 fully eliminated hardcoded hex from all 8 Layer-1 files (their color-token adoption is complete), but did not convert their arbitrary pixel font sizes (`text-[11px]`, `text-[13px]`, etc.) to the `.type-*` semantic scale — that's the typography-migration effort flagged in `DS2Baseline.md` as the single largest compliance gap in the app (154 files, 1,451 occurrences), and doing it properly for 8 files in the middle of a color-migration batch risked scope creep into a second, much larger unplanned effort. Color-token adoption (the metric that actually moved) is the more consequential of the two per the baseline's own analysis.
 
 ## Current Batch
 
-**Batch 5 — Dashboard Layer 2 accordion sections: complete.** Migrated all 9 Layer-2 `AccordionSection`s (Recovery, Cycle Intelligence, Nutrition, Progress & Performance, Athlete Development, Training Plan, Performance Tracking, Insights & Analytics, Lifestyle & Adherence — 50 card files, ~61 individual card components, 793+477 pre-migration hex occurrences) from hardcoded hex to design tokens, per the plan's sequencing rule (smallest section first, Recovery last regardless of its card count). Category vocabulary (`optimal/ready/moderate/cautious/recover`, `Ahead/On Track/Behind/Stalled`, etc.) was left completely untouched — only the *colors* backing each category changed, never the categories themselves. See "Batch 5 details" below for the migration methodology, the three deliberate categorical-color exceptions, and the scoped gaps (Card/Button componentization, EmptyState rollout) carried forward from Batch 3's precedent at a larger scale.
+**Batch 6 — Dashboard Layer 3 "Axis Intelligence": complete.** Migrated all 20 cards in the single Layer-3 accordion section (`id="intelligence"`) — `PersonalizationCard`, `WhatAxisLearnedCard`, `PersonalResponseCard`, `SignalImportanceCard`, `ReadinessConfidenceCard`, `PredictionAccuracyCard`, `CalibrationIntelligenceCard`, `RecommendationEffectivenessCard`, `ConfidenceDashboardCard`, `AccuracyTimelineCard`, `ExplainabilityCard`, `UserTrustCard`, `OutcomeOptimizationCard`, `OutcomeIntelligenceCard`, `ExecutiveSummaryCard`, `CapacityCard`, `SituationMemoryCard`, `InsightsCard`, `RecommendationExplanation`, plus `RecommendationCards.tsx`'s `RecoveryCard` (already token-compliant as an incidental side effect of Batch 5, confirmed not re-touched) — from hardcoded hex to design tokens, using the same lookup-table methodology Batch 5 established. None of the 7 confidence or 5 explainability components were merged, relocated, or had their category vocabulary changed — this batch is styling-only, per DS-2's explicit boundary against DS-3 consolidation work. See "Batch 6 details" below.
 
-**Next up:** Batch 6 (Dashboard Layer 3 "Axis Intelligence") — awaiting review sign-off before starting.
+**Next up:** Batch 7 (Icon system) — awaiting review sign-off before starting.
 
 ## Commit History
 
@@ -64,6 +64,7 @@ Batch 5 alone replaced **~1,270 hardcoded hex occurrences across 50 files** with
 | 4 | `refactor(ui): migrate BodyIntelligenceViewer overlay to shared Sheet component` | `components/ui/Sheet.tsx`, `components/body/BodyIntelligenceViewer.tsx` |
 | 4 | `docs: update DS2Progress.md — Batch 4 complete` | `docs/design/DS2Progress.md` |
 | 5 | `refactor: adopt design system for Batch 5 dashboard Layer 2 accordion sections` | 50 files across `components/dashboard/`, `components/intelligence/`, `components/insights/`, `components/athlete/`, plus `docs/design/DS2Progress.md` — single commit per this batch's instructions (contrast with Batches 1–4's per-concern granularity) |
+| 6 | `refactor: adopt design system for Batch 6 Axis Intelligence surfaces` | 19 files across `components/dashboard/`, `components/intelligence/`, plus `docs/design/DS2Progress.md` — single commit, same granularity as Batch 5 |
 
 (Hashes are reported per-batch in the end-of-batch report rather than embedded here. Run `git log --oneline -- docs/design/ components/ui/ components/resilience/ErrorBoundary.tsx components/onboarding/ components/dashboard/ components/intelligence/ lib/intelligence/` for the authoritative record.)
 
@@ -335,9 +336,61 @@ Completed onboarding fresh (fillable date field for last-period-start, equipment
 | Keyboard focus (Tab through nav) | ✅ Visible brand-purple focus ring on nav icons — confirms Batch 5's pure color-only changes didn't disturb existing focus/keyboard behavior (expected, since no interactive elements or event handlers were touched, only className/color-prop values) |
 | Console errors, entire session (onboarding + full dashboard + all 9 sections expanded) | ✅ none |
 
+## Verification Status (Batch 6)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ Clean (0 errors) |
+| `vitest run` | ✅ 323/323 passing, 6 files (unchanged) |
+| Dev server launches | ✅ Confirmed clean startup |
+| `/dashboard` returns HTTP 200 | ✅ Confirmed via direct request |
+| Stale `-ui-surface`/`-ui-border`/`ink-base`/`ink-subtle` token family | ✅ Zero matches across all 19 touched files |
+| Automated browser QA (gstack) | ✅ Full walkthrough — see "Batch 6 details" below |
+| Console errors across entire session (onboarding + Axis Intelligence expanded + card interaction) | ✅ none |
+| Keyboard focus visibility | ✅ Confirmed — visible brand-purple ring on Tab, unaffected by color-only changes |
+| git status clean of unrelated changes | ✅ Confirmed |
+
+## Batch 6 details
+
+### Same lookup-table methodology as Batch 5, smaller but consistent hex-drift pattern
+
+Extracted the distinct hex palette across all 19 files (434 occurrences) and cross-referenced against `app/globals.css`. As anticipated in Batch 5's "Notes for Batch 6 kickoff," the confidence/explainability surfaces draw from the same drifted palette as the rest of the app — the same `#C0392B`-vs-real-`danger`-token near-miss, the same `#9B9690`/`#1C1B18`/`#EAE7DE` structural colors, appeared again. Extended the existing hex→token table with a handful of new near-matches specific to these files (e.g. `#C8C5BC`/`#4A4740`/`#1A3F8F` → `ink-faint`/`ink-secondary`/`info`) and ran the same script. 428 of 434 occurrences resolved via the Tailwind-class script in one pass; the remaining 6 were two inline patterns handled by hand:
+
+- **`ReadinessConfidenceCard.tsx`'s confidence ring** — identical shape to Batch 5's `ForecastCard`/`AdherenceCard` pattern (a `level === "high" ? "#34d399" : ...` literal-hex ternary feeding an SVG `stroke` prop). Migrated to `lib/design/tokens.ts`'s `color` export (`tokenColor.success`/`.info`/`.caution`), consistent with the existing `LEVEL_COLOR` className map two lines above it in the same file (which already used `text-success`/`text-info`/`text-caution` — the ring was the one place in the file still using raw hex).
+- **`RecommendationExplanation.tsx`'s two decorative icon SVGs** — static `stroke="#534AB7"` / `stroke="#9B9690"` attribute literals (not even a JS variable). Note: `stroke="var(--color-brand)"` would **not** work here — CSS custom properties only resolve in a CSS context (`style=` or a stylesheet), not as a literal SVG presentation-attribute string — so these were migrated to `tokenColor.brand`/`tokenColor.inkMuted` (real hex from the TS mirror) rather than a Tailwind class or a `var()` string, same reasoning as `PhaseCard`'s `stroke={accent}` in Batch 5.
+
+### `RecommendationCards.tsx`'s `RecoveryCard` — confirmed already compliant, not re-touched
+
+Flagged in Batch 5's kickoff notes as already incidentally migrated. Verified directly (`grep` for hex within the `RecoveryCard` function body returns zero matches) before starting — no action needed, no risk of double-processing.
+
+### No new categorical-color exceptions found in this batch
+
+Unlike Batch 5 (which found three legitimate categorical-not-status color sets), every color scale in these 19 files turned out to be a genuine status/confidence/trend judgment (High/Medium/Low confidence, improving/stable/declining trend, reliable/moderate/unreliable, overestimate/underestimate/balanced bias) — i.e. exactly the kind of scale the success/caution/danger/info/brand ramp is built for. No exceptions needed.
+
+### Confidence/explainability information hierarchy preserved, not restructured
+
+Per this batch's explicit requirement, verified the existing Recommendation → Explanation → Supporting evidence → Confidence → Suggested next step flow is unchanged: `ExplainabilityCard`'s "Why This Recommendation" still leads with the recommendation ("Proceed"), then supporting signals (Readiness/Recovery/Stress/Sleep), then a confidence percentage and rationale sentence — same structure as before, just recolored. No interaction layer was added or removed; nothing that was visible is now hidden behind a click, and nothing hidden was newly exposed. `ConfidenceDashboardCard`/`ReadinessConfidenceCard`/`PredictionAccuracyCard` still each lead with their own qualitative label (e.g. "Low Confidence") per the existing convention — **this batch did not address** the AxisDesignSystem.md §11 finding that some of these components lead with a raw percentage rather than a qualitative label first; that's the DS-3 confidence-vocabulary consolidation this batch is explicitly barred from doing, not something overlooked.
+
+### Full Axis Intelligence browser QA
+
+Completed onboarding fresh again (gstack's headless browser resets state between sessions on this machine, per the recurring note since Batch 3) and expanded the "Axis Intelligence" accordion:
+
+| Card | Result |
+|---|---|
+| `PersonalizationCard` ("Your Adaptive Profile") | ✅ progress bars, tag list render with correct neutral/ink tones |
+| `ReadinessConfidenceCard` | ✅ "Low Confidence" in caution-amber text, ring dot correctly amber (hand-migrated ring color confirmed working live) |
+| `ExplainabilityCard` ("Why This Recommendation") | ✅ "Proceed" headline, brand-purple + info-blue signal dots, confidence % and rationale sentence all correct |
+| `WhatAxisLearnedCard` ("How Well Axis Knows You") | ✅ purple/amber progress bars render correctly |
+| `CapacityCard` | ✅ green/blue capacity bars, caution-tinted "Nutrition is critical" callout, info-tinted "Recovery: Under Engaged" callout |
+| `InsightsCard` | ✅ 4 distinct categorical pill tags (Cycle/Training/Volume/Recovery) each in a different, legible token color |
+| `RecoveryCard` (Layer 3, from `RecommendationCards.tsx`) | ✅ serif headline, renders correctly — confirms Batch 5's incidental migration held |
+| `RecommendationExplanation` ("Why these recommendations?") | ✅ expand/collapse works, brand-purple icon renders correctly (confirms the hand-fixed `stroke={tokenColor.brand}` SVG works in a real browser, not just in theory), "Advisory" badge in success-green |
+| Keyboard focus (Tab) | ✅ visible brand-purple ring, unaffected by this batch's color-only changes |
+| Console errors, entire session (onboarding + dashboard + Axis Intelligence expand + card interaction) | ✅ none |
+
 ## Remaining Work
 
-Everything in `DS2ImplementationPlan.md` Batches 6–7, plus the acknowledged Card/Button-componentization gap (Batch 3, now also Batch 5) and the `EmptyState` rollout gap (Batch 5) if either gets picked up as a follow-up, plus the manual (non-headless) keyboard QA pass on the Body Intelligence sheet flagged in Batch 4. The three categorical-color exceptions (PhaseCard's Late Luteal, MacroBar, PeriodizationCard's PHASE_COLORS) are candidates for a future shared categorical-palette token (DS-6), not a DS-2 gap.
+Everything in `DS2ImplementationPlan.md` Batch 7 (icon system), plus the acknowledged Card/Button-componentization gap (Batch 3, Batch 5) and the `EmptyState` rollout gap (Batch 5) if either gets picked up as a follow-up, plus the manual (non-headless) keyboard QA pass on the Body Intelligence sheet flagged in Batch 4. The three categorical-color exceptions from Batch 5 (PhaseCard's Late Luteal, MacroBar, PeriodizationCard's PHASE_COLORS) remain candidates for a future shared categorical-palette token (DS-6), not a DS-2 gap. DS-2's exit checklist (`DS2ImplementationPlan.md` §5) still has one item outstanding after Batch 7: a repo-wide grep for raw hex to confirm only documented exceptions remain — worth running formally once Batch 7 lands, since the per-batch counts above have been tracking it informally all along.
 
 ## Known Issues
 
@@ -355,6 +408,8 @@ Everything in `DS2ImplementationPlan.md` Batches 6–7, plus the acknowledged Ca
 7. **New, found and resolved in Batch 5**: `CycleIntelligenceCard.tsx` had a tan `#C8B89A` used for its `SectionHeading` eyebrow label and a bullet dot, while the same file's `CardLabel` helper — visibly the same "eyebrow label" role — used `text-ink-muted`. Concluded this was drift rather than an intentional third label treatment and consolidated both onto `ink-muted`.
 8. **New, documented in Batch 5 (not a bug — a deliberate, permanent exception)**: three places use color categorically (to distinguish between items) rather than semantically (to judge good/bad), and were left as hardcoded hex rather than forced onto the success/caution/danger/brand ramp: `PhaseCard.tsx`'s "Late Luteal" cycle phase, `NutritionIntelligenceCard.tsx`'s `MacroBar` per-macro legend, and `lib/periodization/goalProfiles.ts`'s `PHASE_COLORS`. See "Batch 5 details" for the full reasoning. Candidates for a future categorical-palette token (DS-6), not a gap to close within DS-2.
 9. **New, found in Batch 5**: hex-drift near-misses of real tokens are common and now confirmed systemic — e.g. `#C0392B` (a popular "flat-UI-colors" red) used in place of the actual `danger` token `#C0390B` across at least half a dozen Batch 5 files. All resolved onto the real token. Worth expecting the same pattern in Batch 6/7.
+10. **New, confirmed in Batch 6**: the same `#C0392B`-vs-`danger` and other near-miss drift patterns recurred across the confidence/explainability surfaces, confirming this isn't a dashboard-cards-only phenomenon — it's app-wide. All resolved via the same lookup table.
+11. **New, found and fixed in Batch 6 (a real, if minor, bug)**: `RecommendationExplanation.tsx` had two decorative icon SVGs using literal `stroke="#HEX"` attribute strings. Not a bug in the sense of wrong rendering (hex works fine as a literal), but worth recording the near-miss it avoided: a `var(--color-x)` string would **not** have worked in this context (CSS custom properties don't resolve inside a plain SVG presentation-attribute string, only inside `style=` or a stylesheet) — migrated to `lib/design/tokens.ts`'s `color` export (real hex) instead. Flagging this so a future contributor doesn't reach for `var()` here and get a silently-broken (defaults to black or `currentColor`) stroke.
 
 ---
 
@@ -412,10 +467,17 @@ All exported from the `components/ui` barrel (`components/ui/index.ts`).
 - Batch 4 left `/body`, `/exercises`, `/profile`, `/settings` with plenty of remaining hardcoded hex in their own page-level markup (filter chips, section headers, dialogs, etc.) — this was correctly out of scope per the plan's literal Batch 4 text (shell/nav + toast + sheet only, not a full color pass on those routes' content), but it means those 4 files are not "done" in the Batch 0 compliance-metric sense. No batch in the 5-7 range currently covers them (5-6 are the dashboard accordion sections, 7 is icons) — flag for a scoping decision on where standalone route content lives before declaring DS-2 complete.
 - `DashboardShell`'s new `fullBleed`/`hideMobileNav` props are additive and default off; no reason Batch 5/6 (both pure dashboard-accordion work, no shell changes) should need to touch `DashboardShell.tsx` at all.
 
-## Notes for Batch 6 kickoff
+## Notes for Batch 6 kickoff (historical)
 
 - Batch 6 scope per `DS2ImplementationPlan.md`: the ~20 "Axis Intelligence" cards in the single Layer-3 accordion (`app/dashboard/page.tsx`'s `id="intelligence"` section) — same styling-only treatment as Batch 5 (tokens, no `Card`/`Button` componentization forced, no `EmptyState` rollout forced), explicitly **not** a license to merge/consolidate the 7 confidence or 5 explainability components living in that section, or to relocate any of them out of Layer 3 — both are DS-3 decisions.
 - `components/dashboard/RecommendationCards.tsx`'s `RecoveryCard` was already incidentally migrated to tokens as a side effect of Batch 5's file-level script pass (see "Batch 5 details" above) — when Batch 6 opens this file, expect it to already be token-compliant; don't re-do the migration, just confirm and move on.
 - The three categorical-color exceptions documented in Batch 5 (`PhaseCard`'s Late Luteal phase, `NutritionIntelligenceCard`'s `MacroBar`, `lib/periodization/goalProfiles.ts`'s `PHASE_COLORS`) are a pattern worth watching for in Layer 3 too — if any Axis Intelligence card uses color to distinguish between categories (not to judge good/bad), don't force it onto the success/caution/danger/brand ramp; document it as the same kind of exception instead.
 - The stale token grep (`bg-ui-surface|border-ui-border|ink-base|ink-subtle`) came back clean across all 50 Batch 5 files — still only unfixed in the known, out-of-scope `app/dev/page.tsx`. Keep grepping each new file touched in Batch 6 regardless, since it's recurred 3 times historically.
 - Batch 5's hex→token lookup table (built against `app/globals.css`'s real `@theme` values) is reusable for Batch 6 — most of Layer 3's confidence/explainability cards almost certainly draw from the same drifted palette (the Design System Audit's own finding: "Confidence UI has at least 7 divergent implementations" with inconsistent hex). Worth checking for the same near-match patterns (e.g. `#C0392B` vs. the real `danger` token `#C0390B`) before assuming Layer 3's hex is novel.
+
+## Notes for Batch 7 kickoff
+
+- Batch 7 scope per `DS2ImplementationPlan.md`: build a shared `<Icon>` component/registry and migrate the 34 files of hand-rolled inline SVG plus unicode-glyph usages (`PhaseCard.tsx`, `Steps1to5.tsx`, etc.) onto it. This is a different shape of work from Batches 2–6 (component/registry build + adoption wave, not a color-token pass) — expect the file list to be assembled fresh (grep for inline `<svg>` and common glyph characters) rather than reusing the Layer 1/2/3 card lists from prior batches.
+- No categorical-color exceptions turned up in Batch 6 (unlike Batch 5's three) — all 19 files' color scales were genuine status/confidence judgments. Worth noting the pattern seems concentrated in cards with a categorical-identity need (per-phase, per-macro, per-training-block), not confidence/explainability surfaces — a mild signal that Batch 7's icon work is unlikely to hit the same "don't force a semantic token onto a categorical need" judgment call, though icons carrying meaning (e.g. a trend arrow's color) should still be sanity-checked against it.
+- Batch 6 confirmed the hex→token lookup table built in Batch 5 needed only ~7 new entries to cover an entirely different part of the app (confidence/explainability vs. dashboard cards) — strong evidence the app-wide hex palette really is one drifted-but-coherent set, not many unrelated ones. Keep the table (documented inline in this doc's Batch 5/6 details) as the reference for any future ad hoc hex found during Batch 7 or later.
+- Per `DS2ImplementationPlan.md`'s exit checklist: once Batch 7 lands, run a repo-wide grep for raw hex in `components/`/`app/` and confirm only the documented exceptions remain (PhaseCard's Late Luteal, MacroBar, PeriodizationCard's PHASE_COLORS, plus whatever Batch 7 itself doesn't touch by design) before declaring DS-2 complete.

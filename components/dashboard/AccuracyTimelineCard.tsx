@@ -14,10 +14,10 @@ const TREND_ICON: Record<AccuracyTrend, string>  = {
 };
 
 const TREND_COLOR: Record<AccuracyTrend, string> = {
-  improving:    "text-[#0F6E56]",
-  stable:       "text-[#1B4FA0]",
-  declining:    "text-[#C0392B]",
-  insufficient: "text-[#C8C5BC]",
+  improving:    "text-success",
+  stable:       "text-info",
+  declining:    "text-danger",
+  insufficient: "text-ink-faint",
 };
 
 const ACC_BAR = (acc: number) =>
@@ -36,10 +36,10 @@ export function AccuracyTimelineCard({ accuracy }: Props) {
   ] as const;
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Forecast Accuracy</h3>
-        <span className="text-sm font-semibold text-[#1C1B18]">{accuracy.overall}%</span>
+        <h3 className="text-sm font-semibold text-ink">Forecast Accuracy</h3>
+        <span className="text-sm font-semibold text-ink">{accuracy.overall}%</span>
       </div>
 
       <div className="space-y-3">
@@ -50,10 +50,10 @@ export function AccuracyTimelineCard({ accuracy }: Props) {
           return (
             <div key={label} className="space-y-1">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-[#5C5850]">{label}</span>
+                <span className="text-ink-secondary">{label}</span>
                 <div className="flex items-center gap-2">
                   <span className={`${trendColor} text-[10px]`}>{trendIcon}</span>
-                  <span className="text-[#9B9690]">{data.accuracy}%</span>
+                  <span className="text-ink-muted">{data.accuracy}%</span>
                 </div>
               </div>
               <div className="w-full h-1.5 rounded-full bg-black/8">
@@ -62,13 +62,13 @@ export function AccuracyTimelineCard({ accuracy }: Props) {
                   style={{ width: `${data.accuracy}%` }}
                 />
               </div>
-              <div className="text-[9px] text-[#C8C5BC]">{data.sampleSize} observations</div>
+              <div className="text-[9px] text-ink-faint">{data.sampleSize} observations</div>
             </div>
           );
         })}
       </div>
 
-      <p className="text-[10px] text-[#C8C5BC] text-center">
+      <p className="text-[10px] text-ink-faint text-center">
         Accuracy improves as Axis observes more outcomes over time.
       </p>
     </div>

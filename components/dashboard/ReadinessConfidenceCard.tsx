@@ -1,15 +1,16 @@
 "use client";
 
 import type { ReadinessConfidence } from "@/lib/autoregulation/readinessConfidence";
+import { color as tokenColor } from "@/lib/design/tokens";
 
 interface Props {
   confidence: ReadinessConfidence | undefined;
 }
 
 const LEVEL_COLOR: Record<string, string> = {
-  high:   "text-[#0F6E56]",
-  medium: "text-[#1B4FA0]",
-  low:    "text-[#854F0B]",
+  high:   "text-success",
+  medium: "text-info",
+  low:    "text-caution",
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -25,10 +26,10 @@ const LEVEL_NOTE: Record<string, string> = {
 };
 
 function ConfidenceRing({ score, level }: { score: number; level: string }) {
-  const color =
-    level === "high" ? "#34d399"
-    : level === "medium" ? "#38bdf8"
-    : "#fbbf24";
+  const ringColor =
+    level === "high" ? tokenColor.success
+    : level === "medium" ? tokenColor.info
+    : tokenColor.caution;
   const r    = 28;
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
@@ -37,7 +38,7 @@ function ConfidenceRing({ score, level }: { score: number; level: string }) {
       <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
       <circle
         cx="36" cy="36" r={r} fill="none"
-        stroke={color} strokeWidth="6"
+        stroke={ringColor} strokeWidth="6"
         strokeDasharray={`${dash} ${circ}`}
         strokeLinecap="round"
         transform="rotate(-90 36 36)"
@@ -51,24 +52,24 @@ function ConfidenceRing({ score, level }: { score: number; level: string }) {
 export function ReadinessConfidenceCard({ confidence }: Props) {
   if (!confidence) return null;
 
-  const levelColor = LEVEL_COLOR[confidence.confidenceLevel] ?? "text-[#1C1B18]";
+  const levelColor = LEVEL_COLOR[confidence.confidenceLevel] ?? "text-ink";
   const levelLabel = LEVEL_LABEL[confidence.confidenceLevel] ?? confidence.confidenceLevel;
   const levelNote  = LEVEL_NOTE[confidence.confidenceLevel]  ?? "";
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Readiness Confidence</h3>
+        <h3 className="text-sm font-semibold text-ink">Readiness Confidence</h3>
         <span className={`text-xs font-semibold ${levelColor}`}>{levelLabel}</span>
       </div>
 
       <div className="flex items-center gap-4">
         <ConfidenceRing score={confidence.confidence} level={confidence.confidenceLevel} />
         <div className="flex-1 space-y-1">
-          <div className="text-sm font-semibold text-[#1C1B18]">
+          <div className="text-sm font-semibold text-ink">
             Readiness {confidence.readinessScore}
           </div>
-          <p className="text-[11px] text-[#9B9690] leading-relaxed">{levelNote}</p>
+          <p className="text-[11px] text-ink-muted leading-relaxed">{levelNote}</p>
         </div>
       </div>
 
@@ -77,7 +78,7 @@ export function ReadinessConfidenceCard({ confidence }: Props) {
           {confidence.factors.map((f, i) => (
             <div key={i} className="flex gap-2 items-center">
               <div className={`w-1.5 h-1.5 rounded-full ${levelColor.replace("text-", "bg-")} flex-shrink-0`} />
-              <span className="text-[11px] text-[#6B6860]">{f}</span>
+              <span className="text-[11px] text-ink-secondary">{f}</span>
             </div>
           ))}
         </div>

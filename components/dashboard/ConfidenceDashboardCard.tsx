@@ -11,9 +11,9 @@ interface Props {
 }
 
 const LEVEL_COLOR: Record<string, string> = {
-  low:      "text-[#C0392B]",
-  moderate: "text-[#854F0B]",
-  high:     "text-[#0F6E56]",
+  low:      "text-danger",
+  moderate: "text-caution",
+  high:     "text-success",
 };
 
 const LEVEL_BAR: Record<string, string> = {
@@ -25,19 +25,19 @@ const LEVEL_BAR: Record<string, string> = {
 export function ConfidenceDashboardCard({ confidence, calibration, drift }: Props) {
   if (!confidence) return null;
 
-  const levelColor = LEVEL_COLOR[confidence.level] ?? "text-[#1C1B18]";
-  const levelBar   = LEVEL_BAR[confidence.level]   ?? "bg-[#C8C5BC]";
+  const levelColor = LEVEL_COLOR[confidence.level] ?? "text-ink";
+  const levelBar   = LEVEL_BAR[confidence.level]   ?? "bg-ink-faint";
 
   return (
-    <div className="bg-white border border-[#EAE7DE] rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+    <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#1C1B18]">Prediction Confidence</h3>
+        <h3 className="text-sm font-semibold text-ink">Prediction Confidence</h3>
         <span className={`text-xs font-semibold capitalize ${levelColor}`}>{confidence.level}</span>
       </div>
 
       {/* Confidence bar */}
       <div className="space-y-1.5">
-        <div className="flex justify-between text-[10px] text-[#9B9690]">
+        <div className="flex justify-between text-[10px] text-ink-muted">
           <span>Axis confidence in today's plan</span>
           <span>{confidence.score}%</span>
         </div>
@@ -51,8 +51,8 @@ export function ConfidenceDashboardCard({ confidence, calibration, drift }: Prop
         <div className="space-y-1">
           {confidence.reasons.map((r, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <span className="text-[#0F6E56] text-[9px] mt-0.5">✓</span>
-              <span className="text-[11px] text-[#9B9690]">{r}</span>
+              <span className="text-success text-[9px] mt-0.5">✓</span>
+              <span className="text-[11px] text-ink-muted">{r}</span>
             </div>
           ))}
         </div>
@@ -60,23 +60,23 @@ export function ConfidenceDashboardCard({ confidence, calibration, drift }: Prop
 
       {/* Calibration */}
       {calibration && (
-        <div className="pt-1 border-t border-[#EAE7DE] space-y-1">
-          <div className="text-[10px] text-[#C8C5BC] uppercase tracking-widest">Calibration</div>
+        <div className="pt-1 border-t border-border space-y-1">
+          <div className="text-[10px] text-ink-faint uppercase tracking-widest">Calibration</div>
           <div className="grid grid-cols-3 gap-2">
             {(["readiness", "recovery", "performance"] as const).map(k => {
               const b = calibration[k];
               return (
-                <div key={k} className="bg-[#F1EFE8] rounded-xl p-2 text-center">
-                  <div className={`text-sm font-semibold ${b.type === "calibrated" ? "text-[#0F6E56]" : "text-[#854F0B]"}`}>
+                <div key={k} className="bg-surface-hover rounded-xl p-2 text-center">
+                  <div className={`text-sm font-semibold ${b.type === "calibrated" ? "text-success" : "text-caution"}`}>
                     {b.type === "calibrated" ? "✓" : `${b.bias > 0 ? "+" : ""}${b.bias}`}
                   </div>
-                  <div className="text-[9px] text-[#C8C5BC] mt-0.5 capitalize">{k}</div>
+                  <div className="text-[9px] text-ink-faint mt-0.5 capitalize">{k}</div>
                 </div>
               );
             })}
           </div>
           {calibration.selfCorrecting && (
-            <p className="text-[10px] text-[#0F6E56]/70 pt-0.5">Self-correcting mode active.</p>
+            <p className="text-[10px] text-success/70 pt-0.5">Self-correcting mode active.</p>
           )}
         </div>
       )}
@@ -84,8 +84,8 @@ export function ConfidenceDashboardCard({ confidence, calibration, drift }: Prop
       {/* Drift warning */}
       {drift?.driftDetected && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 space-y-0.5">
-          <div className="text-[10px] font-semibold text-[#854F0B]">Pattern shift detected</div>
-          <div className="text-[10px] text-[#9B9690]">{drift.message}</div>
+          <div className="text-[10px] font-semibold text-caution">Pattern shift detected</div>
+          <div className="text-[10px] text-ink-muted">{drift.message}</div>
         </div>
       )}
     </div>
