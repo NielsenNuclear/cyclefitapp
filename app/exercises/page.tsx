@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { getMergedExercisePool } from "@/lib/exercises/customExercises";
 import type { MuscleCategory, DifficultyLevel, MovementPattern } from "@/lib/exercises/exerciseLibrary";
 import { ExerciseLibraryCard } from "@/components/exercises/ExerciseLibraryCard";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 // ─── Filter constants ─────────────────────────────────────────────────────────
 
@@ -81,8 +81,6 @@ function FilterRow<T extends string>({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExercisesPage() {
-  const router = useRouter();
-
   const allExercises = useMemo(() => getMergedExercisePool(), []);
 
   const [search,       setSearch]       = useState("");
@@ -112,30 +110,13 @@ export default function ExercisesPage() {
   const hasActiveFilter = search || category || difficulty || pattern;
 
   return (
-    <div
-      className="min-h-screen bg-[#FAF9F5]"
-      style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
-    >
-      {/* Top nav */}
-      <nav className="sticky top-0 z-40 bg-[rgba(250,249,245,0.88)] backdrop-blur-md border-b border-[#EAE7DE]">
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="w-8 h-8 flex items-center justify-center text-[#9B9690] hover:text-[#1C1B18] transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
-            <span className="text-[15px] font-semibold text-[#1C1B18]">Exercise Library</span>
-          </div>
-          <span className="text-[12px] text-[#9B9690]">{filtered.length} exercises</span>
-        </div>
-      </nav>
+    <DashboardShell>
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+        <span className="text-[15px] font-semibold text-ink">Exercise Library</span>
+        <span className="text-[12px] text-ink-muted">{filtered.length} exercises</span>
+      </div>
 
-      <main className="max-w-2xl mx-auto px-4 pb-16">
+      <div className="px-4 pb-16">
         {/* Search */}
         <div className="pt-4 pb-3">
           <input
@@ -210,7 +191,7 @@ export default function ExercisesPage() {
             )}
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

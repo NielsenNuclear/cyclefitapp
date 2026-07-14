@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import { allExercises } from "@/lib/exercises/exerciseLibrary";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ToastProvider, useToast } from "@/components/ui/Toast";
 
 const ENV_STORAGE_KEY  = "axis_training_env";
 const APP_VERSION      = "0.5.0";
@@ -112,20 +114,23 @@ function downloadJson(filename: string, data: unknown) {
 type Dialog = "reset-history" | "reset-all" | null;
 
 export default function SettingsPage() {
+  return (
+    <ToastProvider>
+      <SettingsPageInner />
+    </ToastProvider>
+  );
+}
+
+function SettingsPageInner() {
   const router = useRouter();
+  const { show: showToast } = useToast();
   const [environment, setEnvironment] = useState<TrainingEnvironment>("gym");
   const [dialog, setDialog]           = useState<Dialog>(null);
-  const [toast, setToast]             = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(ENV_STORAGE_KEY) as TrainingEnvironment | null;
     if (saved) setEnvironment(saved);
   }, []);
-
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  }
 
   function handleEnvChange(env: TrainingEnvironment) {
     setEnvironment(env);
@@ -165,29 +170,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-[#FAF9F5]"
-      style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
-    >
-      {/* ── Nav ────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-40 bg-[rgba(250,249,245,0.88)] backdrop-blur-md border-b border-[#EAE7DE]">
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-1.5 text-[13px] text-[#6B6860] hover:text-[#1C1B18] transition-colors"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-            </svg>
-            Dashboard
-          </button>
-          <span className="text-[14px] font-semibold text-[#1C1B18] tracking-tight">Settings</span>
-          <div className="w-[88px]" />
-        </div>
-      </nav>
-
-      {/* ── Content ────────────────────────────────────────────── */}
-      <main className="max-w-2xl mx-auto px-5 pt-6 pb-16 space-y-6">
+    <DashboardShell>
+      <div className="px-5 pt-6 pb-16 space-y-6">
+        <span className="type-page-title text-ink">Settings</span>
 
         {/* Environment */}
         <Section title="Training environment">
@@ -247,14 +232,7 @@ export default function SettingsPage() {
           <Row label="Version"          right={<InfoValue>{APP_VERSION}</InfoValue>} />
           <Row label="Exercise library" right={<InfoValue>{EXERCISE_COUNT} exercises</InfoValue>} />
         </Section>
-      </main>
-
-      {/* ── Toast ───────────────────────────────────────────────── */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1C1B18] text-white text-[12px] font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap">
-          {toast}
-        </div>
-      )}
+      </div>
 
       {/* ── Dialogs ─────────────────────────────────────────────── */}
       {dialog === "reset-history" && (
@@ -278,7 +256,7 @@ export default function SettingsPage() {
           onCancel={() => setDialog(null)}
         />
       )}
-    </div>
+    </DashboardShell>
   );
 }
 

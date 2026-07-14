@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 // ── Toast ─────────────────────────────────────────────────────────────────
@@ -30,7 +30,10 @@ const VARIANT_CLS: Record<ToastVariant, string> = {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [mounted, setMounted] = useState(false);
   const nextId = useRef(0);
+
+  useEffect(() => setMounted(true), []);
 
   const show = useCallback((message: string, options?: { variant?: ToastVariant; durationMs?: number }) => {
     const id = nextId.current++;
@@ -45,7 +48,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      {typeof document !== "undefined" && createPortal(
+      {mounted && createPortal(
         <div
           className="fixed bottom-4 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"
           aria-live="polite"

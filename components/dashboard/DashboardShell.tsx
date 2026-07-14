@@ -3,8 +3,15 @@
 import { useRouter, usePathname } from "next/navigation";
 
 interface DashboardShellProps {
-  children:        React.ReactNode;
+  children:         React.ReactNode;
   isRecalculating?: boolean;
+  /** Full-height, full-width content (no max-w-2xl, no scroll) — for pages
+   *  like Body Intelligence that own their own internal layout/scrolling. */
+  fullBleed?:       boolean;
+  /** Skip the mobile bottom tab bar — for pages that already have their own
+   *  bottom-anchored mobile controls (e.g. Body Intelligence's layer picker),
+   *  where stacking both would collide. */
+  hideMobileNav?:   boolean;
 }
 
 // ── Nav icon SVG paths ──────────────────────────────────────────────────────
@@ -53,16 +60,21 @@ function NavIcon({ path }: { path: string }) {
   );
 }
 
-export function DashboardShell({ children, isRecalculating = false }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  isRecalculating = false,
+  fullBleed       = false,
+  hideMobileNav   = false,
+}: DashboardShellProps) {
   const router   = useRouter();
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className={fullBleed ? "h-screen overflow-hidden flex flex-col bg-canvas" : "min-h-screen bg-canvas"}>
 
       {/* ── Top navigation bar ─────────────────────────────────────────────── */}
       <nav
-        className="sticky top-0 z-40 border-b border-border"
+        className={`${fullBleed ? "flex-shrink-0" : "sticky top-0"} z-40 border-b border-border`}
         style={{
           background:           "rgba(250,249,245,0.92)",
           backdropFilter:       "blur(12px)",
@@ -70,7 +82,7 @@ export function DashboardShell({ children, isRecalculating = false }: DashboardS
         }}
         aria-label="Main navigation"
       >
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div className={`${fullBleed ? "" : "max-w-2xl mx-auto"} px-5 h-14 flex items-center justify-between`}>
 
           {/* Brand */}
           <button
@@ -120,13 +132,14 @@ export function DashboardShell({ children, isRecalculating = false }: DashboardS
 
       {/* ── Page content ───────────────────────────────────────────────────── */}
       <main
-        className="max-w-2xl mx-auto pb-20"
+        className={fullBleed ? "flex-1 min-h-0" : "max-w-2xl mx-auto pb-20"}
         style={isRecalculating ? { opacity: 0.4, pointerEvents: "none" } : undefined}
       >
         {children}
       </main>
 
       {/* ── Mobile bottom tab bar ───────────────────────────────────────────── */}
+      {!hideMobileNav && (
       <div
         className="fixed bottom-0 inset-x-0 z-40 sm:hidden border-t border-border"
         style={{
@@ -162,6 +175,7 @@ export function DashboardShell({ children, isRecalculating = false }: DashboardS
           })}
         </div>
       </div>
+      )}
     </div>
   );
 }
