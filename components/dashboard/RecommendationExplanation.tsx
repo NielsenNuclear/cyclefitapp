@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ExplanationPoint } from "@/types/recommendation";
-import { color as tokenColor } from "@/lib/design/tokens";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface RecommendationExplanationProps {
   points: ExplanationPoint[];
@@ -68,26 +68,18 @@ export function RecommendationExplanation({ points, disclaimer }: Recommendation
       >
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-brand-bg-mid flex items-center justify-center">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={tokenColor.brand} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
-              <line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/>
-              <line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/>
-              <line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/>
-              <line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>
-            </svg>
+            <AxisIcon name="compass" size={13} className="text-brand" />
           </div>
           <div className="text-left">
             <div className="text-[13px] font-semibold text-ink">Why these recommendations?</div>
             <div className="text-[11px] text-ink-muted">{points.length} signals analysed</div>
           </div>
         </div>
-        <svg
-          width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke={tokenColor.inkMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-        >
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
+        <AxisIcon
+          name="chevron-down"
+          size={16}
+          className={`text-ink-muted transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+        />
       </button>
 
       {/* Expanded content */}
@@ -106,9 +98,7 @@ export function RecommendationExplanation({ points, disclaimer }: Recommendation
           {/* Disclaimer */}
           <div className="mt-5 pt-4 border-t border-surface-hover">
             <div className="flex gap-2.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={tokenColor.inkMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+              <AxisIcon name="warning" size={13} className="text-ink-muted mt-0.5 flex-shrink-0" />
               <p className="text-[11px] text-ink-muted leading-relaxed italic">{disclaimer}</p>
             </div>
           </div>

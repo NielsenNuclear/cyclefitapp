@@ -1,6 +1,7 @@
 "use client";
 
 import type { TrainingRecommendation, NutritionRecommendation, RecoveryRecommendation } from "@/types/recommendation";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Shared UI atoms ──────────────────────────────────────────────────────────
 
@@ -161,9 +162,7 @@ export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendatio
       {/* Hydration */}
       <div className="flex items-start gap-2 mt-3 pt-3 border-t border-surface-hover">
         <span className="text-brand mt-0.5">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-          </svg>
+          <AxisIcon name="droplet" size={13} />
         </span>
         <p className="text-[11px] text-ink-secondary leading-relaxed">
           <span className="font-semibold text-ink">Hydration: </span>
@@ -200,9 +199,7 @@ export function RecoveryCard({ recovery }: { recovery: RecoveryRecommendation })
       {/* Sleep target */}
       <div className="flex items-start gap-2.5 p-3 bg-surface-subtle rounded-xl mb-4">
         <span className="text-brand mt-0.5">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
+          <AxisIcon name="moon" size={13} />
         </span>
         <p className="text-[11px] text-ink-secondary leading-relaxed">{recovery.sleepTarget}</p>
       </div>

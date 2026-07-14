@@ -26,26 +26,34 @@ export type IconName =
   | "nav-profile"
   // Brand
   | "brand-mark"
+  | "brand-mark-full"
   // Action / chrome
   | "check"
+  | "check-small"
+  | "arrow-right"
   | "chevron-down"
   | "chevron-up"
+  | "chevron-right"
+  | "caret-right"
   | "back"
   | "close"
   | "close-thin"
   | "plus"
   | "minus"
   | "grid"
-  | "refresh"
+  | "droplet"
   | "compass"
+  | "barbell"
   // Informational / status
-  | "info"
   | "question"
   | "moon"
+  | "clock"
   | "lightning"
   | "heartbeat"
   | "leaf"
-  | "warning";
+  | "warning"
+  | "brain"
+  | "trending-up";
 
 interface IconDef {
   viewBox: string;
@@ -79,7 +87,20 @@ const ICONS: Record<IconName, IconDef> = {
   },
 
   // ── Brand ──
+  // Two distinct variants found in the app (not a duplicate/near-duplicate
+  // pair): a 2-path simplified mark (the common case — DashboardShell,
+  // ProfileSummary, ProgressBar) and a 3-path fuller mark (app/page.tsx's
+  // hero use only). Preserved as separate entries rather than merged.
   "brand-mark": {
+    viewBox: "0 0 24 24",
+    children: (
+      <>
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5" />
+      </>
+    ),
+  },
+  "brand-mark-full": {
     viewBox: "0 0 24 24",
     children: (
       <>
@@ -95,6 +116,22 @@ const ICONS: Record<IconName, IconDef> = {
     viewBox: "0 0 24 24",
     children: <polyline points="20 6 9 17 4 12" />,
   },
+  "check-small": {
+    // Smaller compact checkmark used inside a tiny selected-state dot
+    // (onboarding OptionCard) — distinct proportions from "check", kept
+    // separate rather than stretched to match.
+    viewBox: "0 0 10 10",
+    children: <path d="M2 5l2.5 2.5L8 3" />,
+  },
+  "arrow-right": {
+    viewBox: "0 0 24 24",
+    children: (
+      <>
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+      </>
+    ),
+  },
   "chevron-down": {
     // Rotate via className (e.g. "rotate-180") for the "up" state — the
     // existing convention every accordion/select toggle already used.
@@ -104,6 +141,18 @@ const ICONS: Record<IconName, IconDef> = {
   "chevron-up": {
     viewBox: "0 0 24 24",
     children: <polyline points="18 15 12 9 6 15" />,
+  },
+  "chevron-right": {
+    // Row-disclosure / "next" indicator (settings rows, BodyStatusCard).
+    viewBox: "0 0 24 24",
+    children: <polyline points="9 18 15 12 9 6" />,
+  },
+  "caret-right": {
+    // Smaller, distinct shape used where a <details>-style disclosure
+    // rotates it 90° on open — not a duplicate of "chevron-right" (different
+    // proportions/coordinate space, kept separate rather than forced to match).
+    viewBox: "0 0 10 10",
+    children: <path d="M3 2l4 3-4 3" />,
   },
   "back": {
     viewBox: "0 0 24 24",
@@ -144,7 +193,7 @@ const ICONS: Record<IconName, IconDef> = {
       </>
     ),
   },
-  "refresh": {
+  "droplet": {
     viewBox: "0 0 24 24",
     children: <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />,
   },
@@ -161,14 +210,25 @@ const ICONS: Record<IconName, IconDef> = {
       </>
     ),
   },
+  "barbell": {
+    // A similar "ladder/barbell" concept to nav-library, but a distinct,
+    // independently-drawn path (different proportions) — kept separate
+    // rather than merged, per the same reasoning as brand-mark's 2 variants.
+    viewBox: "0 0 24 24",
+    children: <path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 9h12M6 15h12" />,
+  },
 
   // ── Informational / status ──
-  "info": {
+  // Both real usages found (app/page.tsx, RegionDetailsPanel.tsx,
+  // RecommendationExplanation.tsx) draw the line in the upper half and the
+  // dot at the bottom (the "!" alert convention), not the "i" convention —
+  // named "warning" rather than "info" to match what's actually drawn.
+  "warning": {
     viewBox: "0 0 24 24",
     children: (
       <>
         <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+        <line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
       </>
     ),
   },
@@ -185,6 +245,15 @@ const ICONS: Record<IconName, IconDef> = {
     viewBox: "0 0 24 24",
     children: <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />,
   },
+  "clock": {
+    viewBox: "0 0 24 24",
+    children: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </>
+    ),
+  },
   "lightning": {
     viewBox: "0 0 24 24",
     children: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
@@ -194,12 +263,34 @@ const ICONS: Record<IconName, IconDef> = {
     children: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
   },
   "leaf": {
+    // Always drawn as this exact 2-path pair (outline + stem vein) in every
+    // real usage found (app/page.tsx, ProfileSummary.tsx) — a single-path
+    // version was never actually used anywhere.
     viewBox: "0 0 24 24",
-    children: <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />,
+    children: (
+      <>
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+      </>
+    ),
   },
-  "warning": {
+  "brain": {
     viewBox: "0 0 24 24",
-    children: <path d="M12 8v4M12 16h.01" />,
+    children: (
+      <>
+        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.98-3 2.5 2.5 0 0 1-1.32-4.24 3 3 0 0 1 .34-5.58 2.5 2.5 0 0 1 1.96-3.42A2.5 2.5 0 0 1 9.5 2z" />
+        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.98-3 2.5 2.5 0 0 0 1.32-4.24 3 3 0 0 0-.34-5.58 2.5 2.5 0 0 0-1.96-3.42A2.5 2.5 0 0 0 14.5 2z" />
+      </>
+    ),
+  },
+  "trending-up": {
+    viewBox: "0 0 24 24",
+    children: (
+      <>
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+        <polyline points="17 6 23 6 23 12" />
+      </>
+    ),
   },
 };
 

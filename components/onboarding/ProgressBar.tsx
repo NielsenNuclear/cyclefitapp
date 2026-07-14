@@ -1,6 +1,7 @@
 "use client";
 
 import { STEPS } from "@/lib/onboarding-types";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface ProgressBarProps {
   currentStep: number;
@@ -67,19 +68,14 @@ export function StepHeader({ currentStep, totalSteps = STEPS.length, onBack }: S
             currentStep <= 1 ? "invisible pointer-events-none" : ""
           }`}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-          </svg>
+          <AxisIcon name="back" size={14} />
           Back
         </button>
 
         {/* Brand */}
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-md bg-brand flex items-center justify-center">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <AxisIcon name="brand-mark" size={10} strokeWidth={2.5} className="text-white" />
           </div>
           <span className="text-[13px] font-semibold text-ink">Axis</span>
         </div>

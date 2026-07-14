@@ -6,6 +6,7 @@ import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import { allExercises } from "@/lib/exercises/exerciseLibrary";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
+import { AxisIcon } from "@/components/ui/Icon";
 
 const ENV_STORAGE_KEY  = "axis_training_env";
 const APP_VERSION      = "0.5.0";
@@ -186,9 +187,7 @@ function SettingsPageInner() {
                 environment === env.value
                   ? (
                     <div className="w-5 h-5 rounded-full bg-[#534AB7] flex items-center justify-center">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
+                      <AxisIcon name="check" size={10} strokeWidth={3} className="text-white" />
                     </div>
                   )
                   : <div className="w-5 h-5 rounded-full border-2 border-[#E0DDD4]" />
@@ -264,11 +263,11 @@ function SettingsPageInner() {
 
 function ChevronRight({ destructive = false }: { destructive?: boolean }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke={destructive ? "#C0392B" : "#9B9690"} strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
+    <AxisIcon
+      name="chevron-right"
+      size={14}
+      className={destructive ? "text-danger" : "text-ink-muted"}
+    />
   );
 }
 

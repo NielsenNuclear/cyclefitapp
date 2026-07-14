@@ -9,6 +9,7 @@ import type { WorkoutExercise }    from "@/lib/exercises/generateWorkout";
 import type { Exercise }           from "@/lib/exercises/exerciseLibrary";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { SetRecord }          from "./types";
+import { AxisIcon }                from "@/components/ui/Icon";
 import { SetStepper }              from "./SetStepper";
 import { getExerciseHistory }      from "@/lib/history/exerciseHistory";
 import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
@@ -46,9 +47,7 @@ function CompletedSetRow({
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#F0FAF6] border border-[#A3DCCA]/60">
       <span className="w-5 h-5 rounded-full bg-[#085041] flex items-center justify-center flex-shrink-0">
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden>
-          <polyline points="2,5.5 4.5,8 8,3" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <AxisIcon name="check" size={9} strokeWidth={1.8} className="text-white" />
       </span>
       <span className="text-[11px] font-bold text-[#9B9690] tabular-nums w-10 flex-shrink-0">
         Set {index + 1}

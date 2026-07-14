@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface CompletionButtonProps {
   completed: boolean;
@@ -34,15 +35,7 @@ export function CompletionButton({ completed, onToggle }: CompletionButtonProps)
       aria-label={completed ? "Mark incomplete" : "Mark complete"}
       aria-pressed={completed}
     >
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <polyline
-          points="4,10.5 8.5,15 16,6"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <AxisIcon name="check" size={20} strokeWidth={2.5} />
     </button>
   );
 }

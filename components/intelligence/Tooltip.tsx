@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, type ReactNode } from "react";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ── Glossary ───────────────────────────────────────────────────────────────
 // Educational definitions for fitness / intelligence terms surfaced in the UI.
@@ -129,10 +130,7 @@ export function TermChip({ term, className = "" }: TermChipProps) {
     <Tooltip term={term} className={className}>
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-bg-mid text-brand-text border border-brand-border">
         {entry.title}
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true" className="opacity-60">
-          <circle cx="4" cy="4" r="3.25" stroke="currentColor" strokeWidth="1"/>
-          <path d="M4 3.5v-.5M4 4.5v1.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-        </svg>
+        <AxisIcon name="question" size={8} strokeWidth={1} className="opacity-60" />
       </span>
     </Tooltip>
   );

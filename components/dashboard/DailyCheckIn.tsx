@@ -5,6 +5,7 @@ import type { CheckinData, CheckinSymptom } from "@/lib/checkin";
 import { getTodayCheckin, saveTodayCheckin } from "@/lib/checkin";
 import type { Symptom } from "@/lib/symptoms/symptomCatalog";
 import { getQuickSymptoms, getOtherSymptoms } from "@/lib/symptoms/symptomPreferences";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -140,9 +141,7 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
     return (
       <div className="bg-surface rounded-2xl border border-border px-5 py-4 shadow-card flex items-center gap-3">
         <div className="w-7 h-7 rounded-full bg-success-bg border border-success-border flex items-center justify-center flex-shrink-0">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <AxisIcon name="check" size={12} strokeWidth={2.5} className="text-success" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[12px] font-semibold text-ink">Checked in for today</div>

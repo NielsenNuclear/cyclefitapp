@@ -10,6 +10,7 @@ import { STATE_COLOR, STATE_LABEL } from "@/lib/bodyIntelligence/bodyIntelligenc
 import { MuscleDetailPanel } from "./MuscleDetailPanel";
 import { ExerciseExplorer }  from "./ExerciseExplorer";
 import { VisualizationControls } from "./VisualizationControls";
+import { AxisIcon } from "@/components/ui/Icon";
 
 type PanelTab = "details" | "exercises";
 
@@ -65,10 +66,7 @@ function BodyOverview({ snapshot }: { snapshot: BodyIntelligenceSnapshot }) {
 
       <div className="bg-[#F5F3EE] rounded-2xl px-4 py-3.5 flex items-start gap-3">
         <div className="w-5 h-5 rounded-full bg-[#EEEDFE] flex items-center justify-center flex-shrink-0 mt-0.5">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-            stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          <AxisIcon name="warning" size={10} strokeWidth={2.5} className="text-[#534AB7]" />
         </div>
         <p className="text-[11px] text-[#6B6860] leading-relaxed">
           Click any highlighted muscle on the 3D body to see its recovery status, training history, and recommended exercises.
@@ -153,10 +151,7 @@ export function BodyPanel({
               aria-label="Back to overview"
               className="w-7 h-7 flex items-center justify-center rounded-full text-[#9B9690] hover:text-[#1C1B18] hover:bg-[#F1EFE8] transition-colors"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-              </svg>
+              <AxisIcon name="back" size={13} strokeWidth={2.5} />
             </button>
             <span className="text-[12px] text-[#9B9690]">All muscles</span>
           </div>

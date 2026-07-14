@@ -6,6 +6,7 @@
 
 import type { WorkoutExercise } from "@/lib/exercises/generateWorkout";
 import type { SetRecord }        from "./types";
+import { AxisIcon }              from "@/components/ui/Icon";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,15 +75,7 @@ export function WorkoutCompletionView({
       {/* Completion mark */}
       <div className="flex flex-col items-center gap-2 pt-2">
         <div className="w-14 h-14 rounded-full bg-[#E1F5EE] border-2 border-[#A3DCCA] flex items-center justify-center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <polyline
-              points="5,12.5 9.5,17 19,7"
-              stroke="#085041"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <AxisIcon name="check" size={24} strokeWidth={2.5} className="text-[#085041]" />
         </div>
         <div className="text-center">
           <h2

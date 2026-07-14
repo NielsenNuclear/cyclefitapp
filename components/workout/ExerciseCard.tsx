@@ -4,6 +4,7 @@ import type { WorkoutExercise }      from "@/lib/exercises/generateWorkout";
 import { getExerciseHistory }        from "@/lib/history/exerciseHistory";
 import type { SetRecord }            from "./types";
 import { SetRow }                    from "./SetRow";
+import { AxisIcon }                  from "@/components/ui/Icon";
 
 function parseRestSeconds(rest: string): number {
   const min = rest.match(/(\d+)\s*min/);
@@ -107,15 +108,7 @@ export function ExerciseCard({ ex, sets, onChange, onRestStart }: ExerciseCardPr
             <div className="flex items-center gap-2 mb-0.5">
               {allDone ? (
                 <span className="w-4 h-4 rounded-full bg-[#085041] flex items-center justify-center flex-shrink-0">
-                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
-                    <polyline
-                      points="2,5.5 4.5,8 8,3"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <AxisIcon name="check" size={9} strokeWidth={1.8} className="text-white" />
                 </span>
               ) : null}
               <h3 className="text-[14px] font-semibold text-[#1C1B18] leading-snug truncate">

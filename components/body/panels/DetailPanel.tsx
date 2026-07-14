@@ -15,6 +15,7 @@ import type { MuscleRecord, BodySnapshot, VisualizationLayer } from "@/lib/bodyI
 import { STATUS_COLOR, STATUS_LABEL, LAYER_META } from "../rendering/OverlaySystem";
 import { getMuscleGroupById } from "@/lib/bodyIntelligence/muscleGroups";
 import { ExerciseIntelligencePanel } from "./ExerciseIntelligencePanel";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -315,10 +316,7 @@ export function DetailPanel({
                 aria-label="Back to overview"
                 className="w-7 h-7 flex items-center justify-center rounded-full text-[#9B9690] hover:text-[#1C1B18] hover:bg-[#F1EFE8] transition-colors"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-                </svg>
+                <AxisIcon name="back" size={13} strokeWidth={2.5} />
               </button>
               <span className="text-[11px] text-[#9B9690]">All muscles</span>
             </div>

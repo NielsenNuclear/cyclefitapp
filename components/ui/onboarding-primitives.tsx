@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "./Button";
+import { AxisIcon } from "./Icon";
 
 // ─── OptionCard ───────────────────────────────────────────────────────────────
 // Single or multi-select card with icon, label, and optional description
@@ -60,9 +61,7 @@ export function OptionCard({
         <div className={`flex-shrink-0 w-4 h-4 rounded-full border-2 transition-all
           ${selected ? `${a.dot} border-transparent flex items-center justify-center` : "border-border-strong"}`}>
           {selected && (
-            <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-              <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <AxisIcon name="check-small" size={8} strokeWidth={1.5} className="text-white" />
           )}
         </div>
       </div>
@@ -273,11 +272,7 @@ interface StepContinueButtonProps {
   isLast?: boolean;
 }
 
-const ArrowIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-  </svg>
-);
+const ArrowIcon = () => <AxisIcon name="arrow-right" size={16} />;
 
 export function StepContinueButton({ onClick, disabled = false, label, isLast = false }: StepContinueButtonProps) {
   return (

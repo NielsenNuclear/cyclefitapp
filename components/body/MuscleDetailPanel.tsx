@@ -3,6 +3,7 @@
 import type { MuscleGroupState, VisualizationMode } from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 import { STATE_COLOR, STATE_LABEL } from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 import { getMuscleGroupById, MUSCLE_GROUPS } from "@/lib/bodyIntelligence/muscleGroups";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface MuscleDetailPanelProps {
   muscle:   MuscleGroupState;
@@ -61,10 +62,7 @@ export function MuscleDetailPanel({ muscle, onClose }: MuscleDetailPanelProps) {
           aria-label="Close panel"
           className="w-8 h-8 flex items-center justify-center rounded-full text-[#9B9690] hover:text-[#1C1B18] hover:bg-[#F1EFE8] transition-colors mt-0.5 flex-shrink-0"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <AxisIcon name="close-thin" size={14} strokeWidth={2.5} />
         </button>
       </div>
 

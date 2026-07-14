@@ -2,6 +2,7 @@
 
 import { OptionCard, ChipSelect, NumberStepper, ScaleSlider, SegmentedControl } from "@/components/ui/onboarding-primitives";
 import type { OnboardingData } from "@/lib/onboarding-types";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Step 1: Fitness Goals ────────────────────────────────────────────────────
 
@@ -181,9 +182,7 @@ export function Step4Recovery({ data, onChange }: StepProps) {
       <div className="p-4 bg-brand-bg-mid rounded-xl border border-brand-border">
         <div className="flex gap-2.5">
           <div className="text-brand mt-0.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
+            <AxisIcon name="warning" size={14} />
           </div>
           <p className="text-[12px] text-brand-text leading-relaxed">
             Recovery practices are weighted signals in your readiness model. Even selecting "none" is useful data — it helps us calibrate expectations for your recovery curve.

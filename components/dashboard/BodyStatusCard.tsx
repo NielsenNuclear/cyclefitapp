@@ -4,6 +4,7 @@ import { useRouter }    from "next/navigation";
 import type { BodyIntelligenceSnapshot, MuscleState } from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 import { STATE_COLOR, STATE_LABEL } from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface BodyStatusCardProps {
   snapshot: BodyIntelligenceSnapshot | undefined;
@@ -113,10 +114,7 @@ export function BodyStatusCard({ snapshot }: BodyStatusCardProps) {
           )}
         </div>
         <div className="text-ink-faint mt-0.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          <AxisIcon name="chevron-right" size={16} />
         </div>
       </div>
 
@@ -149,10 +147,7 @@ export function BodyStatusCard({ snapshot }: BodyStatusCardProps) {
       )}
 
       <div className="mt-4 text-[11px] text-ink-muted flex items-center gap-1">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
+        <AxisIcon name="clock" size={10} />
         Tap to open 3D muscle map
       </div>
     </button>

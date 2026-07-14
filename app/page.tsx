@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,92 +27,37 @@ interface CoachCard {
 // ─── Icons (inline SVG to avoid import dependencies) ──────────────────────────
 
 function IconMoon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
+  return <AxisIcon name="moon" size={16} strokeWidth={1.5} />;
 }
 function IconBolt() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
-  );
+  return <AxisIcon name="lightning" size={16} strokeWidth={1.5} />;
 }
 function IconActivity() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  );
+  return <AxisIcon name="heartbeat" size={16} strokeWidth={1.5} />;
 }
 function IconBrain() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.98-3 2.5 2.5 0 0 1-1.32-4.24 3 3 0 0 1 .34-5.58 2.5 2.5 0 0 1 1.96-3.42A2.5 2.5 0 0 1 9.5 2z" />
-      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.98-3 2.5 2.5 0 0 0 1.32-4.24 3 3 0 0 0-.34-5.58 2.5 2.5 0 0 0-1.96-3.42A2.5 2.5 0 0 0 14.5 2z" />
-    </svg>
-  );
+  return <AxisIcon name="brain" size={16} strokeWidth={1.5} />;
 }
 function IconArrowRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  );
+  return <AxisIcon name="arrow-right" size={16} />;
 }
 function IconCpu() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <line x1="9" y1="1" x2="9" y2="4" /><line x1="15" y1="1" x2="15" y2="4" />
-      <line x1="9" y1="20" x2="9" y2="23" /><line x1="15" y1="20" x2="15" y2="23" />
-      <line x1="20" y1="9" x2="23" y2="9" /><line x1="20" y1="14" x2="23" y2="14" />
-      <line x1="1" y1="9" x2="4" y2="9" /><line x1="1" y1="14" x2="4" y2="14" />
-    </svg>
-  );
+  return <AxisIcon name="compass" size={14} strokeWidth={1.5} />;
 }
 function IconCheck() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
+  return <AxisIcon name="check" size={14} strokeWidth={2.5} />;
 }
 function IconTrendingUp() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
-    </svg>
-  );
+  return <AxisIcon name="trending-up" size={14} />;
 }
 function IconBarbell() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 5v14M18 5v14M2 9h4M18 9h4M2 15h4M18 15h4M6 9h12M6 15h12" />
-    </svg>
-  );
+  return <AxisIcon name="barbell" size={18} strokeWidth={1.5} />;
 }
 function IconLeaf() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-    </svg>
-  );
+  return <AxisIcon name="leaf" size={18} strokeWidth={1.5} />;
 }
 function IconZap() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  );
+  return <AxisIcon name="warning" size={18} strokeWidth={1.5} />;
 }
 
 // ─── Readiness Ring SVG ───────────────────────────────────────────────────────
@@ -432,11 +378,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#534AB7] flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <AxisIcon name="brand-mark-full" size={14} strokeWidth={2} className="text-white" />
             </div>
             <span className="font-semibold text-[15px] text-[#1C1B18] tracking-tight">Axis</span>
             <span className="hidden sm:inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEEDFE] text-[#3C3489] border border-[#C4C0EE]">Beta</span>
@@ -623,7 +565,7 @@ export default function HomePage() {
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3 py-2.5 border-b border-[#F0EDE4] last:border-0">
                   <div className="w-4 h-4 rounded-full border border-[#E4C88A] bg-[#FAEEDA] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg width="8" height="8" viewBox="0 0 12 12"><line x1="2" y1="2" x2="10" y2="10" stroke="#854F0B" strokeWidth="2" strokeLinecap="round"/><line x1="10" y1="2" x2="2" y2="10" stroke="#854F0B" strokeWidth="2" strokeLinecap="round"/></svg>
+                    <AxisIcon name="close-thin" size={8} strokeWidth={2} className="text-[#854F0B]" />
                   </div>
                   <span className="text-[13px] text-[#6B6860] leading-snug">{item}</span>
                 </div>
@@ -840,10 +782,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-[#534AB7] flex items-center justify-center">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <AxisIcon name="brand-mark" size={11} strokeWidth={2.5} className="text-white" />
             </div>
             <span className="text-[13px] font-semibold text-[#1C1B18]">Axis</span>
           </div>

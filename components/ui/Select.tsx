@@ -1,5 +1,6 @@
 "use client";
 import type { SelectHTMLAttributes } from "react";
+import { AxisIcon } from "./Icon";
 
 // ── Select ────────────────────────────────────────────────────────────────
 // Styled wrapper around the native <select> — deliberately not a hand-rolled
@@ -50,13 +51,12 @@ export function Select({
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <svg
-          width="14" height="14" viewBox="0 0 14 14" fill="none"
+        <AxisIcon
+          name="chevron-down"
+          size={14}
+          strokeWidth={1.5}
           className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted"
-          aria-hidden="true"
-        >
-          <path d="M2 5l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        />
       </div>
       {(error || hint) && (
         <p className={`mt-1.5 text-[11px] ${error ? "text-danger" : "text-ink-muted"}`}>

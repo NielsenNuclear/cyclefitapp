@@ -5,6 +5,7 @@ import type { MuscleRecord, VisualizationLayer } from "@/lib/bodyIntelligence/Bo
 import { STATUS_COLOR, STATUS_LABEL }            from "../rendering/OverlaySystem";
 import { getMuscleGroupById }                    from "@/lib/bodyIntelligence/muscleGroups";
 import { ExerciseIntelligencePanel }             from "./ExerciseIntelligencePanel";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -291,10 +292,7 @@ function EmptyState() {
         className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
         style={{ background: "#EEEDFE" }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8v4M12 16h.01" />
-        </svg>
+        <AxisIcon name="warning" size={24} strokeWidth={1.5} className="text-[#534AB7]" />
       </div>
       <div>
         <div className="text-[14px] font-semibold text-[#1C1B18] mb-1">Select a region</div>
@@ -358,11 +356,7 @@ export function RegionDetailsPanel({
             aria-label="Back to overview"
             className="w-7 h-7 flex items-center justify-center rounded-full text-[#9B9690] hover:text-[#1C1B18] hover:bg-[#F1EFE8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#534AB7]"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
+            <AxisIcon name="back" size={13} strokeWidth={2.5} />
           </button>
           <span className="text-[11px] text-[#9B9690]">All regions</span>
         </div>

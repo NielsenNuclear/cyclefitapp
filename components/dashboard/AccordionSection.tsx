@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ErrorBoundary } from "@/components/resilience/ErrorBoundary";
+import { AxisIcon } from "@/components/ui/Icon";
 
 const PREFS_KEY = "axis_dashboard_sections";
 
@@ -79,18 +80,13 @@ export function AccordionSection({
         </div>
         <div
           aria-hidden="true"
-          className="flex-shrink-0 text-[#C8C5BC]"
+          className="flex-shrink-0 text-ink-faint"
           style={{
             transform:  isOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 200ms ease",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          <AxisIcon name="chevron-down" size={16} strokeWidth={2.5} />
         </div>
       </button>
 

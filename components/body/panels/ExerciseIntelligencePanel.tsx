@@ -22,6 +22,7 @@ import type {
 }                                   from "@/lib/bodyIntelligence/exerciseIntelligence";
 import type { Exercise }            from "@/lib/exercises/exerciseLibrary";
 import { useExerciseIntelligence }  from "../hooks/useExerciseIntelligence";
+import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Small design primitives ──────────────────────────────────────────────────
 
@@ -141,10 +142,7 @@ function ExerciseDetailDrawer({ enriched, onBack }: DetailDrawerProps) {
         className="flex items-center gap-2 px-5 py-3 border-b border-[#F0EDE4] cursor-pointer"
         onClick={onBack}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-          stroke="#9B9690" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-        </svg>
+        <AxisIcon name="back" size={13} strokeWidth={2.5} className="text-[#9B9690]" />
         <span className="text-[11px] text-[#9B9690]">Back to exercises</span>
       </div>
 
@@ -325,14 +323,13 @@ function GroupSection({ group, onExpand }: GroupSectionProps) {
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9B9690]">
           {group.label}
         </span>
-        <svg
-          width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="#C8C5BC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          className="transition-transform"
+        <AxisIcon
+          name="chevron-down"
+          size={12}
+          strokeWidth={2.5}
+          className="text-[#C8C5BC] transition-transform"
           style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        />
       </button>
 
       {expanded && (

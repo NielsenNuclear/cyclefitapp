@@ -8,6 +8,7 @@ import type { RecommendationConfidence }             from "@/lib/accuracy/recomm
 import { ConfidenceIndicator }                       from "./ConfidenceIndicator";
 import { EvidenceSignals }                           from "./SignalContributions";
 import { Divider }                                   from "@/components/ui/Divider";
+import { AxisIcon }                                  from "@/components/ui/Icon";
 
 // ── Impact bar ─────────────────────────────────────────────────────────────
 // Shows a signed percentage-point impact as a horizontal bar, not a number.
@@ -159,13 +160,12 @@ export function ExplainableRecommendation({
         <span className="text-[12px] font-semibold text-brand">
           {expanded ? "Hide explanation" : "Why this recommendation?"}
         </span>
-        <svg
-          width="14" height="14" viewBox="0 0 14 14" fill="none"
+        <AxisIcon
+          name="chevron-down"
+          size={14}
+          strokeWidth={1.5}
           className={`text-ink-muted transition-transform duration-normal ${expanded ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        >
-          <path d="M2 5l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        />
       </button>
 
       {expanded && (
@@ -217,11 +217,12 @@ export function ExplainableRecommendation({
           {training.rationale && (
             <details className="group">
               <summary className="type-micro text-ink-muted cursor-pointer list-none flex items-center gap-1.5 select-none">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                <AxisIcon
+                  name="caret-right"
+                  size={10}
+                  strokeWidth={1.5}
                   className="transition-transform group-open:rotate-90 flex-shrink-0"
-                  aria-hidden="true">
-                  <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                />
                 Scientific basis
               </summary>
               <p className="mt-2 text-[11px] text-ink-muted leading-relaxed pl-4">

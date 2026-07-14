@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { AdaptiveProfile } from "@/lib/adaptive-profile";
 import type { OnboardingData } from "@/lib/onboarding-types";
 import { color as tokenColor } from "@/lib/design/tokens";
+import { AxisIcon } from "@/components/ui/Icon";
 
 interface ProfileSummaryProps {
   data: OnboardingData;
@@ -112,10 +113,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-5 h-5 rounded-md bg-brand flex items-center justify-center">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <AxisIcon name="brand-mark" size={10} strokeWidth={2.5} className="text-white" />
             </div>
             <span className="text-[13px] font-semibold text-ink">Axis</span>
           </div>
@@ -148,7 +146,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
           {/* Coaching insight */}
           <div className="border-l-2 border-brand pl-4 pr-4 py-3.5 bg-brand-bg-mid rounded-r-xl">
             <div className="text-[10px] font-semibold text-brand uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+              <AxisIcon name="grid" size={12} strokeWidth={2} />
               Adaptive engine insight
             </div>
             <p className="text-[12px] text-brand-text leading-relaxed italic">"{profile.coachingInsight}"</p>
@@ -188,10 +186,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
             <div className="bg-surface rounded-xl border border-border p-4 shadow-subtle">
               <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-lg bg-success-bg flex items-center justify-center text-success flex-shrink-0">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
-                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-                  </svg>
+                  <AxisIcon name="leaf" size={13} />
                 </div>
                 <div>
                   <div className="text-[11px] font-semibold text-success mb-1">Nutrition approach</div>
@@ -203,9 +198,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
             <div className="bg-surface rounded-xl border border-border p-4 shadow-subtle">
               <div className="flex gap-2.5 items-start">
                 <div className="w-7 h-7 rounded-lg bg-brand-bg-mid flex items-center justify-center text-brand flex-shrink-0">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                  </svg>
+                  <AxisIcon name="moon" size={13} />
                 </div>
                 <div>
                   <div className="text-[11px] font-semibold text-brand mb-1">Recovery protocol</div>
@@ -272,9 +265,7 @@ export function ProfileSummary({ data, profile, onComplete }: ProfileSummaryProp
             className="w-full py-4 rounded-full text-[15px] font-semibold bg-brand text-white flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(83,74,183,0.3)] hover:shadow-[0_6px_32px_rgba(83,74,183,0.4)] hover:bg-brand/90 transition-all duration-normal hover:-translate-y-0.5"
           >
             Go to my dashboard
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-            </svg>
+            <AxisIcon name="arrow-right" size={16} />
           </button>
           <p className="text-center text-[11px] text-ink-faint mt-3">
             Your profile is saved. You can update any settings from your account.

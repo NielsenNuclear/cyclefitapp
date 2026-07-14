@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { AxisIcon } from "./Icon";
 
 // ── Accordion ──────────────────────────────────────────────────────────────
 // Animated expand/collapse container used for prep sections, detail drawers.
@@ -43,12 +44,11 @@ export function Accordion({
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <svg
-      width="14" height="14" viewBox="0 0 14 14" fill="none"
+    <AxisIcon
+      name="chevron-down"
+      size={14}
+      strokeWidth={1.5}
       className={`flex-shrink-0 text-ink-muted transition-transform duration-normal ${open ? "rotate-180" : ""}`}
-      aria-hidden="true"
-    >
-      <path d="M2 5l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    />
   );
 }

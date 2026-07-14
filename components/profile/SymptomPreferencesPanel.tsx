@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AxisIcon } from "@/components/ui/Icon";
 import { SYMPTOM_CATALOG, type Symptom } from "@/lib/symptoms/symptomCatalog";
 import {
   getSymptomPreferences,
@@ -35,9 +36,7 @@ function QuickSymptomRow({
           className="w-6 h-5 flex items-center justify-center rounded text-[#9B9690] hover:text-[#534AB7] disabled:opacity-25 transition-colors"
           aria-label="Move up"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="18 15 12 9 6 15" />
-          </svg>
+          <AxisIcon name="chevron-up" size={10} strokeWidth={2.5} />
         </button>
         <button
           type="button"
@@ -46,9 +45,7 @@ function QuickSymptomRow({
           className="w-6 h-5 flex items-center justify-center rounded text-[#9B9690] hover:text-[#534AB7] disabled:opacity-25 transition-colors"
           aria-label="Move down"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          <AxisIcon name="chevron-down" size={10} strokeWidth={2.5} />
         </button>
       </div>
       <span className="flex-1 text-[12px] font-medium text-[#1C1B18]">{symptom.name}</span>
