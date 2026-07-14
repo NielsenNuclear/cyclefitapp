@@ -281,8 +281,8 @@ export function WorkoutCard({
 
   return (
     <ErrorBoundary label="workout-experience">
-    <div className="bg-white rounded-2xl border border-[#EAE7DE] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B9690] mb-4">
+    <div className="bg-surface rounded-2xl border border-border p-5 shadow-card">
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-4">
         Today's Workout
       </div>
 
