@@ -322,6 +322,8 @@ export function WorkoutCard({
           onFinish={handleFinish}
           overallDifficulty={overallDifficulty}
           onDifficultyChange={setOverallDifficulty}
+          warmupBlock={workout.warmupBlock}
+          recoveryBlock={workout.recoveryBlock}
         />
       )}
 
@@ -331,10 +333,7 @@ export function WorkoutCard({
           exercises={exercises}
           actuals={actuals}
           durationMinutes={finishedDuration}
-          onDone={() => {
-            // Nothing to do — the parent dashboard handles post-completion state
-            // via onMarkComplete/onMarkPartial which were already called in handleFinish
-          }}
+          onDone={() => setMode("idle")}
         />
       )}
 

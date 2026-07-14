@@ -1,10 +1,9 @@
 "use client";
 
 // ─── components/workout/RestScreen.tsx ────────────────────────────────────────
-// Phase UX-1 — full rest-period experience.
-// Larger, more prominent than RestTimerOverlay; shows the next exercise.
+// Phase UX-1 — full rest-period experience. Shows the next exercise.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface RestScreenProps {
   totalSeconds:     number;
@@ -24,17 +23,30 @@ function formatTime(seconds: number): string {
 }
 
 export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend }: RestScreenProps) {
-  const [remaining, setRemaining] = useState(totalSeconds);
+  // Timestamp-anchored countdown (not tick-counted) — remaining time is always
+  // derived from `targetEndTime - now`, so a delayed/throttled tick (backgrounded
+  // tab, screen lock) never causes cumulative drift. See UXStabilizationAudit.md
+  // #1: a setTimeout-decrement-by-1 pattern only measures ticks, not real time.
+  const targetEndTimeRef = useRef(Date.now() + totalSeconds * 1000);
   const [extended,  setExtended]  = useState(false);
+  const [remaining, setRemaining] = useState(() =>
+    Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000))
+  );
 
   useEffect(() => {
-    if (remaining <= 0) { onDismiss(); return; }
-    const id = setTimeout(() => setRemaining(r => r - 1), 1000);
-    return () => clearTimeout(id);
+    const id = setInterval(() => {
+      setRemaining(Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000)));
+    }, 250);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (remaining <= 0) onDismiss();
   }, [remaining, onDismiss]);
 
   function handleExtend() {
-    setRemaining(r => r + EXTEND_SECONDS);
+    targetEndTimeRef.current += EXTEND_SECONDS * 1000;
+    setRemaining(Math.max(0, Math.ceil((targetEndTimeRef.current - Date.now()) / 1000)));
     setExtended(true);
     onExtend?.();
   }

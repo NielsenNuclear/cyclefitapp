@@ -163,6 +163,17 @@ export function WorkoutHeroView({
         </p>
       )}
 
+      {/* Session structure — warmup/cooldown are included but skippable */}
+      {(workout.warmupBlock || workout.recoveryBlock) && (
+        <p className="text-[10px] text-[#9B9690]">
+          {[
+            workout.warmupBlock && `~${workout.warmupBlock.totalMinutes} min warmup`,
+            "main workout",
+            workout.recoveryBlock && `~${workout.recoveryBlock.totalMinutes} min cooldown`,
+          ].filter(Boolean).join(" → ")}
+        </p>
+      )}
+
       {/* Confidence (subtle) */}
       {confInfo && (
         <p className={`text-[10px] font-semibold uppercase tracking-[0.08em] ${confInfo.color}`}>

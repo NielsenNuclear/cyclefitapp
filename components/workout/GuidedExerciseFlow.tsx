@@ -5,11 +5,13 @@
 // One exercise is always dominant. Prev/next navigation visible but secondary.
 
 import { useState } from "react";
-import type { WorkoutExercise } from "@/lib/exercises/generateWorkout";
+import type { WorkoutExercise, WarmupBlock, RecoveryBlock } from "@/lib/exercises/generateWorkout";
 import type { Exercise }         from "@/lib/exercises/exerciseLibrary";
 import type { TrainingEnvironment } from "@/lib/exercises/exerciseLibrary";
 import type { SetRecord }        from "./types";
 import { ExerciseFocusCard }     from "./ExerciseFocusCard";
+import { WarmupScreen }          from "./WarmupScreen";
+import { CooldownScreen }        from "./CooldownScreen";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -64,6 +66,11 @@ interface GuidedExerciseFlowProps {
   onFinish:        (status: "completed" | "partial") => void;
   overallDifficulty:    number;
   onDifficultyChange:   (v: number) => void;
+  /** Optional — both are already computed by generateWorkout() on every
+   *  session. When present, they add a warmup step before the first exercise
+   *  and a cooldown step after the last, both skippable. */
+  warmupBlock?:    WarmupBlock;
+  recoveryBlock?:  RecoveryBlock;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -79,8 +86,17 @@ export function GuidedExerciseFlow({
   onFinish,
   overallDifficulty,
   onDifficultyChange,
+  warmupBlock,
+  recoveryBlock,
 }: GuidedExerciseFlowProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
+
+  // Only show warmup if it exists and the user hasn't already made progress
+  // (e.g. resuming an in-progress session after a refresh shouldn't re-show it).
+  const [phase, setPhase] = useState<"warmup" | "main" | "cooldown">(() => {
+    const alreadyStarted = Object.values(actuals).some(s => s.some(r => r.completed));
+    return warmupBlock && !alreadyStarted ? "warmup" : "main";
+  });
 
   const current   = exercises[currentIdx];
   const sets      = actuals[currentIdx] ?? [];
@@ -103,6 +119,14 @@ export function GuidedExerciseFlow({
     currentDone && !isLast ? "next_exercise" :
     currentDone && isLast  ? "finish_workout" :
     null;
+
+  if (phase === "warmup" && warmupBlock) {
+    return <WarmupScreen block={warmupBlock} onStart={() => setPhase("main")} />;
+  }
+
+  if (phase === "cooldown" && recoveryBlock) {
+    return <CooldownScreen block={recoveryBlock} onFinish={() => onFinish("completed")} />;
+  }
 
   return (
     <div className="space-y-5">
@@ -171,10 +195,10 @@ export function GuidedExerciseFlow({
 
           <button
             type="button"
-            onClick={() => onFinish("completed")}
+            onClick={() => recoveryBlock ? setPhase("cooldown") : onFinish("completed")}
             className="w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all"
           >
-            Finish Workout
+            {recoveryBlock ? "Continue to Cooldown" : "Finish Workout"}
           </button>
         </div>
       )}
