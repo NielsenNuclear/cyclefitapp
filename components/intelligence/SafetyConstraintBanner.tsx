@@ -11,9 +11,9 @@ interface Props {
 }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  critical: "text-red-400",
-  high:     "text-yellow-400",
-  moderate: "text-sky-400",
+  critical: "text-danger",
+  high:     "text-caution",
+  moderate: "text-info",
 };
 
 export function SafetyConstraintBanner({ result }: Props) {
@@ -28,18 +28,18 @@ export function SafetyConstraintBanner({ result }: Props) {
   ].filter(r => r.userMessage);
 
   return (
-    <div className="bg-ui-surface border border-ui-border rounded-2xl p-4 space-y-2">
+    <div className="bg-surface border border-border rounded-2xl p-4 space-y-2">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-yellow-400 mt-0.5 flex-shrink-0" />
-          <p className="text-sm font-semibold text-ink-base leading-snug">
+          <div className="w-2 h-2 rounded-full bg-caution mt-0.5 flex-shrink-0" />
+          <p className="text-sm font-semibold text-ink leading-snug">
             {explanation.headline}
           </p>
         </div>
         {activations.length > 0 && (
           <button
             onClick={() => setExpanded(e => !e)}
-            className="text-xs text-ink-muted hover:text-ink-base transition-colors flex-shrink-0 mt-0.5"
+            className="text-xs text-ink-muted hover:text-ink transition-colors flex-shrink-0 mt-0.5"
           >
             {expanded ? "Less" : "Details"}
           </button>
@@ -47,17 +47,17 @@ export function SafetyConstraintBanner({ result }: Props) {
       </div>
 
       {explanation.detail && (
-        <p className="text-xs text-ink-subtle leading-relaxed pl-4">{explanation.detail}</p>
+        <p className="text-xs text-ink-secondary leading-relaxed pl-4">{explanation.detail}</p>
       )}
 
       {expanded && activations.length > 0 && (
-        <div className="pt-2 space-y-2 border-t border-ui-border pl-4">
+        <div className="pt-2 space-y-2 border-t border-border pl-4">
           {activations.map(r => (
             <div key={r.ruleId} className="flex items-start gap-2">
               <span className={`text-[10px] font-semibold uppercase tracking-wide mt-0.5 flex-shrink-0 ${PRIORITY_COLOR[r.priority] ?? "text-ink-muted"}`}>
                 {r.priority}
               </span>
-              <p className="text-xs text-ink-subtle">{r.userMessage}</p>
+              <p className="text-xs text-ink-secondary">{r.userMessage}</p>
             </div>
           ))}
         </div>
