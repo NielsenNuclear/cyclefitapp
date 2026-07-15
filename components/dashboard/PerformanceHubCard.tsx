@@ -6,6 +6,8 @@ import type { PersonalBestSet }        from "@/lib/performance/personalBests";
 import type { GoalVelocity }           from "@/lib/performance/goalVelocity";
 import type { GoalAdjustmentAdvice }   from "@/lib/performance/goalAdjustment";
 import type { PerformancePredictors }  from "@/lib/performance/performancePredictors";
+import { getMaturityStage }            from "@/lib/intelligence/dataMaturity";
+import { LockedInsight }               from "@/components/ui/LockedInsight";
 
 interface Props {
   quality:     TrainingQualityScore   | undefined;
@@ -85,36 +87,51 @@ export function PerformanceHubCard({
     .filter(pb => pb.lifetime !== null)
     .slice(0, 4);
 
+  const qualityMaturity = quality ? getMaturityStage(quality.sessionsAnalysed) : "locked";
+
   return (
     <div className="bg-white border border-border rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-ink">Performance Hub</h3>
-        {quality && (
+        {quality && qualityMaturity === "ready" && (
           <span className={`text-xs font-semibold ${QUALITY_COLOR[quality.tier] ?? ""}`}>
             {quality.tier}
           </span>
         )}
       </div>
 
-      {/* Quality bar */}
-      {quality && <QualityBar score={quality.score} tier={quality.tier} />}
-
-      {/* Quality breakdown */}
-      {quality && (
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "Completion",  val: quality.breakdown.completionRate  },
-            { label: "Volume",      val: quality.breakdown.volumeAccuracy  },
-            { label: "RPE Quality", val: quality.breakdown.rpeAccuracy     },
-            { label: "Consistency", val: quality.breakdown.consistencyScore },
-          ].map(({ label, val }) => (
-            <div key={label} className="bg-surface-hover rounded-xl px-3 py-2">
-              <div className="text-[10px] text-ink-muted">{label}</div>
-              <div className="text-sm font-semibold text-ink mt-0.5">{val}%</div>
-            </div>
-          ))}
-        </div>
+      {/* Quality — withheld until enough sessions exist to judge, per issue #3/#8 */}
+      {quality && qualityMaturity === "ready" && (
+        <>
+          <QualityBar score={quality.score} tier={quality.tier} />
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Completion",  val: quality.breakdown.completionRate  },
+              { label: "Volume",      val: quality.breakdown.volumeAccuracy  },
+              { label: "RPE Quality", val: quality.breakdown.rpeAccuracy     },
+              { label: "Consistency", val: quality.breakdown.consistencyScore },
+            ].map(({ label, val }) => (
+              <div key={label} className="bg-surface-hover rounded-xl px-3 py-2">
+                <div className="text-[10px] text-ink-muted">{label}</div>
+                <div className="text-sm font-semibold text-ink mt-0.5">{val}%</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {quality && qualityMaturity === "locked" && (
+        <p className="text-[11px] text-ink-muted text-center py-2">
+          Complete your first workout to see training quality.
+        </p>
+      )}
+      {quality && qualityMaturity === "building" && quality.sessionsAnalysed === 1 && (
+        <p className="text-[11px] text-success text-center py-2">
+          First workout completed! Keep training to build your quality profile.
+        </p>
+      )}
+      {quality && qualityMaturity === "building" && quality.sessionsAnalysed > 1 && (
+        <LockedInsight entryCount={quality.sessionsAnalysed} title="Training Quality" />
       )}
 
       {/* Goal velocity */}
@@ -220,7 +237,7 @@ export function PerformanceHubCard({
       )}
 
       {/* Quality insight */}
-      {quality && (
+      {quality && qualityMaturity === "ready" && (
         <p className="text-[11px] text-ink-muted leading-relaxed text-center pt-1">
           {quality.insight}
         </p>

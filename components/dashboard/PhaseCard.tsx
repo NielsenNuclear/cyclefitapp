@@ -109,6 +109,22 @@ function CycleArc({
 }
 
 export function PhaseCard({ phase }: PhaseCardProps) {
+  if (!phase.hasCycleData) {
+    return (
+      <div className="rounded-2xl border bg-surface-subtle border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-1.5">
+          Current phase
+        </div>
+        <div className="text-[1.1rem] font-light text-ink-secondary leading-snug mb-2">
+          Cycle tracking not set up
+        </div>
+        <p className="text-[12px] text-ink-muted leading-relaxed">
+          Add your last period date in Settings to see phase-aware training and recovery guidance.
+        </p>
+      </div>
+    );
+  }
+
   const config = PHASE_CONFIG[phase.name];
   const energy = ENERGY_LABELS[phase.energyTrend];
 

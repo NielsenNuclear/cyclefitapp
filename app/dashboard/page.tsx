@@ -359,6 +359,8 @@ import { assessRecoverySufficiency, type RecoverySufficiency }                 f
 import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
 import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
 // ─── Phase 56: Observability & Validation Layer ───────────────────────────────
+import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
+import { useToast } from "@/components/ui/Toast";
 import { generateRecommendationExplanation, saveRecommendationExplanation, type RecommendationExplanation as RecExplanation } from "@/lib/intelligence/recommendationExplanation";
 import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          from "@/lib/intelligence/pipelineTrace";
 import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
@@ -690,6 +692,7 @@ const ENV_STORAGE_KEY = "axis_training_env";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { show: showToast } = useToast();
 
   // ── UI state ─────────────────────────────────────────────────────────────────
   const [checkinComplete, setCheckinComplete] = useState(false);
@@ -844,6 +847,7 @@ export default function DashboardPage() {
   const [workoutRecoveryPlan,  setWorkoutRecoveryPlan]  = useState<WorkoutRecoveryPlan | undefined>(undefined);
   // Phase 37 state
   const [fatigueEntry,         setFatigueEntry]         = useState<FatigueScoreEntry | undefined>(undefined);
+  const [fatigueHistoryDepth,  setFatigueHistoryDepth]  = useState<number>(0);
   const [readinessConfidence,  setReadinessConfidence]  = useState<ReadinessConfidence | undefined>(undefined);
   const [trainingDecision,     setTrainingDecision]     = useState<TrainingDecision37 | undefined>(undefined);
   const [outcomePrediction,    setOutcomePrediction]    = useState<OutcomePrediction | undefined>(undefined);
@@ -1540,6 +1544,7 @@ export default function DashboardPage() {
     });
     saveFatigueScore(fatigueEntryVal);
     setFatigueEntry(fatigueEntryVal);
+    setFatigueHistoryDepth(fatigueHistoryAll.length);
 
     const rdxConfidenceVal = computeReadinessConfidence({
       readinessScore:       readiness.score,
@@ -1756,7 +1761,7 @@ export default function DashboardPage() {
       weeksTracked:            Math.max(1, Math.floor(daysBetween(oldestEntryId, todayStr) / 7)),
       hasRecoveryData:         recoveryScoresNow.length > 0,
       hasNutritionData:        getNutritionCheckinHistory().length > 0,
-      hasCycleData:            !!phase.name,
+      hasCycleData:            phase.hasCycleData,
       hasSleepData:            !!effectiveUser.sleepQuality,
       checkInStreak:           fullRdxHistory.length,
       recentWeeklyVolumeSets:  weeklyVolumeTotals,
@@ -2899,7 +2904,7 @@ export default function DashboardPage() {
               : "Track your recovery"}
           >
             <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
-            <FatigueCard entry={fatigueEntry} />
+            <FatigueCard entry={fatigueEntry} historyDepth={fatigueHistoryDepth} />
             <RecoveryIntelligenceCard
               recoveryScore={recoveryScore}
               recoveryTrend={recoveryTrend}
@@ -2938,7 +2943,9 @@ export default function DashboardPage() {
           <AccordionSection
             id="cycle"
             title="Cycle Intelligence"
-            summary={`${recommendation.phase.name} · Day ${recommendation.phase.cycleDay}`}
+            summary={recommendation.phase.hasCycleData
+              ? `${recommendation.phase.name} · Day ${recommendation.phase.cycleDay}`
+              : "Not tracked"}
           >
             <PhaseCard phase={recommendation.phase} />
             <SymptomSummaryCard symptoms={todaySymptoms} />
@@ -2976,7 +2983,12 @@ export default function DashboardPage() {
             {!nutritionCheckinDone && (
               <NutritionCheckinCard
                 date={new Date().toISOString().slice(0, 10)}
-                onComplete={() => setNutritionCheckinDone(true)}
+                onComplete={(checkin) => {
+                  setNutritionCheckinDone(true);
+                  if (checkin.hitProtein && checkin.hitHydration && checkin.hitVeggies) {
+                    showToast("Nutrition goal achieved! 🎯", { variant: "success" });
+                  }
+                }}
               />
             )}
             {nutritionTargets && nutritionProfile && (
@@ -3123,7 +3135,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="lifestyle"
             title="Lifestyle & Adherence"
-            summary={consistencyScore
+            summary={consistencyScore && getMaturityStage(consistencyScore.historyDepth) === "ready"
               ? `${consistencyScore.composite}/100 consistency`
               : "Habits & schedule"}
           >

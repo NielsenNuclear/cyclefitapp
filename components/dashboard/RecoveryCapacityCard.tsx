@@ -1,6 +1,7 @@
 "use client";
 
 import type { RecoveryCapacity, CapacityLevel } from "@/lib/adaptive/recoveryCapacity";
+import { LockedInsight } from "@/components/ui/LockedInsight";
 
 const LEVEL_CONFIG: Record<CapacityLevel, { label: string; badge: string; bar: string }> = {
   high:     { label: "High capacity",     badge: "bg-success-bg text-success-text", bar: "bg-success" },
@@ -28,6 +29,18 @@ interface RecoveryCapacityCardProps {
 
 export function RecoveryCapacityCard({ capacity }: RecoveryCapacityCardProps) {
   if (!capacity) return null;
+
+  // "early" (<7 feedback entries) means the level/score below aren't real
+  // findings yet — show the shared locked state instead of a judgment that
+  // would otherwise render with equal visual weight to its own caveat.
+  if (capacity.confidence === "early") {
+    return (
+      <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <CardLabel>Recovery capacity</CardLabel>
+        <LockedInsight entryCount={capacity.dataPoints} />
+      </div>
+    );
+  }
 
   const config     = LEVEL_CONFIG[capacity.level];
   const chip       = CONFIDENCE_CHIP[capacity.confidence];

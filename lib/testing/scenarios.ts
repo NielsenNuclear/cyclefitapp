@@ -36,6 +36,7 @@ function follicular(day = 8): PhaseData {
     hormonalContext: "Estrogen rising, progesterone low",
     physiologicalNote: "Energy and recovery typically improving.",
     daysUntilNextPhase: 6,
+    hasCycleData: true,
   };
 }
 
@@ -46,6 +47,7 @@ function ovulatory(day = 14): PhaseData {
     hormonalContext: "Estrogen peak, LH surge",
     physiologicalNote: "Peak energy window for many athletes.",
     daysUntilNextPhase: 2,
+    hasCycleData: true,
   };
 }
 
@@ -56,6 +58,7 @@ function luteal(day = 20): PhaseData {
     hormonalContext: "Progesterone rising, estrogen moderate",
     physiologicalNote: "Recovery may be slower; adapt load if needed.",
     daysUntilNextPhase: 8,
+    hasCycleData: true,
   };
 }
 
@@ -66,6 +69,7 @@ function menstrual(day = 2): PhaseData {
     hormonalContext: "Estrogen and progesterone both low",
     physiologicalNote: "Fatigue and discomfort common; listen to the body.",
     daysUntilNextPhase: 3,
+    hasCycleData: true,
   };
 }
 
@@ -257,7 +261,7 @@ export const SCENARIO_LIBRARY: TestScenario[] = [
     description: "Athlete in late luteal phase with typical PMS-related readiness drop.",
     tags: ["late-luteal","pms","conservative"],
     onboarding: mkUser({ trainingLevel: "intermediate", sleepQuality: "poor", stressLevel: 6, energyPattern: "variable" }),
-    phase: { name: "Late Luteal", cycleDay: 26, cycleLength: 28, dayInPhase: 10, energyTrend: "Declining", hormonalContext: "Progesterone dropping", physiologicalNote: "Pre-menstrual symptoms common.", daysUntilNextPhase: 2 },
+    phase: { name: "Late Luteal", cycleDay: 26, cycleLength: 28, dayInPhase: 10, energyTrend: "Declining", hormonalContext: "Progesterone dropping", physiologicalNote: "Pre-menstrual symptoms common.", daysUntilNextPhase: 2, hasCycleData: true },
     signals: { readinessScore: 42, recoveryScore: 48, streakDays: 3, weeklyVolume: 10, fatigueEstimate: 58, adherenceRate: 0.65, cycleDay: 26 },
   },
 

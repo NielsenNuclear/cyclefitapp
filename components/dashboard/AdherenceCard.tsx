@@ -9,6 +9,8 @@ import type { MomentumScore }           from "@/lib/adherence/momentum";
 import type { ActiveLifeEvent, LifeEventType } from "@/lib/adherence/lifeEvents";
 import { LIFE_EVENT_TYPES, LIFE_EVENT_LABELS } from "@/lib/adherence/lifeEvents";
 import { color as tokenColor } from "@/lib/design/tokens";
+import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
+import { LockedInsight } from "@/components/ui/LockedInsight";
 
 interface Props {
   consistency:   ConsistencyScore   | undefined;
@@ -91,6 +93,7 @@ export function AdherenceCard({
 
   if (!consistency) return null;
 
+  const maturity  = getMaturityStage(consistency.historyDepth);
   const tierColor = TIER_COLOR[consistency.tier];
   const tierLabel = TIER_LABEL[consistency.tier];
 
@@ -173,42 +176,48 @@ export function AdherenceCard({
         </div>
       )}
 
-      {/* Score + tier + momentum */}
-      <div className="flex items-center gap-4">
-        <ScoreRing value={consistency.composite} />
-        <div className="flex-1 space-y-1">
-          <div className={`text-sm font-semibold ${tierColor}`}>{tierLabel}</div>
-          {momentum && (
-            <div className={`text-xs font-medium ${MOMENTUM_COLOR[momentum.level]}`}>
-              Momentum: {momentum.level.charAt(0).toUpperCase() + momentum.level.slice(1)}&nbsp;
-              {MOMENTUM_ICON[momentum.level]}
-            </div>
-          )}
-          {risk && (
-            <div className={`text-[11px] ${RISK_COLOR[risk.level]}`}>
-              Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}
-              {risk.level !== "low" && risk.reasons[0] && (
-                <span className="text-ink-muted ml-1">— {risk.reasons[0]}</span>
+      {/* Score + tier + momentum — withheld until enough history exists to judge */}
+      {maturity === "ready" ? (
+        <>
+          <div className="flex items-center gap-4">
+            <ScoreRing value={consistency.composite} />
+            <div className="flex-1 space-y-1">
+              <div className={`text-sm font-semibold ${tierColor}`}>{tierLabel}</div>
+              {momentum && (
+                <div className={`text-xs font-medium ${MOMENTUM_COLOR[momentum.level]}`}>
+                  Momentum: {momentum.level.charAt(0).toUpperCase() + momentum.level.slice(1)}&nbsp;
+                  {MOMENTUM_ICON[momentum.level]}
+                </div>
+              )}
+              {risk && (
+                <div className={`text-[11px] ${RISK_COLOR[risk.level]}`}>
+                  Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}
+                  {risk.level !== "low" && risk.reasons[0] && (
+                    <span className="text-ink-muted ml-1">— {risk.reasons[0]}</span>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Pillar breakdown */}
-      <div className="grid grid-cols-4 gap-2 text-center">
-        {[
-          { label: "Training",  val: consistency.training  },
-          { label: "Nutrition", val: consistency.nutrition  },
-          { label: "Recovery",  val: consistency.recovery   },
-          { label: "Check-ins", val: consistency.checkins   },
-        ].map(({ label, val }) => (
-          <div key={label} className="bg-surface-hover rounded-xl py-2 px-1">
-            <div className="text-sm font-semibold text-ink">{val}</div>
-            <div className="text-[9px] text-ink-muted mt-0.5">{label}</div>
           </div>
-        ))}
-      </div>
+
+          {/* Pillar breakdown */}
+          <div className="grid grid-cols-4 gap-2 text-center">
+            {[
+              { label: "Training",  val: consistency.training  },
+              { label: "Nutrition", val: consistency.nutrition  },
+              { label: "Recovery",  val: consistency.recovery   },
+              { label: "Check-ins", val: consistency.checkins   },
+            ].map(({ label, val }) => (
+              <div key={label} className="bg-surface-hover rounded-xl py-2 px-1">
+                <div className="text-sm font-semibold text-ink">{val}</div>
+                <div className="text-[9px] text-ink-muted mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <LockedInsight entryCount={consistency.historyDepth} title="Building your consistency picture" />
+      )}
 
       {/* Streaks */}
       {streaks && (
@@ -255,7 +264,7 @@ export function AdherenceCard({
       )}
 
       {/* Focus this week */}
-      {consistency && (
+      {maturity === "ready" && (
         <div className="text-[11px] text-ink-muted text-center pt-1">
           {consistency.tier === "at_risk"
             ? "Focus: show up at least twice this week, no matter the session length."

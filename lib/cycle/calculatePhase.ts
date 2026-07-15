@@ -103,6 +103,11 @@ export interface CalculatePhaseInput {
   cycleRegularity?: string; // affects advisory weight
 }
 
+/** True only when lastPeriodDate is a real, parseable date — not the day-1 crash-guard default. */
+function hasRealCycleData(lastPeriodDate: string): boolean {
+  return !!lastPeriodDate && !isNaN(new Date(lastPeriodDate).getTime());
+}
+
 export function calculatePhase(input: CalculatePhaseInput): PhaseData {
   const { lastPeriodDate, cycleLength } = input;
 
@@ -132,6 +137,7 @@ export function calculatePhase(input: CalculatePhaseInput): PhaseData {
     hormonalContext:    getHormonalContext(phaseName),
     physiologicalNote:  getPhysiologicalNote(phaseName),
     daysUntilNextPhase,
+    hasCycleData:       hasRealCycleData(lastPeriodDate),
   };
 }
 

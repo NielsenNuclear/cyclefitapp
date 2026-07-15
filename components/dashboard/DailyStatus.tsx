@@ -96,11 +96,11 @@ export function DailyStatus({ readiness, recovery, phase }: DailyStatusProps) {
         valueColor={recStyle?.score ?? tokenColor.inkMuted}
       />
       <Tile
-        label={`Day ${phase.cycleDay}`}
-        value={phase.name}
-        sub={`${phase.daysUntilNextPhase}d to next`}
-        bg={pStyle.bg}
-        valueColor={pStyle.text}
+        label={phase.hasCycleData ? `Day ${phase.cycleDay}` : "Cycle"}
+        value={phase.hasCycleData ? phase.name : "—"}
+        sub={phase.hasCycleData ? `${phase.daysUntilNextPhase}d to next` : "Not tracked"}
+        bg={phase.hasCycleData ? pStyle.bg : tokenColor.surfaceHover}
+        valueColor={phase.hasCycleData ? pStyle.text : tokenColor.inkMuted}
       />
     </div>
   );

@@ -53,7 +53,8 @@ export type IconName =
   | "leaf"
   | "warning"
   | "brain"
-  | "trending-up";
+  | "trending-up"
+  | "lock";
 
 interface IconDef {
   viewBox: string;
@@ -251,6 +252,15 @@ const ICONS: Record<IconName, IconDef> = {
       <>
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
+      </>
+    ),
+  },
+  "lock": {
+    viewBox: "0 0 24 24",
+    children: (
+      <>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
       </>
     ),
   },

@@ -22,6 +22,13 @@ export interface PhaseData {
   hormonalContext: string;      // Brief, human-readable hormonal summary
   physiologicalNote: string;    // What's typically happening in the body
   daysUntilNextPhase: number;
+  /**
+   * False when lastPeriodDate was never provided (or is unparseable) and every
+   * field above is a math placeholder (day 1 / Menstrual), not a real
+   * observation. Phase-display components must check this before rendering
+   * phase-specific judgment language — see lib/cycle/calculatePhase.ts.
+   */
+  hasCycleData: boolean;
 }
 
 // ─── Training state ───────────────────────────────────────────────────────────

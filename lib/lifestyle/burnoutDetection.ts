@@ -6,6 +6,7 @@
 
 import type { ActiveLifeEvent } from "@/lib/adherence/lifeEvents";
 import type { AdherenceRiskReport } from "@/lib/adherence/riskDetection";
+import { isMature } from "@/lib/intelligence/dataMaturity";
 
 const STORAGE_KEY    = "axis_burnout_history";
 const RETENTION_DAYS = 90;
@@ -82,12 +83,18 @@ export function computeLifestyleBurnout(input: {
   const recommendations: string[] = [];
   let score = 0;
 
-  // ── Adherence decline (35% weight) ─────────────────────────────────────
-  const adherencePenalty = clamp(100 - input.recentAdherenceRate, 0, 100) * 0.35;
-  score += adherencePenalty;
-  if (input.recentAdherenceRate < 40) {
-    signals.push("Session completion has dropped significantly in the last 2 weeks.");
-    recommendations.push("Focus on habit consistency over intensity — even 15-minute sessions count.");
+  const mature = isMature(input.historyDepth);
+
+  // ── Adherence decline (35% weight) ───────────────────────────────────────
+  // Only judged once there's enough history to distinguish an actual decline
+  // from a brand-new user who simply hasn't had a session come due yet.
+  if (mature) {
+    const adherencePenalty = clamp(100 - input.recentAdherenceRate, 0, 100) * 0.35;
+    score += adherencePenalty;
+    if (input.recentAdherenceRate < 40) {
+      signals.push("Session completion has dropped significantly in the last 2 weeks.");
+      recommendations.push("Focus on habit consistency over intensity — even 15-minute sessions count.");
+    }
   }
 
   // ── Readiness trend (20% weight) ────────────────────────────────────────
@@ -141,7 +148,7 @@ export function computeLifestyleBurnout(input: {
   }
 
   const confidence     = clamp(Math.round((input.historyDepth / 21) * 100), 20, 90);
-  const dataMaturity   = input.historyDepth >= 14 ? "sufficient" : "early";
+  const dataMaturity   = mature ? "sufficient" : "early";
 
   return { risk, score, confidence, signals, recommendations, dataMaturity };
 }

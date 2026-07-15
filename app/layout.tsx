@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Lora } from "next/font/google";
 import "./globals.css";
 import { GlobalErrorBoundary } from "@/components/ErrorBoundary/GlobalErrorBoundary";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const dmSans = DM_Sans({
   variable:  "--font-sans",
@@ -34,7 +35,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <GlobalErrorBoundary label="RootLayout">
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </GlobalErrorBoundary>
       </body>
     </html>

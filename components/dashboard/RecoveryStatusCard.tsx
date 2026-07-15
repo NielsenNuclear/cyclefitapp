@@ -35,7 +35,11 @@ interface RecoveryStatusCardProps {
 }
 
 export function RecoveryStatusCard({ report }: RecoveryStatusCardProps) {
-  if (!report) {
+  // No completed workouts in the last 14 days means recoveryStatus was never
+  // really measured — scoreRecoveryStatus() still returns a real-looking
+  // status ("Recovered") for zero data, which reads as a claim about a state
+  // that was never observed.
+  if (!report || (report.completedWorkouts === 0 && report.trainingDensity === 0)) {
     return (
       <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <CardLabel>Recovery Status</CardLabel>

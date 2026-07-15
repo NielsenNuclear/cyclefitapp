@@ -307,7 +307,7 @@ function buildTraining(
         intensity: mod >= 1 ? "Light to Moderate" : "Low",
         headline:  "Adjust intensity to match how you feel today.",
         body: "Energy may be lower in the first few days of menstruation, though individual experience varies widely. Some women train effectively throughout — use your felt energy as the primary signal, not the phase alone.",
-        rationale: "Current evidence does not support impaired maximal strength output during menstruation for most women (Janse de Jonge, 2003). The primary limiters are prostaglandin-mediated inflammation, iron loss, and individual symptom burden — not hormonal state per se. Training performance is highly individual.",
+        rationale: "Current evidence does not support impaired maximal strength output during menstruation for most women (Colenso-Semple et al., 2023; McNulty et al., 2020). The primary limiters are prostaglandin-mediated inflammation, iron loss, and individual symptom burden — not hormonal state per se. Training performance is highly individual.",
         suggestions,
         signalDrivers: drivers,
         avoidNote: "Many women perform well in this phase. The recommendation is to listen closely — not to avoid training.",

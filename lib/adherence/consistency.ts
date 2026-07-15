@@ -23,6 +23,7 @@ export interface ConsistencyScore {
   checkins:  number;   // 0–100 (app engagement proxy)
   composite: number;   // weighted: training 40%, nutrition 20%, recovery 20%, checkins 20%
   tier:      ConsistencyTier;
+  historyDepth: number; // total tracked days — data-maturity signal, see lib/intelligence/dataMaturity.ts
 }
 
 export interface StoredConsistencyEntry {
@@ -114,7 +115,11 @@ export function computeConsistencyScore(
     checkins  * 0.20,
   );
 
-  return { date: today, training, nutrition, recovery, checkins, composite, tier: toTier(composite) };
+  return {
+    date: today, training, nutrition, recovery, checkins, composite,
+    tier: toTier(composite),
+    historyDepth: adherenceHistory.length,
+  };
 }
 
 export function saveConsistencyScore(score: ConsistencyScore): void {
