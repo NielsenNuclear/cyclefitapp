@@ -1744,7 +1744,10 @@ export default function DashboardPage() {
       recordSignal(
         "periodization_offset", periodizationStatusVal.setsOffset,
         `lib/exercises/generateWorkout.ts combineVolume (Layer 3b) — phase: ${periodizationStatusVal.phase}`,
-        "sets", "Feeds per-exercise combineVolume(), not finalVolumeScale directly",
+        "sets",
+        periodizationStatusVal.phase === "deload"
+          ? "Suppressed (0) inside combineVolume() during deload — already reflected in training_decision_composite's 0.60 cap, applying both would double-count (fixed 2026-07-16)"
+          : "Feeds per-exercise combineVolume(), not finalVolumeScale directly",
       );
     }
 

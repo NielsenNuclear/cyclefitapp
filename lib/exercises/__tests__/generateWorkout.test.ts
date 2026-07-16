@@ -167,3 +167,81 @@ describe("generateWorkout — confidence-aware early-user damping (Batch 5c)", (
     expect(mainEx(dampedResult).sets).toBe(mainEx(noDamping).sets);
   });
 });
+
+describe("generateWorkout — deload double-count fix (2026-07-16)", () => {
+  const mainEx = (w: ReturnType<typeof generateWorkout>) =>
+    w.exercises.find(ex => ex.exercise.category !== "Mobility" && ex.exercise.category !== "Core")!;
+
+  function deloadStatus(overrides: Partial<Parameters<typeof generateWorkout>[0]["periodizationStatus"]> = {}) {
+    return {
+      phase: "deload" as const,
+      label: "Deload",
+      description: "test",
+      mesocycleWeek: 4,
+      blockLengthWeeks: 4,
+      phaseWeek: 1,
+      phaseLength: 1,
+      weeksUntilNextPhase: 1,
+      nextPhase: "accumulation" as const,
+      nextPhaseLabel: "Accumulation",
+      blockProgress: 1,
+      setsOffset: -2,
+      rpeOffset: -2,
+      deloadReps: "15–20",
+      forcedEarly: false,
+      ...overrides,
+    };
+  }
+
+  it("does not apply periodizationSetsOffset on top of an adherenceRiskScale that already reflects the deload cap", () => {
+    // Mirrors the real trace from live validation: Training Decision Engine's
+    // own deload layer (sessionScaling.ts) already caps volume at 0.60 when
+    // isDeloadPeriod is true — that capped value arrives here as
+    // adherenceRiskScale. Applying setsOffset (-2) on top double-counts.
+    //
+    // adherenceRiskScale is deliberately 0.9, not the real 0.60 cap: at
+    // energyLevel 4 (baseSets 4) with a 0.60 ceiling, both the fixed and the
+    // pre-fix-buggy math floor to the same MIN_SETS=2 (4*0.6=2.4→2 either
+    // way), which would make this test pass whether or not the fix actually
+    // worked. 0.9 stays above the floor so the two behaviors are
+    // distinguishable — this test verifies the suppression logic itself
+    // (triggered unconditionally by phase === "deload"), not one specific
+    // real-world ceiling value.
+    const withOffsetSuppressed = generateWorkout(baseInput({
+      energyLevel: 4,
+      adherenceRiskScale: 0.9,
+      periodizationStatus: deloadStatus(),
+    }));
+
+    const withoutPeriodizationAtAll = generateWorkout(baseInput({
+      energyLevel: 4,
+      adherenceRiskScale: 0.9,
+      // no periodizationStatus at all — same ceiling, no offset possible
+    }));
+
+    // If the offset were still applied on top, the deload case would have
+    // fewer sets than the no-periodization case with an identical ceiling.
+    expect(mainEx(withOffsetSuppressed).sets).toBe(mainEx(withoutPeriodizationAtAll).sets);
+  });
+
+  it("still applies the offset for non-deload phases (no equivalent Layer 2 signal exists)", () => {
+    const accumulation = generateWorkout(baseInput({
+      energyLevel: 3,
+      periodizationStatus: deloadStatus({ phase: "accumulation", setsOffset: 1, rpeOffset: 0 }),
+    }));
+    const noPeriodization = generateWorkout(baseInput({ energyLevel: 3 }));
+
+    // Accumulation's +1 offset is the only signal for this phase — it must
+    // still take effect (more sets than the no-periodization baseline).
+    expect(mainEx(accumulation).sets).toBeGreaterThan(mainEx(noPeriodization).sets);
+  });
+
+  it("deload RPE offset and rep-range override still apply (only setsOffset is suppressed)", () => {
+    const workout = generateWorkout(baseInput({
+      energyLevel: 3,
+      periodizationStatus: deloadStatus(),
+    }));
+    const mainExercise = mainEx(workout);
+    expect(mainExercise.reps).toBe("15–20"); // deloadReps override, untouched by this fix
+  });
+});

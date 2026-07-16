@@ -511,10 +511,28 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
   // periodization offset, confidence damping) is combined once inside
   // prescribeExercise() via combineVolume() — see that function's comment
   // for why this replaced four independent sequential passes.
+  //
+  // Deload double-count fix (found live via Batch 10's trace validation,
+  // 2026-07-16): during a scheduled deload, adherenceRiskScale (the Training
+  // Decision Engine's composite, passed in via input.adherenceRiskScale)
+  // already independently caps volume at 0.60 — sessionScaling.ts's "Deload
+  // layer" reads periodizationStatus.phase === "deload" via isDeloadPeriod
+  // and applies Math.min(volumeMod, 0.60) unconditionally. Also applying
+  // periodizationStatus.setsOffset (-2 sets) on top of that already-capped
+  // ceiling counts the same deload signal twice — confirmed by a real trace
+  // where a deload week produced both a 40% pipeline-level cut AND a
+  // further -2 per-exercise offset, compounding down to the sets floor.
+  // For every OTHER phase (accumulation/intensification/peak), Layer 2 has
+  // no equivalent signal at all — isDeloadPeriod is deload-only — so the
+  // offset remains the sole, non-redundant source there.
+  const periodizationSetsOffset = input.periodizationStatus?.phase === "deload"
+    ? 0
+    : input.periodizationStatus?.setsOffset;
+
   const volumeCtx: VolumeContext = {
     adaptiveVolumeMultiplier:  input.adaptiveVolumeMultiplier,
     adherenceRiskScale:        input.adherenceRiskScale,
-    periodizationSetsOffset:   input.periodizationStatus?.setsOffset,
+    periodizationSetsOffset,
     confidenceVolumeDamping:   input.confidenceVolumeDamping,
   };
 
