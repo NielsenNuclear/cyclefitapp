@@ -357,7 +357,60 @@ A deterministic, inspectable pipeline — every `Contributor` traceable from ath
 
 ---
 
-## 9. Summary of Findings for Implementation Planning
+## 9. Recommendation Trace (Developer Observability)
+
+**Status:** Design + a major discovery — most of this already exists, unwired. Documented per explicit instruction; not yet implemented.
+
+**Requirement, as specified:** a developer-only (never user-facing) structured trace of every recommendation decision — inputs, stage-by-stage modifiers, safety constraints, confidence limiting, data-maturity limiting, final output — stored in development mode or emitted through telemetry. The stated motivation: six months from now, "why did Axis recommend reducing today's volume by 12%?" should be answerable by inspection, not by mentally reconstructing the pipeline.
+
+### 9.1 This already exists — and is completely disconnected
+
+Confirmed by direct trace: `lib/intelligence/audit/` (Phase 65, "Decision Traceability & Audit Engine") is not a proposal, it's shipped code:
+
+- **`auditTypes.ts`** defines exactly the shape being asked for: `DecisionTrace` with `signals: SignalRecord[]` (inputs), `modifiers: ModifierRecord[]` (stage-by-stage multiplicative changes, each with `name`/`inputValue`/`outputFactor`/`description`), `safetyGates: SafetyGateRecord[]` (`"passed"|"blocked"|"clamped"`, with `inputValue`/`limit`/`reason`), `uncertaintyScore`, `calibrationFactor`, and final output fields (`finalVolumeScale`, `finalIntensity`, `finalConfidence`, `recommendationClass`, `recommendationSummary`) — plus `algorithmVersion`/`configVersion` metadata for exactly the kind of longitudinal "did this change between versions" question the brief's six-months-from-now scenario implies.
+- **`traceRecorder.ts`** is a complete builder API — `beginTrace()` → `recordSignal(name, value, source, unit?, description?)` / `recordModifier(name, inputValue, outputFactor, description?)` / `recordSafetyGate(name, result, reason, inputValue?, limit?)` → `finalizeTrace(output)`, which persists via `saveTrace()`.
+- **`traceStorage.ts`** persists to `localStorage` (`axis_decision_traces_v1`), already implementing "stored in development mode" from the brief, with `loadTraces()`, `filterTraces()`, `exportTrace()`, and pruning (`clearOldTraces()`, capped at `MAX_TRACES`).
+- **`replayEngine.ts`** — not even asked for, but already built: `replayTrace()`/`batchReplay()` re-run a stored trace's inputs against the current algorithm and report `ReplayStatus` (`"deterministic"|"drifted"|"error"`) with a `drift` score and `signalDriftCount` — this is the mechanism that would let a developer confirm the pipeline still produces the same output for the same inputs after a code change, directly serving the brief's "scientific validation" motivation.
+- **`components/dev/TraceExplorer.tsx`** — a full developer-facing browser UI: signal tables, gate-result tags (passed/blocked/clamped), replay invocation, export. Already wired to `loadTraces()`/`filterTraces()`/`exportTrace()`/`replayTrace()`.
+
+**The gap:** confirmed via repo-wide search — `beginTrace`, `recordSignal`, `recordModifier`, `recordSafetyGate`, and `finalizeTrace` have **zero call sites anywhere outside `traceRecorder.ts` itself.** Nothing in `generateWorkout.ts`, `trainingDecisionEngine.ts`, `resolveEffectiveAdjustment()`, or any of the other real calculation code traced in §1 ever calls this API. `TraceExplorer.tsx` has been fully built, and has never had anything to show — every session, `loadTraces()` returns an empty array. This is the same shape of problem as `docs/ux/UXStabilizationAudit.md`'s recurring theme across this whole audit series (Issues #3/#4/#12, and now this): a well-built primitive exists, and nothing calls it.
+
+**Conclusion: this requirement is not "build a Recommendation Trace." It's "wire the existing Decision Trace Recorder into the pipeline it was built to trace."** Building a second, parallel trace system alongside an unused one that already fits would be a direct instance of the exact anti-pattern §8 exists to eliminate.
+
+### 9.2 Mapping the requested stages onto the existing shape
+
+The brief's six-stage flow maps cleanly onto `DecisionTrace`'s existing fields — mostly a wiring exercise, with two real gaps called out:
+
+| Requested stage | Existing `DecisionTrace` field | Status |
+|---|---|---|
+| Inputs (sleep, recovery, symptoms, cycle, training load, nutrition) | `signals: SignalRecord[]` | Shape exists; needs `recordSignal()` calls added at the top of the real pipeline for each of these — none currently recorded |
+| Stage 1 — Recovery Score | `modifiers: ModifierRecord[]` (one entry, e.g. `name: "recovery"`) | Shape exists; needs a `recordModifier()` call where `lib/recovery/recoveryScore.ts`'s output enters Layer 2 (§1.1) |
+| Stage 2 — Readiness | Another `modifiers[]` entry | Needs a `recordModifier()` call in `resolveEffectiveAdjustment()` (§1.1 Layer 1) — this is the single most valuable call site to add first, since it's the most-referenced signal in the double-counting problem (E4) |
+| Stage 3 — Safety Constraints | `safetyGates: SafetyGateRecord[]` | Shape already distinguishes `"passed"`/`"blocked"`/`"clamped"` with a `limit` field — a direct fit for the existing Safety Engine's constraint checks (referenced throughout this codebase's Confidence/Safety/Verification trio); needs `recordSafetyGate()` calls added at those checks |
+| Stage 4 — Confidence Limit | **Gap.** `uncertaintyScore`/`calibrationFactor`/`finalConfidence` exist on `DecisionTrace` but there is no dedicated confidence-*damping* record — because, per Finding E5 (§1/§9 Summary), **no confidence-based damping exists in the pipeline at all yet.** This stage can't be traced until §8's confidence-damping mechanism (§7) is actually implemented; the trace field to record it (`recordModifier("confidence_damping", rawModifier, dampedModifier, ...)`) is a one-line addition once that mechanism exists, not before |
+| Stage 5 — Data Maturity Limit | **Gap**, same reason — no data-maturity-based limiting exists yet either (only *display* gating exists, per UX Stabilization Batch 3/9). Same resolution: trivial to add once Batch 9's consolidated maturity signal and any resulting adaptation-limit mechanism exist |
+| Final Recommendation | `finalVolumeScale`, `finalIntensity`, `recommendationClass`, `recommendationSummary`, `finalConfidence` | Already exists in full |
+
+**This mapping is itself evidence for sequencing:** Stages 4 and 5 of the *requested* trace don't exist to record yet, because the mechanisms that would produce them (confidence damping, maturity-based limiting) are exactly what §7/§8 propose and haven't shipped. The trace-wiring work naturally splits into "wire what already exists today" (inputs, recovery, readiness, safety — available now, low risk) and "wire what §8 will add" (confidence/maturity limiting — blocked on §8 landing).
+
+### 9.3 Relationship to the Contributor[] array (§8.2)
+
+Worth resolving explicitly rather than building two parallel instrumentation systems: `DecisionTrace.modifiers[]` (developer-facing, full detail, every stage, replay-capable) and `Contributor[]` (§8.2, user-facing, pre-bucketed magnitude, only the factors that actually mattered) are describing the **same underlying event** — a modifier being applied during the real calculation — at two different levels of detail for two different audiences. The recommended architecture: `recordModifier()` calls (§9.1's existing API) become the **single instrumentation point** inside the coordinated calculation from §8.2; `Contributor[]` is then *derived* from the recorded modifiers (filtered to the meaningful ones, bucketed into High/Moderate/Small per §6.1) rather than computed separately. This is what makes §8's core promise — no second model, nothing to drift out of sync — concretely true for the trace and the explanation simultaneously, with one write, not two.
+
+### 9.4 Telemetry integration
+
+Per the brief's "or emitted through your existing telemetry system": `lib/telemetry/ObservabilityEvents.ts` already emits a `pipeline_completed` event (`trackPipelineCompleted()`) with `safetyConstrained`, `confidenceLevel`, `verificationState`, and `totalDurationMs` — a *summary*, not the full trace. Recommendation: keep that summary event as-is (it's cheap, aggregatable, and useful for fleet-wide observability questions like "what % of sessions hit a safety constraint this week"), and treat `DecisionTrace`/`traceStorage.ts` as the *detailed, per-session, developer-inspectable* companion — matching the brief's own framing ("stored in development mode **or** emitted through telemetry," not one replacing the other). No new telemetry event type is needed; `finalizeTrace()` is the natural place to also call `trackPipelineCompleted()` with the trace's summary fields, unifying two call sites that currently exist independently (`app/dashboard/page.tsx` calls `trackPipelineCompleted()` directly today, with no `DecisionTrace` in the loop at all).
+
+### 9.5 Recommended sequencing
+
+1. **Wire `recordSignal()`/`recordModifier()`/`recordSafetyGate()` into the real pipeline** for everything traceable today (inputs, recovery, readiness, safety gates) — low risk, additive instrumentation calls, no behavior change (`traceRecorder.ts`'s own header comment already states "this is instrumentation only — it does not affect any recommendation output," worth verifying that claim stays true as call sites are added). This alone answers the brief's six-months-from-now scenario for every driver *except* confidence/maturity limiting.
+2. **Confirm `TraceExplorer.tsx` actually renders real data** once step 1 lands — it's built and wired to the storage layer, but has never been exercised against non-empty data; treat this as a real verification step, not an assumption.
+3. **Land §8's confidence-damping and maturity-limiting mechanisms**, then add the corresponding `recordModifier()` calls for Stages 4/5 (§9.2) — trivial once those mechanisms exist, blocked until they do.
+4. **Unify `Contributor[]` sourcing with `recordModifier()`** (§9.3) as part of §8's implementation, not as a separate pass.
+
+---
+
+## 10. Summary of Findings for Implementation Planning
 
 | # | Finding | File(s) | Severity |
 |---|---|---|---|
@@ -367,5 +420,6 @@ A deterministic, inspectable pipeline — every `Contributor` traceable from ath
 | E4 | Volume/set reduction compounds across ≥4 independent passes, several counting overlapping signals (readiness/adherence referenced 2–3×) | `lib/exercises/generateWorkout.ts` lines 453–505, `app/dashboard/page.tsx` lines 2520/2733 | High — root cause of Part 1's "most exercises show 1 set" |
 | E5 | Confidence is computed but never used to constrain adjustment magnitude | `lib/intelligence/confidence/ConfidenceEngine.ts` vs. `generateWorkout.ts`/`trainingDecisionEngine.ts` (absence) | Medium-High — trust/onboarding-experience risk, not a correctness bug |
 | E6 | Two independent, differently-shaped `MaturityStage` systems exist (Phase 67's account-level one vs. UX Stabilization Batch 3's per-card one); four UI components determine maturity themselves by calling `getMaturityStage(entryCount)` directly instead of reading it from an engine | `lib/intelligence/confidence/ConfidenceTypes.ts` vs. `lib/intelligence/dataMaturity.ts`; `AdherenceCard.tsx`, `FatigueCard.tsx`, `PerformanceHubCard.tsx`, `LockedInsight.tsx` | Medium — no incorrect output today (both systems' thresholds are reasonable), but a direct, already-shipped instance of the single-source-of-truth violation §8 is written to prevent |
+| E7 | A complete Decision Trace Recorder + Explorer UI (Phase 65) already exists — builder API, localStorage persistence, replay-with-drift-detection, a full dev-console browser — and has **zero call sites** anywhere in the real pipeline. `TraceExplorer.tsx` has never had a non-empty trace to display. | `lib/intelligence/audit/traceRecorder.ts`, `auditTypes.ts`, `traceStorage.ts`, `replayEngine.ts`, `components/dev/TraceExplorer.tsx` (all unwired); absence of any call in `lib/exercises/generateWorkout.ts`, `lib/autoregulation/trainingDecisionEngine.ts` | Medium — no incorrect output (it's inert, not wrong), but directly answers the brief's Recommendation Trace ask: wire the existing system rather than build a new one (§9) |
 
 See `docs/ux/UXStabilizationAudit.md` for these findings folded into the implementation-batch plan alongside Part 1 (Workout Execution Engine).

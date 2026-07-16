@@ -425,6 +425,20 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ---
 
+## 19. Recommendation Trace (Developer Observability)
+
+**User impact:** None directly (developer/debugging-only, per explicit instruction it must never be user-facing) — but high value for maintainability, and the single biggest surprise in this entire audit series: **the requested feature already exists, fully built, and is entirely disconnected.**
+
+**Current behavior — confirmed by direct trace:** `lib/intelligence/audit/` (Phase 65, "Decision Traceability & Audit Engine") ships a complete builder API (`beginTrace()`/`recordSignal()`/`recordModifier()`/`recordSafetyGate()`/`finalizeTrace()`), a `DecisionTrace` type shape that maps almost directly onto the six-stage flow requested (inputs → signals; per-stage modifiers → `ModifierRecord[]`; safety constraints → `SafetyGateRecord[]` with a `"passed"|"blocked"|"clamped"` result; final output fields), `localStorage`-backed persistence (`traceStorage.ts`, already satisfying "stored in development mode"), a replay engine that detects drift between a stored trace's original output and what the current code would produce (`replayEngine.ts` — not even requested, already built), and a full developer-facing browser (`components/dev/TraceExplorer.tsx`). **None of `beginTrace`/`recordSignal`/`recordModifier`/`recordSafetyGate`/`finalizeTrace` has a single call site anywhere outside `traceRecorder.ts` itself** — confirmed via repo-wide search. `TraceExplorer.tsx` has never rendered a real trace; `loadTraces()` returns empty every session. Full detail in `docs/intelligence/RecommendationExplainability.md` §9.
+
+**Files involved:** `lib/intelligence/audit/traceRecorder.ts`, `auditTypes.ts`, `traceStorage.ts`, `replayEngine.ts`, `components/dev/TraceExplorer.tsx` (all exist, unwired); `lib/exercises/generateWorkout.ts`, `lib/autoregulation/trainingDecisionEngine.ts`, `lib/recovery/recoveryScore.ts` (need `recordSignal()`/`recordModifier()` calls added); `lib/telemetry/ObservabilityEvents.ts` (existing `trackPipelineCompleted()` — proposed as the summary-event companion to the detailed trace, not a replacement).
+
+**Recommended fix:** Wire the existing system into the real pipeline rather than build a second one. Two of the six requested stages (Confidence Limit, Data Maturity Limit) can't be traced yet because the mechanisms that would produce them don't exist until Issue #18/Batch 8 lands (§9.2 of the explainability doc has the full stage-by-stage mapping) — everything else (inputs, recovery, readiness, safety gates) can be wired today, independent of Batch 8. Also recommended: unify this trace's `recordModifier()` calls with Batch 8's `Contributor[]` sourcing (§9.3 of the explainability doc) so there's one instrumentation point serving both the developer trace and the user-facing explanation, not two.
+
+**Risk level:** **Low for the wiring itself** (the recorder's own header comment states it's "instrumentation only — it does not affect any recommendation output," and adding calls that only push into a module-level array is inherently low-risk), **but sequencing matters**: wire what's traceable today first (independent of Batch 5/8/9), defer Stages 4/5 until their underlying mechanisms exist, and route `Contributor[]` through the same recorder once Batch 8 is built rather than instrumenting twice.
+
+---
+
 ## Implementation Approach — Extension
 
 ### Batch 5 — Workout Correctness II (Realistic Sets & Postponement)
@@ -490,9 +504,22 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ---
 
+### Batch 10 — Wire the Existing Decision Trace Recorder
+**Scope:** Issue #19 — add `recordSignal()`/`recordModifier()`/`recordSafetyGate()` calls to the real pipeline for everything traceable today (inputs, recovery score, readiness, safety gates); verify `TraceExplorer.tsx` renders real data end to end. Stages 4/5 (confidence limit, data maturity limit) and the `Contributor[]` unification are deferred to Batch 8 per `docs/intelligence/RecommendationExplainability.md` §9.5.
+
+**Files changed:** `lib/exercises/generateWorkout.ts`, `lib/autoregulation/trainingDecisionEngine.ts`, `lib/recovery/recoveryScore.ts` (add recorder calls); `components/dev/TraceExplorer.tsx` (verification only — should need no code change, it's already built and wired to storage); `lib/telemetry/ObservabilityEvents.ts` (optional — have `finalizeTrace()` also call the existing `trackPipelineCompleted()`, unifying two currently-independent call sites).
+
+**Risks:** Low — additive instrumentation calls into a module-level builder that only writes to `localStorage`; `traceRecorder.ts`'s own docstring already asserts zero effect on recommendation output, which this batch's tests should actively verify rather than assume. No dependency on Batch 5, 8, or 9 — can proceed immediately and independently, and doing so early gives every *other* batch in this document a working trace to debug against while they're being built.
+
+**Tests required:** Generate a workout with instrumentation active, confirm a `DecisionTrace` is persisted with non-empty `signals`/`modifiers` matching the actual inputs used; run `replayTrace()` against it immediately (same code, same inputs) and confirm `status: "deterministic"` with zero drift — the first real exercise of the replay engine since it was built in Phase 65.
+
+**Visual QA plan:** Open `TraceExplorer.tsx` in `/dev` after generating a few real sessions, confirm the signal table, gate tags, and replay button all function against real (not synthetic) data for the first time.
+
+---
+
 ## Constraints Honored — Extension
 
-Per the brief: Dashboard 2.0 was not redesigned in producing this extension. Workout Mode (§16) is a proposal document only, per explicit instruction not to implement it in this pass. Recommendation Explainability's audit (§17, and the full `docs/intelligence/RecommendationExplainability.md`) documents the existing calculation pipeline and proposes a design; it does not implement pipeline changes. The Single Source of Truth architecture requirement (§18, and `docs/intelligence/RecommendationExplainability.md` §8) is likewise documented and not implemented, per explicit confirmation to document the target architecture first — no code was changed producing §18 or the §8 write-up beyond the audit-doc and design-doc edits themselves. Where a recommended fix does touch core recommendation logic (Issue #13, and Batch 8 in full), it's explicitly flagged as such — consistent with the original audit's discipline of calling out formula changes rather than presenting them as simple bug fixes.
+Per the brief: Dashboard 2.0 was not redesigned in producing this extension. Workout Mode (§16) is a proposal document only, per explicit instruction not to implement it in this pass. Recommendation Explainability's audit (§17, and the full `docs/intelligence/RecommendationExplainability.md`) documents the existing calculation pipeline and proposes a design; it does not implement pipeline changes. The Single Source of Truth architecture requirement (§18, and `docs/intelligence/RecommendationExplainability.md` §8) is likewise documented and not implemented, per explicit confirmation to document the target architecture first — no code was changed producing §18 or the §8 write-up beyond the audit-doc and design-doc edits themselves. The Recommendation Trace requirement (§19, and `docs/intelligence/RecommendationExplainability.md` §9) is documented, not implemented, in the same pass — its central finding (the requested system already exists and is unwired) was itself discovered by reading, not by writing new code. Where a recommended fix does touch core recommendation logic (Issue #13, and Batch 8 in full), it's explicitly flagged as such — consistent with the original audit's discipline of calling out formula changes rather than presenting them as simple bug fixes.
 
 ---
 
