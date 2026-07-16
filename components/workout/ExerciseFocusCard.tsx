@@ -12,7 +12,7 @@ import type { SetRecord }          from "./types";
 import { AxisIcon }                from "@/components/ui/Icon";
 import { SetStepper }              from "./SetStepper";
 import { getExerciseHistory }      from "@/lib/history/exerciseHistory";
-import { getExerciseSubstitutions } from "@/lib/exercises/exerciseSubstitutions";
+import { getExerciseSubstitutions, getLoadingType } from "@/lib/exercises/exerciseSubstitutions";
 
 // ─── Parse rest seconds ───────────────────────────────────────────────────────
 
@@ -34,15 +34,17 @@ function CompletedSetRow({
   index,
   set,
   onUndo,
+  secondaryUnit = "reps",
 }: {
   index:  number;
   set:    SetRecord;
   onUndo: () => void;
+  secondaryUnit?: string;
 }) {
   const repsNum = parseInt(set.actualReps, 10) || 0;
   const label   = set.weight
     ? `${set.weight} kg × ${repsNum} reps`
-    : `${repsNum} reps`;
+    : `${repsNum} ${secondaryUnit}`;
 
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#F0FAF6] border border-[#A3DCCA]/60">
@@ -157,6 +159,16 @@ export function ExerciseFocusCard({
 
   const muscles = ex.exercise.primaryMuscles.slice(0, 3);
 
+  // Workout Engine Sprint — Phase A.2. Bodyweight/repetitions exercises never
+  // show a weight input; timed/distance exercises log a duration or distance
+  // instead of a rep count. See lib/exercises/exerciseSubstitutions.ts.
+  const loadingType   = getLoadingType(ex.exercise);
+  const showWeight    = loadingType === "weighted" || loadingType === "assisted";
+  const weightLabel   = loadingType === "assisted" ? "Assist" : "Weight";
+  const secondaryLabel = loadingType === "timed" ? "Duration" : loadingType === "distance" ? "Distance" : "Reps";
+  const secondaryUnit  = loadingType === "timed" ? "sec" : loadingType === "distance" ? "m" : "reps";
+  const secondaryStep  = loadingType === "timed" ? 5 : loadingType === "distance" ? 5 : 1;
+
   return (
     <div className="space-y-4">
       {/* Exercise header */}
@@ -189,7 +201,9 @@ export function ExerciseFocusCard({
             </span>
           ))}
           <span className="text-[#D8D4CC]">·</span>
-          <span className="text-[10px] text-[#9B9690]">{ex.sets} sets · {ex.reps} reps · {ex.rest}</span>
+          <span className="text-[10px] text-[#9B9690]">
+            {ex.sets} sets · {ex.reps} {secondaryUnit === "sec" ? "" : secondaryUnit === "m" ? "" : "reps"} · {ex.rest}
+          </span>
         </div>
       </div>
 
@@ -207,6 +221,7 @@ export function ExerciseFocusCard({
                 index={realIdx}
                 set={s}
                 onUndo={() => undoSet(realIdx)}
+                secondaryUnit={secondaryUnit}
               />
             );
           })}
@@ -227,25 +242,29 @@ export function ExerciseFocusCard({
             )}
           </div>
 
-          {/* Steppers */}
+          {/* Steppers — bodyweight/repetitions exercises never show a weight
+              input (Workout Engine Sprint Phase A.2); timed/distance
+              exercises log a duration/distance instead of a rep count. */}
           <div className="flex items-center justify-center gap-6">
-            <SetStepper
-              value={activeSet.weight}
-              onChange={weight => updateActiveSet({ weight })}
-              min={0}
-              step={2.5}
-              unit="kg"
-              label="Weight"
-            />
+            {showWeight && (
+              <SetStepper
+                value={activeSet.weight}
+                onChange={weight => updateActiveSet({ weight })}
+                min={0}
+                step={2.5}
+                unit="kg"
+                label={weightLabel}
+              />
+            )}
             <SetStepper
               value={parseReps(activeSet.actualReps) || parseReps(activeSet.targetReps) || undefined}
               onChange={v =>
                 updateActiveSet({ actualReps: v !== undefined ? String(v) : activeSet.targetReps })
               }
               min={1}
-              step={1}
-              unit="reps"
-              label="Reps"
+              step={secondaryStep}
+              unit={secondaryUnit}
+              label={secondaryLabel}
             />
           </div>
 

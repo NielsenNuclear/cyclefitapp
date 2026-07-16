@@ -46,6 +46,19 @@ export type TrainingEnvironment =
   | "dumbbells_only"
   | "bodyweight_only";
 
+// Workout Engine Sprint — Phase A.2. What kind of load/output the logging UI
+// should ask for. Optional hand-authored override; when absent, derived from
+// `equipment`/`movementPattern`/`category` by deriveLoadingType() in
+// exerciseSubstitutions.ts (same pattern as equipmentCategory below) — see
+// getLoadingType() for the override-then-derive accessor.
+export type LoadingType =
+  | "bodyweight"    // no weight input — reps only, resistance is the athlete's own body
+  | "weighted"      // barbell/dumbbell/cable/machine/kettlebell — weight + reps
+  | "assisted"      // assisted machine — assist-weight (inverted) + reps
+  | "timed"         // isometric holds, mobility — duration, not reps
+  | "distance"      // loaded carries — distance, not reps
+  | "repetitions";  // resistance bands — reps matter, no standardized trackable weight
+
 export interface Exercise {
   name: string;
   primaryMuscles: string[];
@@ -56,6 +69,7 @@ export interface Exercise {
   biomechanicalNote: string;
   category: MuscleCategory;
   equipmentCategory?: EquipmentCategory;
+  loadingType?: LoadingType;
   trainingEnvironment?: TrainingEnvironment[];
   // Set only on exercises synthesized from a user's custom exercise library
   // (see lib/exercises/customExercises.ts). When present, equipment

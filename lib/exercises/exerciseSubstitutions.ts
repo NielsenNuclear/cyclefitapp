@@ -7,6 +7,7 @@ import type {
   EquipmentCategory,
   TrainingEnvironment,
   DifficultyLevel,
+  LoadingType,
 } from "./exerciseLibrary";
 import { getMergedExercisePool } from "./customExercises";
 import { getRestrictedExerciseNames } from "./exerciseRestrictions";
@@ -26,6 +27,34 @@ export function deriveEquipmentCategory(equipment: string): EquipmentCategory {
   if (e.includes("pull-up bar")) return "pullup_bar";
   // Parallel bars, bodyweight, foam roller, medicine ball, etc.
   return "bodyweight";
+}
+
+// Workout Engine Sprint — Phase A.2 (UX Stabilization Issue #14). Derives
+// what the logging UI should ask for from the same free-text `equipment`
+// field, plus movementPattern/category for the cases equipment text alone
+// can't distinguish. Checked BEFORE deriveEquipmentCategory's keyword match
+// for "weight belt"/"weighted": e.g. "Parallel Bars, Weight Belt" (weighted
+// dips) contains no barbell/dumbbell/etc keyword and would otherwise fall
+// through to the bodyweight default despite being a weighted variant — the
+// exact edge case flagged when this was first audited.
+export function deriveLoadingType(exercise: Exercise): LoadingType {
+  const e = exercise.equipment.toLowerCase();
+
+  if (e.includes("assisted")) return "assisted";
+  if (e.includes("weight belt") || e.includes("weighted")) return "weighted";
+
+  if (exercise.movementPattern === "Carry") return "distance";
+  if (exercise.movementPattern === "Isometric" || exercise.category === "Mobility") return "timed";
+
+  const cat = deriveEquipmentCategory(exercise.equipment);
+  if (cat === "bodyweight" || cat === "pullup_bar") return "bodyweight";
+  if (cat === "resistance_band") return "repetitions";
+  return "weighted"; // barbell, dumbbell, cable, machine, kettlebell
+}
+
+/** Hand-authored override (Exercise.loadingType) takes precedence over the derived default. */
+export function getLoadingType(exercise: Exercise): LoadingType {
+  return exercise.loadingType ?? deriveLoadingType(exercise);
 }
 
 export function deriveTrainingEnvironments(equipment: string): TrainingEnvironment[] {
