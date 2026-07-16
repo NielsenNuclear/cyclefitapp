@@ -25,6 +25,7 @@ import {
   type ExercisePerformance,
 } from "@/lib/progression/exerciseHistory";
 import { getExerciseHistory } from "@/lib/history/exerciseHistory";
+import { generateWarmupSets } from "@/lib/exercises/warmupSets";
 import type { SetRecord }         from "@/components/workout/types";
 import { WorkoutHeroView }        from "@/components/workout/WorkoutHeroView";
 import { GuidedExerciseFlow }     from "@/components/workout/GuidedExerciseFlow";
@@ -47,6 +48,23 @@ function defaultSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
     actualReps: ex.reps,
     weight:     lastWeight,
     rpe:        ex.rpe ?? undefined,
+  }));
+}
+
+// Workout Engine Sprint — Phase A.1. Warm-up sets ramp toward the same
+// lastWeight reference defaultSets() already uses, so both are computed from
+// one history lookup per exercise (see the actuals/warmupActuals
+// initializers below) rather than duplicating it. Logged as ordinary
+// SetRecord[] — reusing ExerciseFocusCard's existing completion-tracking
+// pattern — but kept in a separate warmupActuals map so warm-up completions
+// never reach buildExercisePerformances()/buildLog(), i.e. never count as
+// working volume.
+function defaultWarmupSets(ex: WorkoutExercise, lastWeight?: number): SetRecord[] {
+  return generateWarmupSets(ex.exercise, lastWeight).map(w => ({
+    targetReps: w.reps,
+    completed:  false,
+    actualReps: w.reps,
+    weight:     w.weight,
   }));
 }
 
@@ -111,6 +129,7 @@ export function WorkoutCard({
       ? history.bestSet.weight
       : undefined;
     setActuals(prev => ({ ...prev, [newIdx]: defaultSets(added, lastWeight) }));
+    setWarmupActuals(prev => ({ ...prev, [newIdx]: defaultWarmupSets(added, lastWeight) }));
   }
 
   // Restore in-progress state from localStorage on mount
@@ -140,6 +159,21 @@ export function WorkoutCard({
           ? history.bestSet.weight
           : undefined;
         return [i, defaultSets(ex, lastWeight)];
+      })
+    )
+  );
+
+  // Workout Engine Sprint — Phase A.1. Kept separate from `actuals` so
+  // warm-up completions never reach buildExercisePerformances()/buildLog()
+  // (never count as working volume).
+  const [warmupActuals, setWarmupActuals] = useState<Record<number, SetRecord[]>>(() =>
+    Object.fromEntries(
+      workout.exercises.map((ex, i) => {
+        const history    = getExerciseHistory(ex.name);
+        const lastWeight = (history.bestSet && history.bestSet.weight > 0)
+          ? history.bestSet.weight
+          : undefined;
+        return [i, defaultWarmupSets(ex, lastWeight)];
       })
     )
   );
@@ -339,6 +373,8 @@ export function WorkoutCard({
           exercises={exercises}
           actuals={actuals}
           onChange={(idx, sets) => setActuals(prev => ({ ...prev, [idx]: sets }))}
+          warmupActuals={warmupActuals}
+          onWarmupChange={(idx, sets) => setWarmupActuals(prev => ({ ...prev, [idx]: sets }))}
           onRestStart={(totalSeconds, exerciseName) => {
             if (!restTimerEnabled) return; // preference off — continue without a forced screen
             // Find the next exercise name for the rest screen preview

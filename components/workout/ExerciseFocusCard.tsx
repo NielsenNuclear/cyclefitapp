@@ -92,6 +92,11 @@ interface ExerciseFocusCardProps {
   ex:          WorkoutExercise;
   sets:        SetRecord[];
   onChange:    (sets: SetRecord[]) => void;
+  /** Workout Engine Sprint — Phase A.1. Ramped loading sets logged
+   *  separately from `sets` — never counts as working volume, and
+   *  completing them is optional, not a gate on the working sets below. */
+  warmupSets:      SetRecord[];
+  onWarmupChange:  (sets: SetRecord[]) => void;
   onRestStart: (totalSeconds: number, exerciseName: string) => void;
   environment: TrainingEnvironment;
   onSwap:      (newExercise: Exercise) => void;
@@ -103,6 +108,8 @@ export function ExerciseFocusCard({
   ex,
   sets,
   onChange,
+  warmupSets,
+  onWarmupChange,
   onRestStart,
   environment,
   onSwap,
@@ -137,6 +144,13 @@ export function ExerciseFocusCard({
 
   function undoSet(idx: number) {
     onChange(sets.map((s, i) => i === idx ? { ...s, completed: false } : s));
+  }
+
+  // Workout Engine Sprint — Phase A.1. Not a gate: warm-up sets can be
+  // toggled in any order and skipped entirely without blocking the working
+  // sets below — they're a loading ramp, not a checklist requirement.
+  function toggleWarmupSet(idx: number) {
+    onWarmupChange(warmupSets.map((s, i) => i === idx ? { ...s, completed: !s.completed } : s));
   }
 
   // Flexible completion (UX Stabilization #6) — for users tracking sets their
@@ -206,6 +220,46 @@ export function ExerciseFocusCard({
           </span>
         </div>
       </div>
+
+      {/* Warm-up sets (Workout Engine Sprint Phase A.1) — ramped loading sets,
+          logged separately from working sets below and never counted as
+          working volume. Optional: tap to toggle, not a gate. */}
+      {warmupSets.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9B9690]">
+              Warm-up
+            </span>
+            <span className="text-[10px] text-[#9B9690] tabular-nums">
+              {warmupSets.filter(s => s.completed).length}/{warmupSets.length}
+            </span>
+          </div>
+          {warmupSets.map((s, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => toggleWarmupSet(i)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border text-left transition-colors ${
+                s.completed
+                  ? "bg-[#F0FAF6] border-[#A3DCCA]/60"
+                  : "bg-[#FAFAF7] border-[#E5E2DA] hover:border-[#534AB7]/30"
+              }`}
+              aria-pressed={s.completed}
+            >
+              <span
+                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border ${
+                  s.completed ? "bg-[#085041] border-[#085041]" : "border-[#D8D4CC]"
+                }`}
+              >
+                {s.completed && <AxisIcon name="check" size={9} strokeWidth={1.8} className="text-white" />}
+              </span>
+              <span className={`text-[12px] font-medium flex-1 ${s.completed ? "text-[#085041]" : "text-[#5C5850]"}`}>
+                {s.weight} kg × {s.targetReps}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Previous best */}
       <PreviousBest exerciseName={ex.name} />

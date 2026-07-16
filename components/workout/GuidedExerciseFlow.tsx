@@ -60,6 +60,10 @@ interface GuidedExerciseFlowProps {
   exercises:       WorkoutExercise[];
   actuals:         Record<number, SetRecord[]>;
   onChange:        (idx: number, sets: SetRecord[]) => void;
+  /** Workout Engine Sprint — Phase A.1. Kept separate from actuals/onChange
+   *  so warm-up completions never count as working volume. */
+  warmupActuals:   Record<number, SetRecord[]>;
+  onWarmupChange:  (idx: number, sets: SetRecord[]) => void;
   onRestStart:     (totalSeconds: number, exerciseName: string) => void;
   elapsedSeconds:  number;
   environment:     TrainingEnvironment;
@@ -82,6 +86,8 @@ export function GuidedExerciseFlow({
   exercises,
   actuals,
   onChange,
+  warmupActuals,
+  onWarmupChange,
   onRestStart,
   elapsedSeconds,
   environment,
@@ -159,6 +165,8 @@ export function GuidedExerciseFlow({
         ex={current}
         sets={sets}
         onChange={next => onChange(currentIdx, next)}
+        warmupSets={warmupActuals[currentIdx] ?? []}
+        onWarmupChange={next => onWarmupChange(currentIdx, next)}
         onRestStart={onRestStart}
         environment={environment}
         onSwap={newEx => onSwap(currentIdx, newEx)}
