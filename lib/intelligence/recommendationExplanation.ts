@@ -103,12 +103,31 @@ export function generateRecommendationExplanation(
   const rawSum = rawReadiness + rawRecovery + rawBurnout + rawFatigue +
                  rawCycle + rawAdherence + rawUncertainty + rawSymptoms + rawMomentum;
 
-  // Calibrate so contributions sum to actual delta
+  // Calibrate so contributions sum to actual delta. This division is
+  // inherently unstable — rawSum is nine independently hand-tuned signals
+  // that routinely don't sum to the real pipeline's delta (see
+  // docs/intelligence/RecommendationExplainability.md §1.2), so a near-zero
+  // rawSum against a normal-sized actualDelta previously produced scale
+  // factors in the hundreds, and every individual signal's displayed impact
+  // was multiplied by that same runaway factor (the reported +1200%/-1800%
+  // bug). UX Stabilization Batch 5b: bound the scale factor itself, not just
+  // its output, so a near-zero denominator can no longer blow up every
+  // signal simultaneously. This is a stabilization clamp, not a fix for the
+  // underlying two-model disconnect — that requires the decomposition-based
+  // rebuild specified in RecommendationExplainability.md §8 (Batch 8).
   const actualDelta = finalVolumeScale - 1.0;
-  const scale = Math.abs(rawSum) > 0.001 ? actualDelta / rawSum : 1.0;
+  const MAX_SCALE = 6;
+  const scale = Math.abs(rawSum) > 0.01
+    ? Math.max(-MAX_SCALE, Math.min(MAX_SCALE, actualDelta / rawSum))
+    : Math.sign(actualDelta) * MAX_SCALE || 1.0;
 
-  // Convert to integer percentage-point impacts
-  const pp = (v: number) => Math.round(v * scale * 100);
+  // Convert to integer percentage-point impacts, bounded to a sane display
+  // range regardless of how the scale above was computed — defense in depth,
+  // matching the equivalent bound already applied to the bar width in
+  // RecommendationExplanationCard.tsx (the printed number was the one place
+  // that bound was previously missing).
+  const MAX_IMPACT_PP = 60;
+  const pp = (v: number) => Math.max(-MAX_IMPACT_PP, Math.min(MAX_IMPACT_PP, Math.round(v * scale * 100)));
 
   const readinessImpact   = pp(rawReadiness);
   const recoveryImpact    = pp(rawRecovery);

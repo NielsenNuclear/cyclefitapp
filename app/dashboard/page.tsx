@@ -362,6 +362,7 @@ import { ExecutiveSummaryCard }                                                f
 import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
 import { useToast } from "@/components/ui/Toast";
 import { generateRecommendationExplanation, saveRecommendationExplanation, type RecommendationExplanation as RecExplanation } from "@/lib/intelligence/recommendationExplanation";
+import { beginTrace, recordSignal, recordModifier, recordSafetyGate, finalizeTrace } from "@/lib/intelligence/audit/traceRecorder";
 import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          from "@/lib/intelligence/pipelineTrace";
 import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
 import { RecommendationExplanationCard }                                       from "@/components/intelligence/RecommendationExplanationCard";
@@ -485,7 +486,7 @@ import { recordRecommendation, runPendingEvaluations, getVerifierOutput }      f
 import { getRecordForDate, expireOldRecords }                                  from "@/lib/intelligence/verification/verificationRegistry";
 import { buildVerificationInput }                                               from "@/lib/intelligence/verification/buildVerificationInput";
 import type { VerificationRecord }                                              from "@/lib/intelligence/verification/verificationTypes";
-import { buildConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceEngine";
+import { buildConfidenceProfile, confidenceVolumeDamping }                      from "@/lib/intelligence/confidence/ConfidenceEngine";
 import { buildConfidenceInputs }                                                from "@/lib/intelligence/confidence/buildConfidenceInputs";
 import type { ConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceTypes";
 import { ConfidenceBadge }                                                      from "@/components/intelligence/ConfidenceBadge";
@@ -547,6 +548,7 @@ function runWorkoutPipeline(
   exerciseMastery?:     ExerciseMasteryEntry[],
   progressionTargets?:  ProgressionTarget[],
   adherenceRiskScale?:  number,
+  confidenceVolumeDamping?: number,
 ): GeneratedWorkout {
   const weights              = profile?.readinessWeights;
   const { level: rawEnergy } = deriveEnergyLevel(user, weights);
@@ -585,6 +587,7 @@ function runWorkoutPipeline(
     exerciseMastery,
     progressionTargets,
     adherenceRiskScale,
+    confidenceVolumeDamping,
   });
 }
 
@@ -1671,6 +1674,26 @@ export default function DashboardPage() {
     const prevWeekSets = weeklyVolumesVal[1]
       ? Object.values(weeklyVolumesVal[1]).reduce((a: number, b: number) => a + b, 0)
       : 0;
+
+    // UX Stabilization Batch 10 — wire the existing Decision Trace Recorder
+    // (lib/intelligence/audit/, Phase 65) into the real pipeline. This is
+    // instrumentation only: it must not change any recommendation output.
+    // Nutrition is deliberately not recorded as an input signal here — per
+    // docs/intelligence/RecommendationExplainability.md §2, it doesn't
+    // mechanically feed volume/intensity in the current pipeline (fuel
+    // targets are computed FROM the workout, not fed into it), and the trace
+    // should never assert an influence that isn't real.
+    beginTrace();
+    recordSignal("sleep_quality",  effectiveUser.sleepQuality, "onboarding/checkin");
+    recordSignal("stress_level",   effectiveUser.stressLevel,  "onboarding/checkin", "1-10");
+    recordSignal("recovery_score", recoveryScoreVal.score,     "lib/recovery/recoveryScore.ts", "0-100");
+    recordSignal("readiness_score", readiness.score,           "lib/readiness/calculateReadiness.ts", "0-100");
+    recordSignal("fatigue_score",  fatigueEntryVal.score,       "lib/autoregulation/fatigueModel.ts", "0-100");
+    recordSignal("symptom_count",  todaySymptomsVal.length,     "lib/symptoms/symptomHistory.ts");
+    recordSignal("cycle_phase",    phase.name,                  "lib/cycle/calculatePhase.ts");
+    recordSignal("cycle_day",      phase.cycleDay,              "lib/cycle/calculatePhase.ts");
+    recordSignal("weekly_training_load", currentWeekSets,       "workout history", "sets");
+
     const safetyCtx = buildSafetyContext({
       proposedVolumeScale:   trainingDecisionVal.finalVolumeScale,
       currentVolumeScale:    adaptiveModifierVal.volumeMultiplier ?? 1.0,
@@ -1694,6 +1717,63 @@ export default function DashboardPage() {
       safetyResultVal,
       Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - safetyT0),
     );
+
+    // Batch 10 — record every volume modifier that actually chains into
+    // finalVolumeScale (trainingDecisionVal.finalVolumeScale → safety), and
+    // every safety gate's real outcome. Caught by the replay engine's own
+    // "Verify Determinism" check on the first real trace ever recorded:
+    // progression_readiness_ceiling, adaptive_pattern_multiplier, and
+    // periodization_offset feed a SEPARATE, per-exercise calculation inside
+    // generateWorkout.ts's combineVolume() (via Math.min(), not multiplication
+    // — see that function's comment) — they don't chain multiplicatively into
+    // THIS trace's finalVolumeScale, so recording them as recordModifier()
+    // entries here made replayVolumeScale()'s naive `scale *= outputFactor`
+    // double-count them and report false drift. Recorded as recordSignal()
+    // instead: informational, correctly excluded from the replay chain.
+    recordSignal(
+      "progression_readiness_ceiling", finalAdjustmentVal.volumeModifier,
+      "lib/exercises/generateWorkout.ts resolveEffectiveAdjustment (Layer 1)",
+      undefined, "Feeds per-exercise combineVolume(), not finalVolumeScale directly",
+    );
+    recordSignal(
+      "adaptive_pattern_multiplier", phase37AdaptiveModifier.volumeMultiplier ?? 1.0,
+      "lib/exercises/generateWorkout.ts combineVolume (Layer 3a)",
+      undefined, "Feeds per-exercise combineVolume(), not finalVolumeScale directly",
+    );
+    if (periodizationStatusVal) {
+      recordSignal(
+        "periodization_offset", periodizationStatusVal.setsOffset,
+        `lib/exercises/generateWorkout.ts combineVolume (Layer 3b) — phase: ${periodizationStatusVal.phase}`,
+        "sets", "Feeds per-exercise combineVolume(), not finalVolumeScale directly",
+      );
+    }
+
+    // These two DO chain multiplicatively into finalVolumeScale (below), so
+    // they're the trace's real modifier chain: neutral → Training Decision
+    // Engine composite → safety-constrained. safety_governance's outputFactor
+    // is a RATIO relative to what came before it (1.0 = safety made no
+    // change), not the restated absolute value — required for
+    // replayVolumeScale()'s cumulative `scale *= outputFactor` to be correct.
+    recordModifier(
+      "training_decision_composite", 1.0, trainingDecisionVal.finalVolumeScale,
+      "Auto-regulation session scaling — readiness/recovery/burnout/fatigue/symptoms/deload/trend composite (Layer 2)",
+    );
+    recordModifier(
+      "safety_governance", trainingDecisionVal.finalVolumeScale,
+      trainingDecisionVal.finalVolumeScale !== 0
+        ? safetyResultVal.volumeScale / trainingDecisionVal.finalVolumeScale
+        : 1.0,
+      "Ratio applied by safety governance on top of the Training Decision Engine's output (1.0 = unconstrained)",
+    );
+    for (const r of safetyResultVal.evaluation.results) {
+      recordSafetyGate(
+        r.ruleName,
+        r.outcome === "pass" ? "passed" : r.outcome === "blocked" ? "blocked" : "clamped",
+        r.reason,
+        r.inputValue,
+        r.limit,
+      );
+    }
 
     // Phase C: Verification Registry gate
     // 1. Sweep orphaned records (> 30d past due, never evaluated)
@@ -1774,6 +1854,16 @@ export default function DashboardPage() {
       (typeof performance !== "undefined" ? performance.now() : Date.now()) - confT0,
     );
     trackConfidenceCalculated(confidenceProfileVal, confDurationMs);
+    // Batch 10 — Stage 4 (Confidence Limit). Recorded as a signal, not a
+    // modifier: like the Layer 1/3a/3b factors above, this feeds the
+    // per-exercise combineVolume() calculation inside generateWorkout.ts, not
+    // this trace's finalVolumeScale chain — see that block's comment for why
+    // (the replay engine's determinism check is what caught this).
+    recordSignal(
+      "confidence_volume_damping", confidenceVolumeDamping(confidenceProfileVal.level),
+      "lib/intelligence/confidence/ConfidenceEngine.ts confidenceVolumeDamping (Layer 1/3 damping)",
+      undefined, `Confidence level: ${confidenceProfileVal.level}`,
+    );
     // Phase E: Full pipeline completed event
     trackPipelineCompleted({
       totalDurationMs:   Math.round(
@@ -1792,10 +1882,24 @@ export default function DashboardPage() {
       exerciseSummariesVal, phase37AdaptiveModifier, phase39Equipment,
       todaySymptomsVal, periodizationStatusVal, exerciseMasteryVal, cycleAdjResult.targets,
       safetyResultVal.volumeScale,  // Phase A: safety-constrained volume (was trainingDecisionVal.finalVolumeScale)
+      confidenceVolumeDamping(confidenceProfileVal.level),  // UX Stabilization Batch 5c
     );
     // Phase 37B: apply exercise complexity swaps → Phase 39F: trim to time budget mode
     const wkt = applyWorkoutMode(applyExerciseAdjustments(wktRaw, trainingDecisionVal), lifeContextVal.recommendedMode);
     setWorkout(wkt);
+
+    // Batch 10 — finalize and persist the trace. Stages 5 (Data Maturity
+    // Limit) has no mechanism to record yet — no maturity-based adaptation
+    // limit exists in the pipeline until Batch 8/9 land (see
+    // docs/intelligence/RecommendationExplainability.md §9.2) — so it's
+    // correctly absent here rather than fabricated.
+    finalizeTrace({
+      finalVolumeScale:      safetyResultVal.volumeScale,
+      finalIntensity:        personalizedRec.training.intensity,
+      recommendationClass:   trainingDecisionVal.type,
+      recommendationSummary: trainingDecisionVal.headline,
+      finalConfidence:       confidenceProfileVal.compositeScore,
+    });
 
     // Phase 37F: predict session outcome and 37H: compute recovery cost
     const outcomePredVal = predictSessionOutcome({
@@ -2517,7 +2621,7 @@ export default function DashboardPage() {
     const goalType = mapOnboardingGoalToGoalType(user.goals);
     // Phase 50: full 16-param call + post-processing (matches mount call site)
     // Phase A: re-use safety-constrained volume from the main computation
-    const wktRaw2 = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0);
+    const wktRaw2 = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustment, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptomsVal, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0, confidenceProfile ? confidenceVolumeDamping(confidenceProfile.level) : 1.0);
     const wktAdj2 = trainingDecision ? applyExerciseAdjustments(wktRaw2, trainingDecision) : wktRaw2;
     const wkt = applyWorkoutMode(wktAdj2, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);
@@ -2730,7 +2834,7 @@ export default function DashboardPage() {
     const goalType = mapOnboardingGoalToGoalType(effectiveUser.goals);
     // Phase 50: full 16-param call + post-processing (matches mount call site)
     // Phase A: re-use safety-constrained volume from the main computation
-    const wktRaw3 = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0);
+    const wktRaw3 = runWorkoutPipeline(effectiveUser, recommendation.phase, env, profileRef.current ?? undefined, adjustmentRef.current ?? undefined, readinessScore ?? undefined, badgeToEnergyCap(recommendation.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0, confidenceProfile ? confidenceVolumeDamping(confidenceProfile.level) : 1.0);
     const wktAdj3 = trainingDecision ? applyExerciseAdjustments(wktRaw3, trainingDecision) : wktRaw3;
     const wkt = applyWorkoutMode(wktAdj3, lifeContext?.recommendedMode ?? "full");
     setWorkout(wkt);

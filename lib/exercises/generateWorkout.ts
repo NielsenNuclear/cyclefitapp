@@ -60,6 +60,12 @@ export interface WorkoutGenerationInput {
   progressionTargets?: ProgressionTarget[];
   // Phase 34F — adherence risk volume scale (0.70 high / 0.85 moderate / 1.0 low)
   adherenceRiskScale?: number;
+  // UX Stabilization Batch 5c — dampens the DEVIATION from neutral for
+  // personalization-driven volume factors (progression/readiness ceiling,
+  // adaptive pattern learning, periodization) when confidence is low. Never
+  // applied to adherenceRiskScale, which represents same-day auto-regulation.
+  // See lib/intelligence/confidence/ConfidenceEngine.ts's confidenceVolumeDamping().
+  confidenceVolumeDamping?: number;
 }
 
 export interface WorkoutExercise {
@@ -95,6 +101,55 @@ export interface GeneratedWorkout {
   warmupBlock?:         WarmupBlock;
   activationBlock?:     MobilityItem[];
   recoveryBlock?:       RecoveryBlock;
+}
+
+// ─── Volume combination (UX Stabilization Batch 5a / Issue #13) ──────────────
+// Previously, set counts were reduced by up to four independent, sequential
+// passes (prescribeExercise's volumeMod, adaptiveVolumeMultiplier,
+// adherenceRiskScale, periodizationStatus.setsOffset), each flooring at 1 set
+// on its own. Because volumeMod (progression + readiness ceiling, Layer 1)
+// and adherenceRiskScale (the Training Decision Engine's composite, which
+// itself already reads readiness, Layer 2) both partially represent the same
+// underlying readiness signal, multiplying them compounded that signal twice
+// — and flooring at 1 after every pass meant a realistic combination (any
+// elevated adherence risk, any point in a deload week) could crush every
+// exercise to 1 set well before any single pass looked unreasonable.
+//
+// Fixed here: every volume factor is combined once. The two ceiling-type
+// factors (damped volumeMod, adherenceRiskScale) are combined by taking the
+// more conservative of the two — not their product — matching
+// resolveEffectiveAdjustment's existing "most conservative wins" pattern for
+// exactly this kind of signal overlap. The result is floored once, at a sane
+// minimum, instead of four times.
+
+const MIN_SETS = 2;
+
+interface VolumeContext {
+  adaptiveVolumeMultiplier?: number;   // Layer 3a — personal pattern learning
+  adherenceRiskScale?:       number;   // Layer 2 — Training Decision Engine composite (same-day auto-regulation; never damped)
+  periodizationSetsOffset?:  number;   // Layer 3b — periodization (flat +/- sets)
+  confidenceVolumeDamping?:  number;   // UX Stabilization Batch 5c — dampens Layer 1 + Layer 3 only
+}
+
+function combineVolume(rawSets: number, volumeMod: number, ctx: VolumeContext): number {
+  const adaptiveVol     = ctx.adaptiveVolumeMultiplier   ?? 1.0;
+  const adherenceScale  = ctx.adherenceRiskScale          ?? 1.0;
+  const periodOffset    = ctx.periodizationSetsOffset     ?? 0;
+  const damping         = ctx.confidenceVolumeDamping     ?? 1.0;
+
+  // Layer 1 (progression/readiness ceiling) is damped for low-confidence
+  // users; Layer 2 (adherenceScale) is same-day auto-regulation and is never
+  // damped — a new user's reported symptoms deserve full responsiveness.
+  const dampedVolumeMod = 1.0 + (volumeMod - 1.0) * damping;
+  const ceilingRatio    = Math.min(dampedVolumeMod, adherenceScale);
+
+  // Layer 3 (pattern learning + periodization) is personalization, damped
+  // the same way as Layer 1.
+  const dampedAdaptiveVol   = 1.0 + (adaptiveVol - 1.0) * damping;
+  const dampedPeriodOffset  = periodOffset * damping;
+
+  const combinedRatio = ceilingRatio * dampedAdaptiveVol;
+  return Math.max(MIN_SETS, Math.round(rawSets * combinedRatio + dampedPeriodOffset));
 }
 
 // ─── Adaptation tables ────────────────────────────────────────────────────────
@@ -291,12 +346,13 @@ function prescribeExercise(
   trainingState:     TrainingState,
   phaseName:         string,
   adjustment?:       CoachingAdjustment,
+  volumeCtx:         VolumeContext = {},
 ): WorkoutExercise {
   if (exercise.category === "Mobility") {
     return {
       name:      exercise.name,
       exercise,
-      sets:      2,
+      sets:      combineVolume(2, 1.0, volumeCtx),
       reps:      "30–45s hold",
       rest:      "30 sec",
       rationale: buildExerciseRationale(exercise, energyLevel, trainingState, phaseName),
@@ -308,11 +364,12 @@ function prescribeExercise(
   const setDelta      = TRAINING_STATE_SET_DELTA[trainingState];
   const rpeDelta      = PHASE_RPE_DELTA[phaseName] ?? 0;
 
-  // Apply training-state delta first, then multiply by progression modifier
+  // Apply training-state delta first, then combine every volume factor once
+  // (see combineVolume() above) rather than in four independent passes.
   const rawSets        = preset.baseSets + setDelta;
   const volumeMod      = adjustment?.volumeModifier    ?? 1.0;
   const intensityMod   = adjustment?.intensityModifier ?? 0;
-  const sets           = Math.max(1, Math.round(rawSets * volumeMod));
+  const sets           = combineVolume(rawSets, volumeMod, volumeCtx);
   const rpe            = Math.max(3, Math.min(10, preset.baseRpe + rpeDelta + intensityMod));
 
   const progressionNote: string | undefined = (() => {
@@ -450,8 +507,19 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     ? trimmedExercises.filter(ex => isFoundationSafe(ex.name))
     : trimmedExercises;
 
+  // Every volume factor (adaptive pattern multiplier, adherence risk scale,
+  // periodization offset, confidence damping) is combined once inside
+  // prescribeExercise() via combineVolume() — see that function's comment
+  // for why this replaced four independent sequential passes.
+  const volumeCtx: VolumeContext = {
+    adaptiveVolumeMultiplier:  input.adaptiveVolumeMultiplier,
+    adherenceRiskScale:        input.adherenceRiskScale,
+    periodizationSetsOffset:   input.periodizationStatus?.setsOffset,
+    confidenceVolumeDamping:   input.confidenceVolumeDamping,
+  };
+
   const prescribed: WorkoutExercise[] = safeExercises.map(exercise => {
-    const ex             = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment);
+    const ex             = prescribeExercise(exercise, energyLevel, trainingState, phase.name, effectiveAdjustment, volumeCtx);
     const replacedName   = rotationMap.get(exercise.name);
     const promotedFrom   = promotionMap.get(exercise.name);
     const progressTarget = input.progressionTargets?.find(t => t.exerciseName === exercise.name);
@@ -465,44 +533,29 @@ export function generateWorkout(input: WorkoutGenerationInput): GeneratedWorkout
     return ex;
   });
 
-  // Final pass — apply adaptive multipliers (from personal pattern history) on top of all
-  // other scaling. These are small refinements (±15% vol, ±10% intensity) so the minimum
-  // set count floor (1) and RPE bounds [3–10] are the only additional guards needed.
-  const adaptiveVol = input.adaptiveVolumeMultiplier    ?? 1.0;
+  // Adaptive intensity (RPE only — sets already combined above).
   const adaptiveInt = input.adaptiveIntensityMultiplier ?? 1.0;
-  const exercises: WorkoutExercise[] = (adaptiveVol !== 1.0 || adaptiveInt !== 1.0)
+  const exercises: WorkoutExercise[] = adaptiveInt !== 1.0
     ? prescribed.map(ex => ({
         ...ex,
-        sets: Math.max(1, Math.round(ex.sets * adaptiveVol)),
-        rpe:  ex.rpe !== undefined
+        rpe: ex.rpe !== undefined
           ? Math.round(Math.min(10, Math.max(3, ex.rpe * adaptiveInt)) * 10) / 10
           : undefined,
       }))
     : prescribed;
 
-  // ── Phase 34F: Adherence risk volume scale ────────────────────────────────────
-  // Applied after adaptive multipliers. Reduces set counts when skip risk is
-  // moderate or high, making the session more likely to be completed.
-  const adherenceScale = input.adherenceRiskScale ?? 1.0;
-  const adherenceScaled: WorkoutExercise[] = adherenceScale !== 1.0
-    ? exercises.map(ex => ({
-        ...ex,
-        sets: Math.max(1, Math.round(ex.sets * adherenceScale)),
-      }))
-    : exercises;
-
-  // ── Phase 30D: Periodization modifier ────────────────────────────────────────
+  // ── Phase 30D: Periodization modifier (RPE + reps only — sets already
+  // combined above, including the periodization offset). ─────────────────────
   const periodizationStatus = input.periodizationStatus;
   const periodizedExercises: WorkoutExercise[] = periodizationStatus
-    ? adherenceScaled.map(ex => ({
+    ? exercises.map(ex => ({
         ...ex,
-        sets: Math.max(1, ex.sets + periodizationStatus.setsOffset),
-        rpe:  ex.rpe !== undefined
+        rpe: ex.rpe !== undefined
           ? Math.round(Math.min(10, Math.max(3, ex.rpe + periodizationStatus.rpeOffset)) * 10) / 10
           : undefined,
         reps: periodizationStatus.deloadReps ?? ex.reps,
       }))
-    : adherenceScaled;
+    : exercises;
 
   // ── Phase 29: Movement preparation ───────────────────────────────────────────
   const equipment = userEquipment ?? [];

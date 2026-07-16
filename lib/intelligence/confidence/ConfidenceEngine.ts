@@ -41,6 +41,24 @@ export function buildConfidenceProfile(inputs: ConfidenceInputs): ConfidenceProf
   return profile;
 }
 
+// ── Behavioral helper: early-user adaptation limits (UX Stabilization Batch 5c) ─
+// Confidence must affect behavior, not just display (RecommendationExplainability.md
+// §7). Applied to the DEVIATION from neutral (1.0) of personalization-driven
+// volume factors — progression/readiness ceiling and adaptive pattern
+// learning/periodization — never to same-day auto-regulation (symptoms,
+// acute fatigue, readiness), which should stay fully responsive at any
+// confidence level. See lib/exercises/generateWorkout.ts's combineVolume().
+
+export function confidenceVolumeDamping(level: ConfidenceLevel): number {
+  switch (level) {
+    case "Insufficient": return 0.5;
+    case "Limited":      return 0.6;
+    case "Building":     return 0.75;
+    case "Moderate":     return 0.9;
+    case "High":         return 1.0;
+  }
+}
+
 // ── Styling helpers used by UI components ─────────────────────────────────────
 
 // Design-token 4-step semantic scale (success/brand/caution/danger) mapped

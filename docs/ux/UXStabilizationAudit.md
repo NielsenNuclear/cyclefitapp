@@ -441,16 +441,19 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ## Implementation Approach — Extension
 
-### Batch 5 — Workout Correctness II (Realistic Sets & Postponement)
-**Scope:** Issue #13 (compounding set-reduction), Issue #15 (postpone exercise).
+### Batch 5 — Recommendation Stabilization ✅ IMPLEMENTED (2026-07-16)
+**Scope, as executed per the AXIS Beta Readiness Program brief:** recommendation scaling, compounding reduction (Issue #13), extreme percentage outputs (Issue #17/E1, absorbing what this document originally scoped as a separate "Batch 7" stopgap), and early-user adaptation limits (the confidence-damping mechanism originally designed in `docs/intelligence/RecommendationExplainability.md` §7, pulled forward from Batch 8 rather than deferred). Issue #15 (postpone exercise) was **not** part of this batch — see Batch 11, below, added to carry it since the beta-readiness brief separated "recommendation integrity" from "workout engine" priorities.
 
-**Files changed:** `lib/exercises/generateWorkout.ts`, `lib/periodization/goalProfiles.ts` (read-only reference), `app/dashboard/page.tsx` (the `finalVolumeScale` parameter-slot fix), `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`.
+**What shipped:**
+- `lib/exercises/generateWorkout.ts` — new `combineVolume()` replaces the four independent, sequential floor-at-1 passes with one coordinated calculation: the two ceiling-type factors (damped progression/readiness modifier, Training Decision Engine composite) are combined via `Math.min()` — not multiplication — matching `resolveEffectiveAdjustment`'s existing "most conservative wins" pattern, eliminating the double-count Finding E4 identified. The combined ratio floors once, at `MIN_SETS = 2` (raised from 1).
+- `lib/intelligence/confidence/ConfidenceEngine.ts` — new `confidenceVolumeDamping(level)` (Insufficient 0.5 → High 1.0), applied to the *deviation from neutral* of Layer 1 (progression/readiness) and Layer 3 (adaptive pattern + periodization) only. Layer 2 (auto-regulation / `adherenceRiskScale`) is deliberately never damped — it represents same-day signals (symptoms, acute fatigue), which deserve full responsiveness regardless of account confidence.
+- `app/dashboard/page.tsx` — threads `confidenceVolumeDamping(confidenceProfile.level)` through `runWorkoutPipeline()` → `generateWorkout()` at all three call sites.
+- `lib/intelligence/recommendationExplanation.ts` — the calibration `scale = actualDelta / rawSum` division is now bounded to `[-6, 6]` (was unbounded beyond a too-permissive `0.001` guard), and every per-signal `pp()` output is clamped to `±60` percentage points regardless of how `scale` was computed. This is the stabilization fix for the reported +1200%/-1800% bug — the deeper two-model-disconnect this papers over (Findings E2/E3) remains Batch 8 work.
+- New regression tests: `lib/exercises/__tests__/generateWorkout.test.ts` (5 tests — MIN_SETS floor under maximal stacked reduction, no double-counting of overlapping ceiling signals, undamped baseline, confidence damping direction, adherenceRiskScale never damped), `lib/intelligence/__tests__/recommendationExplanation.test.ts` (3 tests — bounded output under the exact near-zero-`rawSum` failure mode, sane normal-case behavior, no NaN/Infinity).
 
-**Risks:** Issue #13 is a genuine recommendation-formula change (flagged High risk above) and should land and be verified independently before Issue #15 (which is UI + state-consistency risk, not formula risk) is added to the same release. Do not combine into one PR.
+**Verification:** `tsc --noEmit` clean. Full suite 331/331 passing (323 pre-existing + 8 new). Live-verified in a real browser session: a low-quality-input account (moderate stress, variable sleep, new/Insufficient confidence) generated 2 sets/exercise (the new floor, not the old uncoordinated collapse); a high-quality-input account (excellent sleep, low stress) generated 4 sets/exercise — confirming the fix responds to input rather than uniformly flooring. The "Why today's plan?" breakdown showed bounded values (-12%, -15%, +5%, -8%, +24%, -15%) with no extreme numbers, on both desktop and mobile viewports.
 
-**Tests required:** A test matrix for #13 (energy level × training state × adherence risk × periodization phase, confirming the *coordinated* floor behaves sanely across combinations, not just the happy path). For #15: the partial-completion postpone scenario described in Issue #15's write-up, plus a same-workout double-postpone (postpone B, then postpone the exercise now in B's old slot) to confirm re-keying is correct under repeated operations.
-
-**Visual QA plan:** Generate workouts across a range of readiness/adherence states and manually count sets per exercise before/after the #13 fix. Full postpone flow on both desktop and mobile.
+**Remaining technical debt (not fixed in this batch, by design):** Findings E2/E3 (the explanation model still asserts a cycle-phase/momentum volume effect the real pipeline doesn't implement, and still omits periodization as a named driver) are unresolved — they require the decomposition-based rebuild in Batch 8, not a stabilization-level patch. The double-counting *fix* (Math.min-based ceiling combination) is now real in `generateWorkout.ts`, but `lib/intelligence/recommendationExplanation.ts`'s explanation model still doesn't know about it — it's still the same disconnected nine-signal approximation, just with its worst failure mode (unbounded blowup) clamped.
 
 ---
 
@@ -467,16 +470,8 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ---
 
-### Batch 7 — Recommendation Explainability Stopgap
-**Scope:** Issue #17, display-clamp portion only (§6.2 point 2 style guard, not the full pipeline-decomposition fix).
-
-**Files changed:** `components/intelligence/RecommendationExplanationCard.tsx` (clamp the printed `impact` value the same way the bar width is already clamped).
-
-**Risks:** Low — a pure display bound, ships fast, prevents the embarrassing number from appearing in production while Batch 8 is designed and reviewed.
-
-**Tests required:** Confirm a synthetic near-zero-`rawSum` input (constructible directly against `generateRecommendationExplanation()`) no longer produces a printed value outside a sane bound (e.g. ±100%).
-
-**Visual QA plan:** N/A beyond the above — this is a numeric guard, not a visual redesign.
+### Batch 7 — Recommendation Explainability Stopgap ✅ SUPERSEDED — MERGED INTO BATCH 5
+**Scope:** Issue #17's display-clamp portion. When the AXIS Beta Readiness Program brief scoped "extreme percentage outputs" as part of Batch 5 (Recommendation Stabilization), this batch's work was absorbed there — and implemented at the *source* (`recommendationExplanation.ts`'s `pp()` and `scale`) rather than only at the display layer this section originally proposed, which is a stronger fix than what was planned here. See Batch 5's write-up above for what actually shipped. This section is kept for the historical record, not as an open batch.
 
 ---
 
@@ -485,9 +480,11 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 **Files changed:** `lib/intelligence/recommendationExplanation.ts`, `lib/exercises/generateWorkout.ts` (return shape — needs to expose its own decomposition as `AdjustmentResult`), `lib/autoregulation/trainingDecisionEngine.ts`, `components/intelligence/RecommendationExplanationCard.tsx`, `lib/intelligence/confidence/ConfidenceEngine.ts` (becomes an upstream input to the pipeline, not a downstream consumer of it — see RecommendationExplainability.md §8.4), `types/recommendation.ts` (the new `Recommendation` shape).
 
-**Risks:** **This is the highest-risk batch in either audit document.** It touches the return shape of the core recommendation-generation function, inverts the direction confidence flows through the pipeline, and eliminates the second explanation model entirely rather than patching it. Should not be scheduled until Batch 5 (the underlying compounding-reduction fix) has shipped and stabilized — building an honest decomposition on top of a pipeline that's still being corrected would mean re-deriving it twice. Also should not be scheduled until Batch 9 (below) has landed, so the confidence/maturity data this batch's `Contributor.confidence` field depends on is already flowing from a single, consolidated source rather than two.
+**Status update (2026-07-16):** Batch 5 shipped a *simple* version of the confidence-damping mechanism this batch specified (`confidenceVolumeDamping()`, applied as a standalone multiplicative factor) — but that's a stabilization-level patch, not this batch's full requirement. Still outstanding: the structured `Recommendation`/`AdjustmentResult`/`Contributor` return shape, the decomposition-based explanation model (so `Contributor[]` and the developer trace's `modifiers[]` — now real, see Batch 10 — share one instrumentation point instead of two independent approximations), and qualitative-band display. Batch 10's live verification surfaced a concrete preview of why this unification matters: the trace recorder's replay engine assumes pure multiplicative composition, but `combineVolume()`'s real ceiling logic uses `Math.min()` — the same "a second model doesn't agree with the real pipeline" failure mode as Finding E1, now also visible between the trace and the real calculation, not just between the explanation and the real calculation. This is exactly what Batch 8's decomposition-based rebuild needs to resolve for both consumers at once.
 
-**Tests required / Visual QA plan:** Deferred to that batch's own planning pass, once Batches 5 and 9 are stable — premature to specify test cases against a pipeline shape that will itself change under both.
+**Risks:** **This is the highest-risk batch in either audit document.** It touches the return shape of the core recommendation-generation function, inverts the direction confidence flows through the pipeline, and eliminates the second explanation model entirely rather than patching it. Should not be scheduled until Batch 9 (below) has landed, so the confidence/maturity data this batch's `Contributor.confidence` field depends on is already flowing from a single, consolidated source rather than two. Batch 5's compounding-reduction fix has already shipped and stabilized, clearing the other original precondition.
+
+**Tests required / Visual QA plan:** Deferred to that batch's own planning pass, once Batch 9 is stable — premature to specify test cases against a pipeline shape that will itself change.
 
 ---
 
@@ -504,16 +501,31 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ---
 
-### Batch 10 — Wire the Existing Decision Trace Recorder
-**Scope:** Issue #19 — add `recordSignal()`/`recordModifier()`/`recordSafetyGate()` calls to the real pipeline for everything traceable today (inputs, recovery score, readiness, safety gates); verify `TraceExplorer.tsx` renders real data end to end. Stages 4/5 (confidence limit, data maturity limit) and the `Contributor[]` unification are deferred to Batch 8 per `docs/intelligence/RecommendationExplainability.md` §9.5.
+### Batch 10 — Wire the Existing Decision Trace Recorder ✅ IMPLEMENTED (2026-07-16)
+**Scope, as executed:** `beginTrace()`/`recordSignal()`/`recordModifier()`/`recordSafetyGate()`/`finalizeTrace()` wired into the primary dashboard pipeline run (`app/dashboard/page.tsx`) — 9 input signals, 2 chained volume modifiers, 4 informational signals, 9 safety-gate results, and a final output, once per dashboard load. The two secondary recalculation call sites (environment change, check-in refresh) are **not yet instrumented** — intentionally scoped out to keep this batch's risk surface to the one call site that runs on every dashboard load, not all three.
 
-**Files changed:** `lib/exercises/generateWorkout.ts`, `lib/autoregulation/trainingDecisionEngine.ts`, `lib/recovery/recoveryScore.ts` (add recorder calls); `components/dev/TraceExplorer.tsx` (verification only — should need no code change, it's already built and wired to storage); `lib/telemetry/ObservabilityEvents.ts` (optional — have `finalizeTrace()` also call the existing `trackPipelineCompleted()`, unifying two currently-independent call sites).
+**What shipped:** `lib/intelligence/audit/traceRecorder.ts`'s existing API (Phase 65, previously zero call sites anywhere) is now called from the real pipeline. Confirmed live, in a real browser session: a genuine `DecisionTrace` object persists to `localStorage` (`axis_decision_traces_v1`) on every dashboard load, `TraceExplorer.tsx` (`/dev` → Traces tab) renders it — signal table, modifier chain, safety-gate outcomes, all populated with real data for the first time since Phase 65 shipped.
 
-**Risks:** Low — additive instrumentation calls into a module-level builder that only writes to `localStorage`; `traceRecorder.ts`'s own docstring already asserts zero effect on recommendation output, which this batch's tests should actively verify rather than assume. No dependency on Batch 5, 8, or 9 — can proceed immediately and independently, and doing so early gives every *other* batch in this document a working trace to debug against while they're being built.
+**A real bug the replay engine caught, live, during this verification:** the first instrumentation pass recorded `progression_readiness_ceiling`, `adaptive_pattern_multiplier`, `periodization_offset`, and `confidence_volume_damping` as `recordModifier()` entries chained toward `finalVolumeScale`. Clicking "Verify Determinism" reported **Drift Detected: original=0.8500, replay=0.4335** — because `replayVolumeScale()` (Phase 65) assumes every recorded modifier multiplies together (`scale *= mod.outputFactor`), but those four factors actually feed a *separate*, per-exercise calculation inside `generateWorkout.ts`'s `combineVolume()` (via `Math.min()` for the ceiling factors, per Batch 5's fix) — they don't chain into this trace's `finalVolumeScale` at all. Fixed by re-recording them as `recordSignal()` (informational, correctly excluded from the replay's multiplication chain) and fixing `safety_governance`'s `outputFactor` to be a ratio relative to what preceded it (1.0 = no change) rather than a restated absolute value. Re-verified: **✓ Deterministic — Replay confirmed: identical inputs produce identical outputs.** This is now documented as a known representational gap between the trace schema (assumes flat multiplication) and the real pipeline (uses `Math.min()` for ceiling combination) — see Batch 8's status update above for why this is exactly what that batch's decomposition-based rebuild needs to resolve properly, for both the trace and the `Contributor[]` explanation at once.
 
-**Tests required:** Generate a workout with instrumentation active, confirm a `DecisionTrace` is persisted with non-empty `signals`/`modifiers` matching the actual inputs used; run `replayTrace()` against it immediately (same code, same inputs) and confirm `status: "deterministic"` with zero drift — the first real exercise of the replay engine since it was built in Phase 65.
+**Files changed:** `app/dashboard/page.tsx` (all instrumentation calls), `lib/intelligence/audit/traceRecorder.ts` (unchanged — used as-is). Nutrition deliberately not recorded as a signal — it doesn't mechanically feed volume/intensity in the current pipeline (see Batch 5's write-up and `RecommendationExplainability.md` §2), and the trace must not assert an influence that isn't real.
 
-**Visual QA plan:** Open `TraceExplorer.tsx` in `/dev` after generating a few real sessions, confirm the signal table, gate tags, and replay button all function against real (not synthetic) data for the first time.
+**Verification:** `tsc --noEmit` clean, 331/331 tests passing (no dashboard-page-level trace test added — this is a React-component-integration concern verified via live browser QA, consistent with how the rest of this dashboard has been tested throughout this project, not vitest unit coverage). Desktop and mobile both confirmed working (`/dev` is not mobile-optimized by design, consistent with the rest of the dev console, but fully functional at 390px).
+
+**Remaining technical debt:** the two secondary `runWorkoutPipeline` call sites (environment change, check-in refresh) don't call `beginTrace()`/`finalizeTrace()` — a workout regenerated via those paths won't produce a new trace. Stages 4 (Confidence Limit) and 5 (Data Maturity Limit) are recorded as informational signals only, not as gate/modifier chain entries, since no maturity-based adaptation limit exists in the pipeline yet (Batch 9 dependency, per `RecommendationExplainability.md` §9.2).
+
+---
+
+### Batch 11 — Exercise Postponement
+**Scope:** Issue #15, split out of the original Batch 5 scoping once the AXIS Beta Readiness Program brief separated "Recommendation Integrity" (Priority 1, now shipped as the real Batch 5) from "Workout Engine" (Priority 2, still pending). Not implemented in this pass. Full detail remains as originally specified in Issue #15 above: postpone-to-next-position behavior, and the real risk — `actuals: Record<number, SetRecord[]>` is keyed by array index, so a reorder must re-key every shifted entry in the same atomic update, or logged sets can silently reattach to the wrong exercise.
+
+**Files changed:** `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`.
+
+**Risks:** Medium — see Issue #15's original write-up for the full reasoning.
+
+**Tests required:** Postpone an exercise with 1 of 3 sets already logged; confirm the logged set stays attached to the correct exercise after the reorder, and that workout-history persistence reflects the postponed exercise's original prescription.
+
+**Visual QA plan:** Full postpone flow on both desktop and mobile.
 
 ---
 
