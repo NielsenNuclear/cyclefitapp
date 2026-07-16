@@ -3,6 +3,8 @@
 // Distinct from predictFatigue() which forecasts tomorrow; this captures today.
 // Stored daily in axis_fatigue_score.
 
+import { getMaturityStage, type MaturityStage } from "@/lib/intelligence/dataMaturity";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type FatigueZone = "fresh" | "normal" | "fatigued" | "overreached";
@@ -18,6 +20,11 @@ export interface FatigueScoreEntry {
     stress:       number;   // 0–100 sub-score
     symptoms:     number;   // 0–100 sub-score
   };
+  // UX Stabilization Batch 9 — computed here, not by the card. historyDepth
+  // defaults to 0 (locked) when the caller doesn't pass it, rather than
+  // silently claiming maturity that wasn't verified.
+  historyDepth:   number;
+  maturityStage:  MaturityStage;
 }
 
 export interface CurrentFatigueInput {
@@ -28,6 +35,7 @@ export interface CurrentFatigueInput {
   symptomCount:       number;
   symptomSeverityMean: number;    // 0–4
   burnoutRiskScore:   number;     // 0–100
+  historyDepth?:      number;     // days of recovery/fatigue history logged
 }
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -111,6 +119,7 @@ export function computeCurrentFatigueScore(input: CurrentFatigueInput): FatigueS
     : score;
 
   const date = new Date().toISOString().slice(0, 10);
+  const historyDepth = input.historyDepth ?? 0;
 
   return {
     date,
@@ -123,6 +132,8 @@ export function computeCurrentFatigueScore(input: CurrentFatigueInput): FatigueS
       stress:       stressSub,
       symptoms:     symptomSub,
     },
+    historyDepth,
+    maturityStage: getMaturityStage(historyDepth),
   };
 }
 

@@ -9,7 +9,6 @@ import type { MomentumScore }           from "@/lib/adherence/momentum";
 import type { ActiveLifeEvent, LifeEventType } from "@/lib/adherence/lifeEvents";
 import { LIFE_EVENT_TYPES, LIFE_EVENT_LABELS } from "@/lib/adherence/lifeEvents";
 import { color as tokenColor } from "@/lib/design/tokens";
-import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
 import { LockedInsight } from "@/components/ui/LockedInsight";
 
 interface Props {
@@ -93,7 +92,7 @@ export function AdherenceCard({
 
   if (!consistency) return null;
 
-  const maturity  = getMaturityStage(consistency.historyDepth);
+  const maturity  = consistency.maturityStage; // UX Stabilization Batch 9 — engine-computed, not card-computed
   const tierColor = TIER_COLOR[consistency.tier];
   const tierLabel = TIER_LABEL[consistency.tier];
 

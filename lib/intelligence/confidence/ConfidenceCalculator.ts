@@ -54,6 +54,21 @@ export function deriveMaturityStage(completedWorkouts: number): MaturityStage {
   return "getting_started";
 }
 
+// UX Stabilization Batch 9 — closes the gap where MATURITY_STAGES.
+// workoutsToNextStage was hardcoded null on every entry. That field could
+// never be correct as a static per-stage constant (how many workouts remain
+// depends on where THIS user currently sits within the stage's range, not
+// just which stage they're in) — it's a per-user computed value, not
+// per-stage metadata, so it's computed here and exposed on ConfidenceProfile
+// instead. long_term_profile (no max) has no "next stage" — returns null.
+export function workoutsToNextStage(completedWorkouts: number): number | null {
+  if (completedWorkouts >= 101) return null;
+  if (completedWorkouts >= 51)  return 101 - completedWorkouts;
+  if (completedWorkouts >= 26)  return 51  - completedWorkouts;
+  if (completedWorkouts >= 11)  return 26  - completedWorkouts;
+  return 11 - completedWorkouts;
+}
+
 export interface DimensionSet {
   calibration:             ConfidenceDimension;
   verification:            ConfidenceDimension;

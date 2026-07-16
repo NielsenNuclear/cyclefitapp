@@ -359,7 +359,6 @@ import { assessRecoverySufficiency, type RecoverySufficiency }                 f
 import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
 import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
 // ─── Phase 56: Observability & Validation Layer ───────────────────────────────
-import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
 import { useToast } from "@/components/ui/Toast";
 import { generateRecommendationExplanation, saveRecommendationExplanation, type RecommendationExplanation as RecExplanation } from "@/lib/intelligence/recommendationExplanation";
 import { beginTrace, recordSignal, recordModifier, recordSafetyGate, finalizeTrace } from "@/lib/intelligence/audit/traceRecorder";
@@ -850,7 +849,6 @@ export default function DashboardPage() {
   const [workoutRecoveryPlan,  setWorkoutRecoveryPlan]  = useState<WorkoutRecoveryPlan | undefined>(undefined);
   // Phase 37 state
   const [fatigueEntry,         setFatigueEntry]         = useState<FatigueScoreEntry | undefined>(undefined);
-  const [fatigueHistoryDepth,  setFatigueHistoryDepth]  = useState<number>(0);
   const [readinessConfidence,  setReadinessConfidence]  = useState<ReadinessConfidence | undefined>(undefined);
   const [trainingDecision,     setTrainingDecision]     = useState<TrainingDecision37 | undefined>(undefined);
   const [outcomePrediction,    setOutcomePrediction]    = useState<OutcomePrediction | undefined>(undefined);
@@ -1544,10 +1542,10 @@ export default function DashboardPage() {
       symptomCount:         todaySymptomsVal.length,
       symptomSeverityMean:  meanSymSevPre,
       burnoutRiskScore:     burnoutRiskVal.score,
+      historyDepth:         fatigueHistoryAll.length,
     });
     saveFatigueScore(fatigueEntryVal);
     setFatigueEntry(fatigueEntryVal);
-    setFatigueHistoryDepth(fatigueHistoryAll.length);
 
     const rdxConfidenceVal = computeReadinessConfidence({
       readinessScore:       readiness.score,
@@ -3011,7 +3009,7 @@ export default function DashboardPage() {
               : "Track your recovery"}
           >
             <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
-            <FatigueCard entry={fatigueEntry} historyDepth={fatigueHistoryDepth} />
+            <FatigueCard entry={fatigueEntry} />
             <RecoveryIntelligenceCard
               recoveryScore={recoveryScore}
               recoveryTrend={recoveryTrend}
@@ -3242,7 +3240,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="lifestyle"
             title="Lifestyle & Adherence"
-            summary={consistencyScore && getMaturityStage(consistencyScore.historyDepth) === "ready"
+            summary={consistencyScore && consistencyScore.maturityStage === "ready"
               ? `${consistencyScore.composite}/100 consistency`
               : "Habits & schedule"}
           >

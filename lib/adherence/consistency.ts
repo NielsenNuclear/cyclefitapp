@@ -7,6 +7,7 @@ import type { AdherenceEntry }        from "./adherenceTracker";
 import type { DailyNutritionCheckin } from "@/lib/nutrition/nutritionCheckin";
 import type { DailyRecoveryLog }      from "@/lib/recovery/recoveryStrategyCatalog";
 import type { ReadinessHistoryEntry } from "@/lib/readiness/readinessHistory";
+import { getMaturityStage, type MaturityStage } from "@/lib/intelligence/dataMaturity";
 
 const STORAGE_KEY    = "axis_consistency_history";
 const RETENTION_DAYS = 365;
@@ -23,7 +24,10 @@ export interface ConsistencyScore {
   checkins:  number;   // 0–100 (app engagement proxy)
   composite: number;   // weighted: training 40%, nutrition 20%, recovery 20%, checkins 20%
   tier:      ConsistencyTier;
-  historyDepth: number; // total tracked days — data-maturity signal, see lib/intelligence/dataMaturity.ts
+  historyDepth: number; // total tracked days — raw count backing maturityStage
+  // UX Stabilization Batch 9 — computed here, not by the card, so the UI
+  // never determines maturity itself (single source of truth).
+  maturityStage: MaturityStage;
 }
 
 export interface StoredConsistencyEntry {
@@ -115,10 +119,13 @@ export function computeConsistencyScore(
     checkins  * 0.20,
   );
 
+  const historyDepth = adherenceHistory.length;
+
   return {
     date: today, training, nutrition, recovery, checkins, composite,
     tier: toTier(composite),
-    historyDepth: adherenceHistory.length,
+    historyDepth,
+    maturityStage: getMaturityStage(historyDepth),
   };
 }
 

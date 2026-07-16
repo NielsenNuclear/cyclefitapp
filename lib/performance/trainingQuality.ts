@@ -3,6 +3,7 @@
 // Evaluates how well planned vs actual volume aligns, and RPE execution quality.
 
 import { getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
+import { getMaturityStage, type MaturityStage } from "@/lib/intelligence/dataMaturity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ export interface TrainingQualityScore {
   breakdown: TrainingQualityBreakdown;
   insight:   string;
   sessionsAnalysed: number;
+  // UX Stabilization Batch 9 — computed here, not by the card.
+  maturityStage: MaturityStage;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -62,6 +65,7 @@ export function computeTrainingQuality(lookbackDays = 30): TrainingQualityScore 
       breakdown: { completionRate: 0, volumeAccuracy: 0, rpeAccuracy: 0, consistencyScore: 0 },
       insight: "No workout data yet. Start logging sessions to track training quality.",
       sessionsAnalysed: 0,
+      maturityStage: getMaturityStage(0),
     };
   }
 
@@ -125,5 +129,6 @@ export function computeTrainingQuality(lookbackDays = 30): TrainingQualityScore 
     breakdown,
     insight: insight(t, breakdown),
     sessionsAnalysed: recent.length,
+    maturityStage: getMaturityStage(recent.length),
   };
 }

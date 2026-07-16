@@ -1,13 +1,10 @@
 "use client";
 
 import type { FatigueScoreEntry } from "@/lib/autoregulation/fatigueModel";
-import { getMaturityStage } from "@/lib/intelligence/dataMaturity";
 import { LockedInsight } from "@/components/ui/LockedInsight";
 
 interface Props {
   entry: FatigueScoreEntry | undefined;
-  /** Days of recovery/fatigue history logged — gates the zone judgment below. */
-  historyDepth: number;
 }
 
 const ZONE_COLOR: Record<string, string> = {
@@ -38,16 +35,17 @@ const ZONE_NOTE: Record<string, string> = {
   overreached: "Overreach detected — prioritise recovery over new stimulus.",
 };
 
-export function FatigueCard({ entry, historyDepth }: Props) {
+export function FatigueCard({ entry }: Props) {
   if (!entry) return null;
 
-  if (getMaturityStage(historyDepth) !== "ready") {
+  // UX Stabilization Batch 9 — engine-computed, not card-computed
+  if (entry.maturityStage !== "ready") {
     return (
       <div className="bg-white border border-border rounded-2xl p-5 space-y-4 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-ink">Fatigue Status</h3>
         </div>
-        <LockedInsight entryCount={historyDepth} />
+        <LockedInsight entryCount={entry.historyDepth} />
       </div>
     );
   }

@@ -28,6 +28,10 @@ export interface ConfidenceProfile {
     historicalContext:       ConfidenceDimension;
   };
   maturityStage: MaturityStage;
+  // UX Stabilization Batch 9 — per-user computed value (see
+  // ConfidenceCalculator.ts's workoutsToNextStage()), not stage-level
+  // static metadata; null once at long_term_profile (no next stage).
+  workoutsToNextStage: number | null;
   generatedAt:   string;
 }
 
@@ -45,7 +49,6 @@ export interface MaturityStageInfo {
   minWorkouts:          number;
   maxWorkouts:          number | null;
   nextStage:            MaturityStage | null;
-  workoutsToNextStage:  number | null;
 }
 
 export const MATURITY_STAGES: MaturityStageInfo[] = [
@@ -54,35 +57,35 @@ export const MATURITY_STAGES: MaturityStageInfo[] = [
     label: "Getting Started",
     description: "Axis is building your baseline using general training principles.",
     minWorkouts: 0, maxWorkouts: 10,
-    nextStage: "learning", workoutsToNextStage: null,
+    nextStage: "learning",
   },
   {
     stage: "learning",
     label: "Learning",
     description: "Axis is identifying patterns specific to your training responses.",
     minWorkouts: 11, maxWorkouts: 25,
-    nextStage: "personalized", workoutsToNextStage: null,
+    nextStage: "personalized",
   },
   {
     stage: "personalized",
     label: "Personalized",
     description: "Axis has a reliable model of your recovery and performance patterns.",
     minWorkouts: 26, maxWorkouts: 50,
-    nextStage: "highly_personalized", workoutsToNextStage: null,
+    nextStage: "highly_personalized",
   },
   {
     stage: "highly_personalized",
     label: "Highly Personalized",
     description: "Axis has deep pattern knowledge across multiple training cycles.",
     minWorkouts: 51, maxWorkouts: 100,
-    nextStage: "long_term_profile", workoutsToNextStage: null,
+    nextStage: "long_term_profile",
   },
   {
     stage: "long_term_profile",
     label: "Long-Term Athlete Profile",
     description: "Axis has built a comprehensive longitudinal profile of your physiology.",
     minWorkouts: 101, maxWorkouts: null,
-    nextStage: null, workoutsToNextStage: null,
+    nextStage: null,
   },
 ];
 

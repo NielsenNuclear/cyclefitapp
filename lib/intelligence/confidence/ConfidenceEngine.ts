@@ -6,6 +6,7 @@ import {
   calculateDimensions,
   computeCompositeScore,
   deriveMaturityStage,
+  workoutsToNextStage,
   type ConfidenceInputs,
 } from "./ConfidenceCalculator";
 import { recordConfidenceSnapshot } from "./ConfidenceRegistry";
@@ -33,6 +34,7 @@ export function buildConfidenceProfile(inputs: ConfidenceInputs): ConfidenceProf
     compositeScore,
     dimensions,
     maturityStage,
+    workoutsToNextStage: workoutsToNextStage(inputs.completedWorkouts),
     generatedAt: new Date().toISOString(),
   };
 

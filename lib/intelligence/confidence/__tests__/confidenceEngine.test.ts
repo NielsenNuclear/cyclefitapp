@@ -15,6 +15,7 @@ import {
   calculateDimensions,
   computeCompositeScore,
   deriveMaturityStage,
+  workoutsToNextStage,
   type ConfidenceInputs,
   type DimensionSet,
 } from "../ConfidenceCalculator";
@@ -251,6 +252,44 @@ describe("deriveMaturityStage", () => {
   });
   it("101 workouts → long_term_profile", () => {
     expect(deriveMaturityStage(101)).toBe("long_term_profile");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNIT: workoutsToNextStage (UX Stabilization Batch 9 — closes the gap where
+// MATURITY_STAGES.workoutsToNextStage was hardcoded null on every entry)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("workoutsToNextStage", () => {
+  it("0 workouts → 11 remaining to learning", () => {
+    expect(workoutsToNextStage(0)).toBe(11);
+  });
+  it("exactly at the getting_started/learning boundary (10) → 1 remaining", () => {
+    expect(workoutsToNextStage(10)).toBe(1);
+  });
+  it("exactly at the learning stage's start (11) → 15 remaining to personalized", () => {
+    expect(workoutsToNextStage(11)).toBe(15);
+  });
+  it("exactly at the personalized/highly_personalized boundary (50) → 1 remaining", () => {
+    expect(workoutsToNextStage(50)).toBe(1);
+  });
+  it("exactly at the highly_personalized stage's start (51) → 50 remaining to long_term_profile", () => {
+    expect(workoutsToNextStage(51)).toBe(50);
+  });
+  it("long_term_profile (101+) → null, no next stage", () => {
+    expect(workoutsToNextStage(101)).toBeNull();
+    expect(workoutsToNextStage(500)).toBeNull();
+  });
+  it("stays consistent with deriveMaturityStage at every boundary", () => {
+    for (const n of [0, 10, 11, 25, 26, 50, 51, 100, 101]) {
+      const stage = deriveMaturityStage(n);
+      const remaining = workoutsToNextStage(n);
+      if (stage === "long_term_profile") {
+        expect(remaining).toBeNull();
+      } else {
+        expect(remaining).toBeGreaterThan(0);
+      }
+    }
   });
 });
 

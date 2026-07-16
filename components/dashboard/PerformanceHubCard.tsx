@@ -6,7 +6,6 @@ import type { PersonalBestSet }        from "@/lib/performance/personalBests";
 import type { GoalVelocity }           from "@/lib/performance/goalVelocity";
 import type { GoalAdjustmentAdvice }   from "@/lib/performance/goalAdjustment";
 import type { PerformancePredictors }  from "@/lib/performance/performancePredictors";
-import { getMaturityStage }            from "@/lib/intelligence/dataMaturity";
 import { LockedInsight }               from "@/components/ui/LockedInsight";
 
 interface Props {
@@ -87,7 +86,8 @@ export function PerformanceHubCard({
     .filter(pb => pb.lifetime !== null)
     .slice(0, 4);
 
-  const qualityMaturity = quality ? getMaturityStage(quality.sessionsAnalysed) : "locked";
+  // UX Stabilization Batch 9 — engine-computed, not card-computed
+  const qualityMaturity = quality ? quality.maturityStage : "locked";
 
   return (
     <div className="bg-white border border-border rounded-2xl p-5 space-y-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">

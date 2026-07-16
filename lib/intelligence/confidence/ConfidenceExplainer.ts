@@ -6,9 +6,9 @@ import type {
   ConfidenceExplanation,
   ConfidenceLevel,
   MaturityStage,
-  MATURITY_STAGES,
 } from "./ConfidenceTypes";
 import { MATURITY_STAGES as STAGES } from "./ConfidenceTypes";
+import { workoutsToNextStage } from "./ConfidenceCalculator";
 
 const LEVEL_SUMMARY: Record<ConfidenceLevel, string> = {
   High:         "Axis has a strong, verified understanding of your training patterns.",
@@ -20,10 +20,10 @@ const LEVEL_SUMMARY: Record<ConfidenceLevel, string> = {
 
 function maturityContext(stage: MaturityStage, completedWorkouts: number): string {
   const info = STAGES.find(s => s.stage === stage)!;
-  if (!info.nextStage || info.maxWorkouts === null) {
+  const remaining = workoutsToNextStage(completedWorkouts);
+  if (!info.nextStage || remaining === null) {
     return `You've reached ${info.label} status with ${completedWorkouts} completed workouts.`;
   }
-  const remaining = info.maxWorkouts - completedWorkouts + 1;
   const nextInfo = STAGES.find(s => s.stage === info.nextStage)!;
   return `You're at the ${info.label} stage. ${remaining} more workout${remaining === 1 ? "" : "s"} to reach ${nextInfo.label}.`;
 }
