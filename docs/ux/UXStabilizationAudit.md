@@ -314,6 +314,188 @@ not hormonal state per se. Training performance is highly individual."
 
 ---
 
+# Extension — Workout Engine & Recommendation Explainability
+
+**Date:** 2026-07-16
+**Method:** Same discipline as the original audit above — direct code reading and tracing, file/line references, no assumptions from behavior alone. No production code was modified while producing this extension.
+**Origin:** "Axis UX Stabilization — Workout Engine & Recommendation Explainability" brief. Full supporting detail for the explainability findings lives in `docs/intelligence/RecommendationExplainability.md`; the Workout Mode design lives in `docs/ux/WorkoutModeProposal.md` — both are referenced, not duplicated, below.
+
+**A cross-cutting theme, same shape as the original audit's:** several of these findings aren't isolated bugs — they're the same *uncoordinated-independent-passes* pattern that produced Issues #3/#4/#12 above, now found in the workout-generation pipeline and the explanation layer. Multiple systems each independently and correctly implement their own small piece of logic, but nothing coordinates them, so their combination produces something none of the individual authors intended.
+
+---
+
+## 13. Realistic Set Generation
+
+**User impact:** Most exercises show a single working set — not representative of real strength training, and directly undermines trust in the "intelligence" behind the plan (a user who trains regularly can tell 1 set isn't a real prescription).
+
+**Current behavior — confirmed root cause, four independent compounding reduction passes in `lib/exercises/generateWorkout.ts`:**
+
+1. `prescribeExercise()` (line 315): `sets = max(1, round((baseSets + trainingStateDelta) * volumeMod))`, where `volumeMod` comes from `resolveEffectiveAdjustment()` — progression combined with a readiness ceiling.
+2. Adaptive pattern multiplier (line 476): `sets = max(1, round(sets * adaptiveVol))`, `adaptiveVol` ∈ [0.70, 1.15].
+3. "Adherence risk" scale (line 490): `sets = max(1, round(sets * adherenceScale))` — **but** the value passed here (`app/dashboard/page.tsx` lines 2520/2733: `trainingDecision?.finalVolumeScale`) is not a narrow adherence factor — it's the *entire* Training Decision Engine's composite output (readiness + recovery + burnout + fatigue + symptoms + deload + trend + adherence, see `docs/intelligence/RecommendationExplainability.md` §1.1 Layer 2), several of which were **already** counted in pass 1's readiness ceiling.
+4. Periodization offset (line 499): `sets = max(1, sets + periodizationStatus.setsOffset)`, flat -2 during a deload week (`lib/periodization/goalProfiles.ts` line 46).
+
+Each pass independently floors at 1. None of the four is aware of the others. A realistic combination — moderate energy, any elevated adherence risk (common, not an edge case), any point in a deload week — routes a 3-set base exercise down to 1 by the fourth pass, well before any single pass looks unreasonable in isolation. This is exactly the same class of defect as `docs/intelligence/RecommendationExplainability.md` Finding E4, on the same code path — that document has the full trace.
+
+**"Why does the final exercise already contain multiple sets while others don't":** confirmed structural fact — `lib/exercises/workoutSplits.ts` places `Core` as the last category slot in every split template (e.g. lines 66–68, 75–77, 84–86). However, none of the four reduction passes above treat position or category specially — all four `.map()` uniformly across the full exercise array regardless of index. No position-based code path was found that would explain a systematic last-slot exemption. **This needs an instrumented live trace to resolve** (log each exercise's `sets` value after each of the four passes, for a real session) rather than further static reading — flagging for the implementation phase rather than guessing further. It's possible this is per-session variance (Core-category exercises this codebase happens to select have different base RPE/movement-pattern combinations) rather than a reproducible position bug.
+
+**Files involved:** `lib/exercises/generateWorkout.ts` (lines 288–343 for `prescribeExercise`, 453–505 for the four reduction passes), `lib/periodization/goalProfiles.ts` (setsOffset source), `app/dashboard/page.tsx` (lines 2520/2733, the `finalVolumeScale` → `adherenceRiskScale` parameter mismatch), `lib/exercises/workoutSplits.ts` (Core-last template structure, for the live-trace investigation).
+
+**Recommended fix:** Consolidate the four independent reduction passes into one coordinated calculation with a single final floor, not four sequential ones. Concretely: compute each pass's *intended ratio* (not yet applied), multiply the ratios together once, floor the *product* at a sane minimum (e.g. 2, not 1 — a 1-set prescription is rarely a real coaching decision even for a genuine deload; a deload should reduce load/intensity more than it eliminates sets entirely), then round once. Separately, stop passing the full `TrainingDecision.finalVolumeScale` into the `adherenceRiskScale` parameter slot — either rename that parameter to reflect what it actually carries, or (better) have the Training Decision Engine expose its *adherence-specific* sub-component separately from its readiness/fatigue-driven component, so `generateWorkout.ts` can apply only the piece it doesn't already account for via Layer 1's readiness ceiling.
+
+**Risk level:** **Medium-High.** This touches the core volume-generation formula directly (the brief's Part 1 explicitly asks for this), and unlike the original audit's issues, this one *is* a recommendation-logic change, not just a default/display fix — needs careful before/after regression testing across a range of readiness/adherence/periodization combinations (a test matrix, not a single test case) before landing, and should ship separately from any other change so a regression is easy to isolate.
+
+---
+
+## 14. Weighted vs. Non-Weighted Exercises
+
+**User impact:** Bodyweight-loaded movements (e.g. "Ab Wheel Rollout (Kneeling)") show a weight-entry stepper the same as barbell/dumbbell exercises — a small but constant "this app doesn't quite understand what I'm doing" signal, repeated every session.
+
+**Current behavior:** The `Exercise` interface (`lib/exercises/exerciseLibrary.ts` lines 49–70) has no `loadingType`/`requiresWeight` field at all — confirmed via full-interface read and a repo-wide grep for both terms (zero hits outside this audit and the brief). `ExerciseFocusCard.tsx`'s active-set block (lines 231–239) renders a `SetStepper` for weight unconditionally for every exercise, regardless of category or equipment.
+
+**What already exists that a fix can build on:** `lib/exercises/exerciseSubstitutions.ts`, `deriveEquipmentCategory()` (lines 18–29) already classifies every exercise's free-text `equipment` field into a structured `EquipmentCategory` enum (`cable`/`machine`/`barbell`/`dumbbell`/`kettlebell`/`resistance_band`/`pullup_bar`/`bodyweight`) purely by string matching — used today only for training-environment filtering, not for UI gating. Of the 157 exercises in the library, 25 are tagged exactly `equipment: "Bodyweight"`, with several more bodyweight-adjacent variants (`"Bodyweight, Bench"`, `"Bodyweight, Wall"`, etc.) and gym-apparatus bodyweight movements (`"Pull-Up Bar"`, `"Parallel Bars"`, `"Ab Wheel"`) that `deriveEquipmentCategory()` already correctly buckets as `"bodyweight"`.
+
+**The gap in reusing it directly:** `deriveEquipmentCategory()` isn't a perfect proxy for "does this need a weight input" — e.g. `"Pull-Up Bar, Weight Belt"` (a *weighted* pull-up variant) derives to `"pullup_bar"`, not `"bodyweight"`, so that one's fine; but `"Parallel Bars, Weight Belt"` (weighted dips) contains no barbell/dumbbell/etc. keyword and would fall through to the `"bodyweight"` default despite being a weighted movement. The derivation heuristic needs a small extension (check for `"weight belt"`/`"weighted"` substrings before defaulting to bodyweight) rather than being trusted as-is for this new purpose.
+
+**Files involved:** `lib/exercises/exerciseLibrary.ts` (`Exercise` interface — needs the new field), `lib/exercises/exerciseSubstitutions.ts` (`deriveEquipmentCategory()` — reusable derivation base, needs the weight-belt edge case handled), `components/workout/ExerciseFocusCard.tsx` (lines 231–239, the unconditional `SetStepper`).
+
+**Recommended fix:** Add `loadingType?: "bodyweight" | "weighted" | "assisted" | "time" | "distance" | "reps_only"` to `Exercise`, computed once via a small derivation function built on top of (not duplicating) `deriveEquipmentCategory()`'s existing keyword logic, with the weight-belt correction from above. Default any exercise without an explicit override to the derived value rather than requiring all 157 entries to be hand-tagged immediately — matches this codebase's established pattern of deriving structured metadata from the free-text `equipment` field rather than a hand-authored migration (same discipline as `deriveEquipmentCategory`/`deriveTrainingEnvironments` already use). `ExerciseFocusCard.tsx` then conditionally renders the weight `SetStepper` only when `loadingType` is `"weighted"` or `"assisted"` (assisted machines still log an assist-weight value, just semantically inverted).
+
+**Risk level:** **Low.** Purely additive field + one conditional render check. No interaction with volume/intensity generation logic. The only real risk is the derivation heuristic misclassifying an exercise (e.g. missing an equipment-string pattern) — worth a full-library dry run (log every exercise's derived `loadingType` and spot-check) before relying on it, rather than assuming the heuristic is complete on the first pass.
+
+---
+
+## 15. Exercise Postponement
+
+**User impact:** Real gym sessions frequently hit occupied equipment. Today, a user's only option is "Skip exercise →", which is pure UI navigation — it advances the current-exercise cursor but does not reorder anything. The skipped exercise stays exactly where it was in the sequence; the user must remember to manually navigate back to it (Prev, or the progress dots), and nothing distinguishes "skipped, will return" from "just haven't gotten there yet."
+
+**Current behavior:** Confirmed via full read of `components/workout/GuidedExerciseFlow.tsx` and a repo-wide grep for "postpone"/"reorder"/"moveExercise" (zero hits anywhere in `components/workout/` or `components/dashboard/WorkoutCard.tsx`). The "Skip exercise" button (`GuidedExerciseFlow.tsx` line 229) is `onClick={() => setCurrentIdx(i => i + 1)}` — a local `currentIdx` state change only.
+
+**Files involved:** `components/dashboard/WorkoutCard.tsx` (owns `exercises: WorkoutExercise[]` as mutable `useState`, already proven mutable by the existing swap (`handleSwap`) and add-exercise (`handleAddExercise`, UX Stabilization Batch 2) features — reordering is structurally the same class of operation), `components/workout/GuidedExerciseFlow.tsx` (needs a "Postpone" action alongside "Skip exercise").
+
+**The real implementation risk, not obvious from the UI alone:** `actuals: Record<number, SetRecord[]>` (`WorkoutCard.tsx` line 135) is keyed by **array index**, not by a stable exercise identity. If "postpone" physically reorders the `exercises` array (moving B from index 1 to index 2, per the brief's A B C D → A C B D example), the `actuals` record's keys must be permuted in lockstep, or index 1's logged sets would silently become attributed to whatever exercise moved into index 1. This is exactly the kind of bug that wouldn't surface in a quick manual test (postponing an exercise before logging any sets) but would corrupt data the moment a user postpones an exercise *after* partially logging it.
+
+**Recommended fix:** Implement postpone as: remove the exercise (and its `actuals` entry) from its current index, insert it immediately after the *next* exercise's current position (matching the brief's example precisely — not sent to the end), and re-key every `actuals` entry whose index shifted as a result — not just the moved exercise's. Do this as a single atomic state update (one `setExercises` + one `setActuals` call reading from the same pre-update snapshot), not two sequential updates, to avoid a render in between with mismatched arrays.
+
+**Risk level:** **Medium.** The UI-level change (a new button, an index-shuffle) is small; the state-consistency requirement (`actuals` re-keying) is the real risk and needs its own explicit test: postpone an exercise with 1 of 3 sets already logged, confirm the logged set stays attached to the correct exercise after the move, confirm workout history persistence (`buildLog()`/`buildExercisePerformances()` in `WorkoutCard.tsx`) reflects the postponed exercise's original prescription, not a corrupted one.
+
+---
+
+## 16. Workout Mode
+
+**User impact / current behavior / files involved:** see `docs/ux/WorkoutModeProposal.md` in full — not duplicated here. Summary: the guided-flow interaction model (`GuidedExerciseFlow`, `ExerciseFocusCard`) already behaves like a focused execution mode; it just renders inside the dashboard's shared white-card visual language and persistent nav shell rather than a distinct dark, distraction-free surface. The proposal recommends an overlay/portal approach (reusing `components/ui/Sheet.tsx`'s existing portal pattern) over a new routed page, as the lower-risk path to the same user-facing outcome.
+
+**Recommended fix:** Per the brief, **not implemented in this pass.** `docs/ux/WorkoutModeProposal.md` is the deliverable — information architecture, screen flow, visual language, interaction model, accessibility considerations, and a suggested 5-step implementation batch are all there, pending design review before any code is written.
+
+**Risk level:** N/A — no code proposed. The proposal itself flags its highest-risk sub-decision (dark-mode contrast/token derivation) as needing a design decision before implementation, not a code decision made unilaterally during implementation.
+
+---
+
+## 17. Recommendation Explainability — Raw Percentage Exposure
+
+**User impact:** The "Why today's plan?" expanded breakdown can show individual signal impacts like "+1200%", "-1800%", "+480%" — numbers a user correctly reads as broken, not as "mathematically normalized internal values." This is the highest-priority finding in this extension: it's not cosmetic, it's a trust failure at the exact moment (an explanation surface) the product is trying to build trust.
+
+**Current behavior / root cause:** see `docs/intelligence/RecommendationExplainability.md` in full — not duplicated here. Summary: `lib/intelligence/recommendationExplanation.ts` computes a *second, simplified, independent* model of "why" (nine hardcoded linear coefficients) that is only loosely related to the actual volume-generation pipeline traced in Issue #13 above, then force-rescales that simplified model's output to match the real number via `scale = actualDelta / rawSum`. When `rawSum` (the simplified model's own internal total) is small — a common, not rare, state — `scale` becomes very large, and every individual signal's displayed percentage is multiplied by that same runaway factor simultaneously. The display layer (`components/intelligence/RecommendationExplanationCard.tsx`) compounds this by clamping the *visual bar width* (`Math.min(abs(impact), 20)`) but not the *printed number* — so users see a short bar next to an absurd number, rather than either being consistently bounded.
+
+**Files involved:** `lib/intelligence/recommendationExplanation.ts` (root cause), `components/intelligence/RecommendationExplanationCard.tsx` (unclamped display), `components/intelligence/WhatChangedCard.tsx` and the headline "Volume ±N%" chip (confirmed **not** affected — both read the schema-bounded `finalVolumeScale` directly, not the unstable per-signal breakdown).
+
+**Recommended fix:** Two changes, needed together (a display clamp alone hides the symptom without fixing the dishonesty) — full detail and a proposed qualitative-language redesign in `docs/intelligence/RecommendationExplainability.md` §6:
+1. Make the explanation model read from the real pipeline's own decomposition (have `generateWorkout.ts`/`trainingDecisionEngine.ts` expose how much each layer changed things) instead of independently guessing and force-rescaling.
+2. Replace the raw-percentage display with qualitative bands (High/Moderate/Small impact), matching the brief's requested user-facing language, once the underlying numbers are trustworthy enough for a band assignment to mean something.
+
+Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed confidence-aware damping mechanism (addresses the brief's "avoid 40–50% reductions without sufficient data" requirement) — **confirmed via trace that no such damping exists today**: `ConfidenceProfile` is computed every pipeline run but its only consumer anywhere in the codebase is a read-only display badge (`app/dashboard/page.tsx` line 2830); nothing in `generateWorkout.ts` or `trainingDecisionEngine.ts` reads it.
+
+**Risk level:** **High effort, must be sequenced carefully.** Fixing the display clamp alone is low-risk and should ship first as a stopgap (prevents the embarrassing number from ever rendering, even before the deeper fix lands). The deeper fix — wiring the explanation model to the real pipeline's decomposition — is a more significant change touching `generateWorkout.ts`'s return shape and is exactly the kind of "core recommendation logic" change the original audit's constraints ask to be careful with; recommend it as its own reviewed batch, not bundled with the stopgap.
+
+---
+
+## 18. Single Source of Truth Architecture (Required)
+
+**User impact:** Indirect but foundational — this is the architectural requirement that Issues #13–#17 are all instances of violating. Stated as its own explicit requirement (a follow-up brief to this audit, "Part 1A"): the recommendation engine must become the single source of truth for every recommendation, adjustment, contributor, confidence value, and maturity signal displayed anywhere in the app. The frontend's role is presentation only — it must never calculate, estimate, infer, rescale, normalize, or reconstruct.
+
+**Current behavior:** Full detail in `docs/intelligence/RecommendationExplainability.md` §8, which formalizes the principle and maps Findings E1–E5 (Issues #13–#17 above) as concrete violations of it, plus documents a sixth, newly-found violation:
+
+**E6 — found while drafting this section, in this audit thread's own already-shipped work:** `lib/intelligence/confidence/ConfidenceTypes.ts` (Phase 67, pre-existing) already defines a comprehensive, workout-count-thresholded `MaturityStage` as part of `ConfidenceProfile`. UX Stabilization Batch 3 (this same audit thread, already shipped and pushed) independently built a **second, differently-shaped** `MaturityStage` (`lib/intelligence/dataMaturity.ts` — `"locked"|"building"|"ready"`, 7-check-in-thresholded) with no awareness of the first. `AdherenceCard.tsx`, `FatigueCard.tsx`, `PerformanceHubCard.tsx`, and `LockedInsight.tsx` all call `getMaturityStage(entryCount)` directly from the component layer — the frontend determining athlete maturity itself, exactly what this new architecture requirement prohibits. This isn't a hypothetical risk being guarded against pre-emptively; it already happened, three audit passes into the same effort, which is itself the strongest available argument for formalizing this requirement now rather than continuing to fix violations one at a time as they're independently discovered.
+
+**Files involved:** See `docs/intelligence/RecommendationExplainability.md` §8.2 for the proposed structured `Recommendation`/`AdjustmentResult`/`Contributor` shape (grounded in existing types — `types/recommendation.ts`, `ConfidenceTypes.ts` — not invented from scratch), and §8.5 specifically for the maturity-system consolidation. In brief: `lib/intelligence/recommendationExplanation.ts`, `lib/exercises/generateWorkout.ts`, `lib/autoregulation/trainingDecisionEngine.ts`, `lib/intelligence/confidence/ConfidenceEngine.ts`, `lib/intelligence/dataMaturity.ts` (retired, logic migrated into domain engines), and every UI card currently computing a maturity/impact value itself rather than reading one.
+
+**Recommended fix:** Not a single fix — a target architecture that Batches 8 and 9 below implement in two parts, sequenced by risk (E6's consolidation is contained and low-risk; the full pipeline restructure is not).
+
+**Risk level:** **Architectural.** This is the umbrella that Batch 8's own "highest-risk batch in either audit document" risk note already describes for the pipeline-restructure half; the maturity-consolidation half (Batch 9, new) is materially lower risk and can proceed independently and sooner.
+
+---
+
+## Implementation Approach — Extension
+
+### Batch 5 — Workout Correctness II (Realistic Sets & Postponement)
+**Scope:** Issue #13 (compounding set-reduction), Issue #15 (postpone exercise).
+
+**Files changed:** `lib/exercises/generateWorkout.ts`, `lib/periodization/goalProfiles.ts` (read-only reference), `app/dashboard/page.tsx` (the `finalVolumeScale` parameter-slot fix), `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`.
+
+**Risks:** Issue #13 is a genuine recommendation-formula change (flagged High risk above) and should land and be verified independently before Issue #15 (which is UI + state-consistency risk, not formula risk) is added to the same release. Do not combine into one PR.
+
+**Tests required:** A test matrix for #13 (energy level × training state × adherence risk × periodization phase, confirming the *coordinated* floor behaves sanely across combinations, not just the happy path). For #15: the partial-completion postpone scenario described in Issue #15's write-up, plus a same-workout double-postpone (postpone B, then postpone the exercise now in B's old slot) to confirm re-keying is correct under repeated operations.
+
+**Visual QA plan:** Generate workouts across a range of readiness/adherence states and manually count sets per exercise before/after the #13 fix. Full postpone flow on both desktop and mobile.
+
+---
+
+### Batch 6 — Exercise Loading Type
+**Scope:** Issue #14.
+
+**Files changed:** `lib/exercises/exerciseLibrary.ts`, `lib/exercises/exerciseSubstitutions.ts`, `components/workout/ExerciseFocusCard.tsx`.
+
+**Risks:** Low (additive field, one conditional render) — see Issue #14's own risk note for the one real gotcha (derivation-heuristic coverage).
+
+**Tests required:** Full-library dry run logging every exercise's derived `loadingType`, manually spot-checked against the equipment strings identified in Issue #14 (especially the weight-belt edge cases).
+
+**Visual QA plan:** Log a session including at least one exercise from each `loadingType` value, confirm the weight stepper appears only where expected.
+
+---
+
+### Batch 7 — Recommendation Explainability Stopgap
+**Scope:** Issue #17, display-clamp portion only (§6.2 point 2 style guard, not the full pipeline-decomposition fix).
+
+**Files changed:** `components/intelligence/RecommendationExplanationCard.tsx` (clamp the printed `impact` value the same way the bar width is already clamped).
+
+**Risks:** Low — a pure display bound, ships fast, prevents the embarrassing number from appearing in production while Batch 8 is designed and reviewed.
+
+**Tests required:** Confirm a synthetic near-zero-`rawSum` input (constructible directly against `generateRecommendationExplanation()`) no longer produces a printed value outside a sane bound (e.g. ±100%).
+
+**Visual QA plan:** N/A beyond the above — this is a numeric guard, not a visual redesign.
+
+---
+
+### Batch 8 — Recommendation Explainability Foundation (design-reviewed, not yet scheduled)
+**Scope:** Issue #17's full fix, superseded and subsumed by Issue #18's fuller specification — the structured `Recommendation`/`AdjustmentResult`/`Contributor` pipeline output, decomposition-based explanation model, qualitative-band display redesign, and confidence-aware damping mechanism, all specified in detail in `docs/intelligence/RecommendationExplainability.md` §8 (which itself supersedes that document's own §6–§7 point-fixes — §8.8 there explains the relationship).
+
+**Files changed:** `lib/intelligence/recommendationExplanation.ts`, `lib/exercises/generateWorkout.ts` (return shape — needs to expose its own decomposition as `AdjustmentResult`), `lib/autoregulation/trainingDecisionEngine.ts`, `components/intelligence/RecommendationExplanationCard.tsx`, `lib/intelligence/confidence/ConfidenceEngine.ts` (becomes an upstream input to the pipeline, not a downstream consumer of it — see RecommendationExplainability.md §8.4), `types/recommendation.ts` (the new `Recommendation` shape).
+
+**Risks:** **This is the highest-risk batch in either audit document.** It touches the return shape of the core recommendation-generation function, inverts the direction confidence flows through the pipeline, and eliminates the second explanation model entirely rather than patching it. Should not be scheduled until Batch 5 (the underlying compounding-reduction fix) has shipped and stabilized — building an honest decomposition on top of a pipeline that's still being corrected would mean re-deriving it twice. Also should not be scheduled until Batch 9 (below) has landed, so the confidence/maturity data this batch's `Contributor.confidence` field depends on is already flowing from a single, consolidated source rather than two.
+
+**Tests required / Visual QA plan:** Deferred to that batch's own planning pass, once Batches 5 and 9 are stable — premature to specify test cases against a pipeline shape that will itself change under both.
+
+---
+
+### Batch 9 — Maturity System Consolidation
+**Scope:** Issue #18's E6 finding specifically — retire `lib/intelligence/dataMaturity.ts`'s standalone `MaturityStage` type in favor of `ConfidenceTypes.ts`'s existing (Phase 67) one, migrate each domain engine (`computeConsistencyScore()`, `computeRecoveryCapacity()`, `computeCurrentFatigueScore()`, `computeTrainingQuality()`) to attach its own maturity signal to its own return value using shared threshold logic, and update the four UI consumers to read that field instead of calling `getMaturityStage(entryCount)` themselves. Full detail in `docs/intelligence/RecommendationExplainability.md` §8.5.
+
+**Files changed:** `lib/intelligence/dataMaturity.ts` (retired — its threshold logic moves into the engines below, not deleted outright until the migration is complete), `lib/adherence/consistency.ts`, `lib/adaptive/recoveryCapacity.ts`, `lib/autoregulation/fatigueModel.ts`, `lib/performance/trainingQuality.ts`, `components/dashboard/AdherenceCard.tsx`, `components/dashboard/FatigueCard.tsx`, `components/dashboard/PerformanceHubCard.tsx`, `components/ui/LockedInsight.tsx`, `lib/intelligence/confidence/ConfidenceTypes.ts` (close the small existing gap where every `MATURITY_STAGES` entry hardcodes `workoutsToNextStage: null`, per RecommendationExplainability.md §8.5 point 4).
+
+**Risks:** **Low-Medium.** Unlike Batch 8, this doesn't touch volume/intensity calculation at all — it's a data-plumbing change (move a field from being computed in the component to being computed in the engine and passed down) plus a type consolidation. The real risk is purely mechanical: four call sites need to be updated in lockstep with their engines, or a card could silently read `undefined` where it used to read a computed value. Independent of Batch 5 and can proceed on its own schedule — recommend doing it *before* Batch 8 (not just before, but as a prerequisite, per Batch 8's risk note above) since Batch 8's `Contributor.confidence` field is specified against the consolidated single maturity system, not the current dual one.
+
+**Tests required:** For each of the four migrated engines, confirm the attached maturity field matches what the old component-level `getMaturityStage(entryCount)` call would have produced for the same input (a straightforward before/after equivalence check, not new behavior). For the `ConfidenceTypes.ts` gap fix, confirm `workoutsToNextStage` computes correctly at a boundary (e.g. exactly 10 workouts, exactly 11).
+
+**Visual QA plan:** Walk the same zero-history and partial-history account states used to verify UX Stabilization Batch 3's original maturity-gating work (`docs/ux/UXStabilizationAudit.md` Batch 3 visual QA plan, above), confirming every card still shows the correct locked/building/ready state after the data now flows from the engine instead of being computed in the component.
+
+---
+
+## Constraints Honored — Extension
+
+Per the brief: Dashboard 2.0 was not redesigned in producing this extension. Workout Mode (§16) is a proposal document only, per explicit instruction not to implement it in this pass. Recommendation Explainability's audit (§17, and the full `docs/intelligence/RecommendationExplainability.md`) documents the existing calculation pipeline and proposes a design; it does not implement pipeline changes. The Single Source of Truth architecture requirement (§18, and `docs/intelligence/RecommendationExplainability.md` §8) is likewise documented and not implemented, per explicit confirmation to document the target architecture first — no code was changed producing §18 or the §8 write-up beyond the audit-doc and design-doc edits themselves. Where a recommended fix does touch core recommendation logic (Issue #13, and Batch 8 in full), it's explicitly flagged as such — consistent with the original audit's discipline of calling out formula changes rather than presenting them as simple bug fixes.
+
+---
+
 ## Constraints Honored
 
 Per the brief: no core recommendation-formula changes are proposed anywhere in this audit except where explicitly identified as a wrong *default* (empty `lastPeriodDate` → day 1; zero-data → real score) rather than a change to how a *populated* input is scored. No changes to Dashboard 2.0 information architecture, the design system, or any existing intelligence feature's removal are proposed. Adaptive Intelligence, Safety Engine, Verification Registry, Confidence Engine, and Telemetry are all read from, never modified, in every recommended fix above.
