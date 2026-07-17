@@ -68,6 +68,11 @@ interface GuidedExerciseFlowProps {
   elapsedSeconds:  number;
   environment:     TrainingEnvironment;
   onSwap:          (exerciseIdx: number, newExercise: Exercise) => void;
+  /** Workout Engine Sprint — Phase B.7. Moves the exercise at `exerciseIdx`
+   *  to the position right after the next one — a real-gym "occupied
+   *  equipment" escape hatch, distinct from Skip (which just advances the
+   *  cursor and leaves the exercise stranded at its original position). */
+  onPostpone:      (exerciseIdx: number) => void;
   onFinish:        (status: "completed" | "partial") => void;
   overallDifficulty:    number;
   onDifficultyChange:   (v: number) => void;
@@ -92,6 +97,7 @@ export function GuidedExerciseFlow({
   elapsedSeconds,
   environment,
   onSwap,
+  onPostpone,
   onFinish,
   overallDifficulty,
   onDifficultyChange,
@@ -235,6 +241,21 @@ export function GuidedExerciseFlow({
             className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
           >
             Skip exercise →
+          </button>
+        )}
+
+        {/* Postpone (Workout Engine Sprint — Phase B.7): reorders past just
+            the next exercise, rather than stranding this one indefinitely
+            like Skip does. currentIdx doesn't change — the slot now holds
+            what was already next. */}
+        {!isLast && !currentDone && (
+          <button
+            type="button"
+            onClick={() => onPostpone(currentIdx)}
+            className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            aria-label={`Postpone ${current.name} until after the next exercise`}
+          >
+            Postpone ⇄
           </button>
         )}
 

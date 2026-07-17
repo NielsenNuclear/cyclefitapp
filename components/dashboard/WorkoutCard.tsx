@@ -26,6 +26,7 @@ import {
 } from "@/lib/progression/exerciseHistory";
 import { getExerciseHistory } from "@/lib/history/exerciseHistory";
 import { generateWarmupSets } from "@/lib/exercises/warmupSets";
+import { canPostpone, postponeArray, postponeRecord } from "@/lib/exercises/postponeExercise";
 import type { SetRecord }         from "@/components/workout/types";
 import { WorkoutHeroView }        from "@/components/workout/WorkoutHeroView";
 import { GuidedExerciseFlow }     from "@/components/workout/GuidedExerciseFlow";
@@ -109,6 +110,17 @@ export function WorkoutCard({
     setExercises(prev => prev.map((ex, i) =>
       i === idx ? { ...ex, name: newExercise.name, exercise: newExercise } : ex
     ));
+  }
+
+  // Workout Engine Sprint — Phase B.7. Postpone the exercise at `idx` — see
+  // lib/exercises/postponeExercise.ts for the reorder invariant. A no-op
+  // when there's no next exercise to postpone past.
+  function handlePostpone(idx: number) {
+    if (!canPostpone(idx, exercises.length)) return;
+    const length = exercises.length;
+    setExercises(prev => postponeArray(prev, idx));
+    setActuals(prev => postponeRecord(prev, idx, length));
+    setWarmupActuals(prev => postponeRecord(prev, idx, length));
   }
 
   // Add an exercise mid-session (UX Stabilization #9). Uses sensible defaults —
@@ -387,6 +399,7 @@ export function WorkoutCard({
           elapsedSeconds={elapsedSeconds}
           environment={environment}
           onSwap={handleSwap}
+          onPostpone={handlePostpone}
           onFinish={handleFinish}
           overallDifficulty={overallDifficulty}
           onDifficultyChange={setOverallDifficulty}
