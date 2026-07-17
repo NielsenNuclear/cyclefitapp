@@ -93,26 +93,22 @@ import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { TrainingCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
-import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
-import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
 import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCard";
-import { PerformanceTrendsCard }    from "@/components/dashboard/PerformanceTrendsCard";
 import { CoachingMemoryCard }       from "@/components/dashboard/CoachingMemoryCard";
-import { WeeklyPlanCard }       from "@/components/dashboard/WeeklyPlanCard";
-import { TrainingBlockCard }    from "@/components/dashboard/TrainingBlockCard";
 import { OverloadCard }         from "@/components/dashboard/OverloadCard";
 import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
-import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
-import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
 import { RecoveryHubCard }          from "@/components/dashboard/RecoveryHubCard";
 import { CycleHubCard }             from "@/components/dashboard/CycleHubCard";
 import { NutritionHubCard }         from "@/components/dashboard/NutritionHubCard";
-import { ProgressCard }             from "@/components/dashboard/ProgressCard";
-import { ProgressInsightsCard }     from "@/components/dashboard/ProgressInsightsCard";
-import { GoalProgressCard }         from "@/components/dashboard/GoalProgressCard";
+import { ProgressHubCard }          from "@/components/dashboard/ProgressHubCard";
+import { ExerciseTrendsCard }       from "@/components/dashboard/ExerciseTrendsCard";
+import { GoalsMilestonesHubCard }   from "@/components/dashboard/GoalsMilestonesHubCard";
+import { AthleteProfileHubCard }    from "@/components/dashboard/AthleteProfileHubCard";
+import { CoachingHubCard }          from "@/components/dashboard/CoachingHubCard";
+import { TrainingPlanHubCard }      from "@/components/dashboard/TrainingPlanHubCard";
 import {
   computeRecoveryScore,
   getRecoveryScores,
@@ -158,7 +154,6 @@ import {
   type AdaptiveModifier,
   type AdaptiveInsight,
 } from "@/lib/adaptive/adaptiveDecisionEngine";
-import { AdaptiveInsightsCard }         from "@/components/dashboard/AdaptiveInsightsCard";
 import {
   detectSymptomEscalation,
   type SymptomEscalationEntry,
@@ -216,7 +211,6 @@ import { logMobilityComplaints } from "@/lib/movement/mobilityLearning";
 import { generateDailyGuidance, type DailyGuidance } from "@/lib/coaching/dailyGuidance";
 import { computeWeeklyReview, type WeeklyReview }    from "@/lib/coaching/weeklyReview";
 import { computeMonthlyReview, type MonthlyReview }  from "@/lib/coaching/monthlyReview";
-import { AdaptiveCoachCard }                         from "@/components/dashboard/AdaptiveCoachCard";
 import { initOrUpdateMesocycle, weeksSinceLastDeload, type MesocycleState } from "@/lib/periodization/mesocycle";
 import { computePeriodizationStatus, type PeriodizationStatus }             from "@/lib/periodization/periodizationState";
 import { computeCycleSynergy, type CycleSynergySignal }                      from "@/lib/periodization/cycleSynergy";
@@ -224,10 +218,8 @@ import { computeAdaptiveDeload, type AdaptiveDeloadDecision }                 fr
 import { computeAchievementForecast, type AchievementForecast }              from "@/lib/periodization/achievementForecast";
 import { getPeriodizationProfile }                                            from "@/lib/periodization/goalProfiles";
 import { getPeriodizationInsight, type PeriodizationInsight }                from "@/lib/periodization/periodizationLearning";
-import { PeriodizationCard }                                                  from "@/components/dashboard/PeriodizationCard";
 import { applyCycleAwareProgression }                                         from "@/lib/progression/cycleAwareProgression";
 import { buildTrainingResponseProfile, type TrainingResponseProfile }         from "@/lib/progression/trainingResponseProfile";
-import { ExerciseIntelligenceCard }                                           from "@/components/dashboard/ExerciseIntelligenceCard";
 // ─── Phase 32: Nutrition Intelligence ─────────────────────────────────────────
 import { computeNutritionTargets, type NutritionTargets }                    from "@/lib/nutrition/nutritionTargets";
 import { applyNutritionPeriodization }                                        from "@/lib/nutrition/nutritionPeriodization";
@@ -298,7 +290,6 @@ import { predictSessionOutcome, saveOutcomePrediction, getOutcomePrediction, typ
 import { validateOutcome, getPredictionAccuracy, type PredictionAccuracyReport } from "@/lib/autoregulation/outcomeValidation";
 import { computeWorkoutRecoveryCost, type WorkoutRecoveryCost }                from "@/lib/autoregulation/recoveryCost";
 import { buildPerformanceProgressionReport, type PerformanceProgressionReport } from "@/lib/autoregulation/performanceProgression";
-import { TrainingDecisionCard }                                                 from "@/components/dashboard/TrainingDecisionCard";
 import { ReadinessConfidenceCard }                                              from "@/components/dashboard/ReadinessConfidenceCard";
 import { PredictionAccuracyCard }                                               from "@/components/dashboard/PredictionAccuracyCard";
 // ─── Phase 36: Performance Intelligence Engine ─────────────────────────────────
@@ -309,7 +300,6 @@ import { getAllPersonalBests, recordAndDetectPRs, type PersonalBestSet }       f
 import { computeGoalVelocity, type GoalVelocity }                             from "@/lib/performance/goalVelocity";
 import { buildPerformancePredictors, type PerformancePredictors }             from "@/lib/performance/performancePredictors";
 import { computeGoalAdjustments, type GoalAdjustmentAdvice }                  from "@/lib/performance/goalAdjustment";
-import { PerformanceHubCard }                                                  from "@/components/dashboard/PerformanceHubCard";
 // ─── Phase 39: Lifestyle Intelligence Engine ───────────────────────────────────
 import { buildTrainingAvailabilityProfile, type TrainingAvailabilityProfile }  from "@/lib/lifestyle/scheduleIntelligence";
 import { computeDailyTimeBudget, type DailyTimeBudget }                        from "@/lib/lifestyle/timeBudget";
@@ -387,7 +377,6 @@ import { buildCoachingNarrative, type CoachingNarrative as P45Narrative }     fr
 import { buildIdentityModel, type IdentityModel }                             from "@/lib/memory/identityModel";
 import { SituationMemoryCard }                                                 from "@/components/dashboard/SituationMemoryCard";
 import { AdherenceIntelligenceCard }                                           from "@/components/dashboard/AdherenceIntelligenceCard";
-import { AthleteDevelopmentCard }                                              from "@/components/dashboard/AthleteDevelopmentCard";
 // ─── Phase 46: Behavioral Adherence Intelligence ───────────────────────────────
 import { computeAdherencePatterns, type AdherencePatternReport }              from "@/lib/adherence/patternEngine";
 import { analyzeMissedWorkouts, type MissedWorkoutAnalysis }                  from "@/lib/adherence/missedWorkoutAnalysis";
@@ -436,10 +425,7 @@ import { computeTrainingMaturity, type TrainingMaturity }                      f
 import { buildSeasonalityReport, type SeasonalityReport }                      from "@/lib/planning/seasonalityAnalysis";
 import { detectGoalConflicts, type GoalConflictReport }                        from "@/lib/planning/goalConflict";
 import { buildAnnualForecast, type AnnualForecast }                            from "@/lib/planning/annualForecast";
-import { GoalRoadmapCard }                                                      from "@/components/dashboard/GoalRoadmapCard";
-import { MilestoneCard }                                                        from "@/components/dashboard/MilestoneCard";
 import { ForecastCard }                                                         from "@/components/dashboard/ForecastCard";
-import { TrainingMaturityCard }                                                 from "@/components/dashboard/TrainingMaturityCard";
 import { AccordionSection }                                                     from "@/components/dashboard/AccordionSection";
 import { DailyStatus }                                                          from "@/components/dashboard/DailyStatus";
 import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
@@ -448,8 +434,6 @@ import type { BodyIntelligenceSnapshot }                                        
 import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
 // ─── Phase 62: Athlete Profile & Longitudinal Intelligence ───────────────────
 import { buildAthleteProfile, type AthleteProfile }                            from "@/lib/athlete/athleteProfile";
-import { AthleteProfileCard }                                                   from "@/components/athlete/AthleteProfileCard";
-import { LongitudinalTimelineCard }                                             from "@/components/athlete/LongitudinalTimelineCard";
 // ─── Phase 63: Insight Discovery & Performance Analytics ─────────────────────
 import { computeExerciseAnalytics, type ExerciseAnalyticsReport }              from "@/lib/insights/exerciseAnalytics";
 import { computeTrainingEfficiency, type TrainingEfficiencyReport }            from "@/lib/insights/trainingEfficiency";
@@ -3096,6 +3080,12 @@ export default function DashboardPage() {
             )}
           </AccordionSection>
 
+          {/* Dashboard 2.0 — Progress Hub merges PerformanceHubCard (anchor) +
+              ProgressCard + ProgressInsightsCard. ExerciseTrendsCard merges
+              PerformanceTrendsCard + ExerciseIntelligenceCard (confirmed
+              identical PerformanceTrend[] data, rendered twice before this).
+              MomentumCard and ForecastCard stay standalone (distinct
+              questions, not duplicates). */}
           <AccordionSection
             id="progress"
             title="Progress & Performance"
@@ -3104,93 +3094,101 @@ export default function DashboardPage() {
               : "Log workouts to see progress"}
           >
             <MomentumCard momentum={momentumScore} />
-            <PerformanceHubCard
+            <ProgressHubCard
               quality={trainingQuality}
               plateaus={plateauReport}
               personalBests={personalBests}
               velocity={goalVelocity}
               adjustments={goalAdjustments}
               predictors={perfPredictors}
+              progressionTargets={progressionTargets}
+              exerciseMastery={exerciseMastery}
+              plateauInterventions={plateauInterventions}
+              mesocycle={mesocycle}
+              weeklyPrescription={weeklyPrescription}
             />
-            <GoalRoadmapCard
-              roadmap={goalRoadmap}
-              feasibility={goalFeasibility}
-              timeline={timelineUpdate}
+            <ExerciseTrendsCard
+              trends={performanceTrends ?? []}
+              summaries={exerciseSummaries}
+              trainingProfile={trainingResponse}
             />
-            {onboardingRef.current && (
-              <GoalProgressCard
-                goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
-                sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
-              />
-            )}
-            <MilestoneCard milestones={milestones} />
             <ForecastCard
               forecast={annualForecast}
               macrocycle={macrocyclePlan}
               goalConflict={goalConflict}
             />
-            <TrainingMaturityCard maturity={trainingMaturity} />
-            <ProgressCard
-              progressionTargets={progressionTargets}
-              exerciseMastery={exerciseMastery}
-              performanceTrends={performanceTrends}
-              plateauInterventions={plateauInterventions}
-              mesocycle={mesocycle}
-              weeklyPrescription={weeklyPrescription}
-            />
-            <PerformanceTrendsCard  summaries={exerciseSummaries} />
-            <ExerciseIntelligenceCard
-              trends={performanceTrends ?? []}
-              trainingProfile={trainingResponse}
-            />
           </AccordionSection>
 
+          {/* Dashboard 2.0 — Goals & Milestones Hub merges GoalProgressCard
+              (anchor) + GoalRoadmapCard (confirmed duplicate, second engine)
+              + MilestoneCard + LongitudinalTimelineCard. Athlete Profile Hub
+              merges AthleteProfileCard (anchor) + AthleteDevelopmentCard's
+              non-milestone content + TrainingMaturityCard +
+              TrainingSummaryCard — its milestone content redirects to the
+              Goals & Milestones Hub instead of a 5th milestone surface. */}
           <AccordionSection
             id="athlete"
             title="Athlete Development"
             summary="Long-term training age & athlete profile"
           >
-            <AthleteDevelopmentCard
+            {onboardingRef.current && (
+              <GoalsMilestonesHubCard
+                goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
+                sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
+                milestones={milestones}
+                athleteMilestones={developmentMilestones}
+                timelineEvents={athleteProfile?.timeline ?? []}
+              />
+            )}
+            <AthleteProfileHubCard
+              profile={athleteProfile}
               trainingAge={athleteTrainingAge}
               resilienceIndex={resilienceIndex}
               progressionVelocity={progressionVelocity}
               athleteIdentity={athleteIdentity}
-              milestones={developmentMilestones}
+              trainingMaturity={trainingMaturity}
+              historySummary={historySummary}
             />
-            {athleteProfile && <AthleteProfileCard profile={athleteProfile} />}
-            {athleteProfile && <LongitudinalTimelineCard events={athleteProfile.timeline} />}
-            <ProgressInsightsCard />
-            <ProgressionCard profile={progressionProfile} adjustment={coachingAdjustment} />
-            <TrainingSummaryCard summary={historySummary} />
           </AccordionSection>
 
+          {/* Dashboard 2.0 — Training Plan Hub merges WeeklyPlanCard (anchor,
+              tab 1) + TrainingBlockCard/PeriodizationCard (tab 2 — block-
+              progress deduplicated, PeriodizationCard's richer version wins)
+              + PeriodizedCalendarCard (tab 3). Coaching Hub merges
+              AdaptiveCoachCard (anchor) + TrainingDecisionCard (raw
+              percentages converted to qualitative language) + CoachViewCard
+              + ProgressionCard — four previously-separate "what should I do
+              today" cards. AdaptiveInsightsCard removed — confirmed literal
+              duplicate of AdaptiveInsightsPanel (identical insights prop),
+              which uses DS-2 tokens correctly and the shared
+              ConfidenceIndicator component; AdaptiveInsightsCard did neither. */}
           <AccordionSection
             id="training-plan"
             title="Training Plan"
             summary="Weekly plan & periodization"
           >
-            <AdaptiveCoachCard
+            <CoachingHubCard
               daily={dailyGuidance}
               weekly={weeklyReview}
               monthly={monthlyReview}
+              decision={trainingDecision}
+              prediction={outcomePrediction}
+              coachView={coachView}
+              progression={{ profile: progressionProfile, adjustment: coachingAdjustment }}
             />
-            <TrainingDecisionCard decision={trainingDecision} prediction={outcomePrediction} />
-            {periodizationStatus && onboardingRef.current && (
-              <PeriodizationCard
-                status={periodizationStatus}
-                goalLabel={getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label}
-                cycleSynergy={cycleSynergySignal}
-                deloadDecision={adaptiveDeloadDecision}
-                forecast={achievementForecast}
-                insight={periodizationInsight}
-              />
-            )}
-            <WeeklyPlanCard plan={weeklyPlan} />
-            <TrainingBlockCard block={trainingBlock} />
-            <PeriodizedCalendarCard calendar={periodizedCalendar} />
-            <AdaptiveInsightsCard insights={adaptiveInsights} />
+            <TrainingPlanHubCard
+              weeklyPlan={weeklyPlan}
+              trainingBlock={trainingBlock}
+              calendar={periodizedCalendar}
+              periodization={periodizationStatus && onboardingRef.current ? {
+                status: periodizationStatus,
+                goalLabel: getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label,
+                cycleSynergy: cycleSynergySignal,
+                deloadDecision: adaptiveDeloadDecision,
+                forecast: achievementForecast,
+              } : undefined}
+            />
             <AdaptiveInsightsPanel insights={adaptiveInsights} />
-            <CoachViewCard view={coachView} />
           </AccordionSection>
 
           <AccordionSection

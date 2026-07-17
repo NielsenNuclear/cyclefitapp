@@ -36,7 +36,7 @@ function ProbRing({ prob }: { prob: number }) {
   const ringColor = prob >= 70 ? tokenColor.success : prob >= 50 ? tokenColor.info : prob >= 30 ? tokenColor.caution : tokenColor.danger;
   return (
     <svg width="82" height="82" viewBox="0 0 82 82">
-      <circle cx="41" cy="41" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+      <circle cx="41" cy="41" r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="7" />
       <circle
         cx="41" cy="41" r={r} fill="none"
         stroke={ringColor} strokeWidth="7"
@@ -45,8 +45,8 @@ function ProbRing({ prob }: { prob: number }) {
         transform="rotate(-90 41 41)"
       />
       <text x="41" y="38" textAnchor="middle" dominantBaseline="middle"
-        fill="white" fontSize="15" fontWeight="700">{prob}%</text>
-      <text x="41" y="53" textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8">success</text>
+        fill={tokenColor.ink} fontSize="15" fontWeight="700">{prob}%</text>
+      <text x="41" y="53" textAnchor="middle" fill={tokenColor.inkMuted} fontSize="8">success</text>
     </svg>
   );
 }
