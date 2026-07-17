@@ -3,6 +3,12 @@
 // ─── components/workout/GuidedExerciseFlow.tsx ────────────────────────────────
 // Phase UX-1 — guided one-exercise-at-a-time workout flow.
 // One exercise is always dominant. Prev/next navigation visible but secondary.
+//
+// Workout Engine Sprint — Phase C.9: re-skinned for the dark Workout Mode
+// canvas (docs/ux/WorkoutModeProposal.md) — this only ever renders inside
+// WorkoutModeShell now. Also adds the "Up next" expandable strip proposed
+// in §5: tap the progress-dots row to see remaining exercise names and set
+// counts without leaving the current exercise.
 
 import { useState } from "react";
 import type { WorkoutExercise, WarmupBlock, RecoveryBlock } from "@/lib/exercises/generateWorkout";
@@ -43,9 +49,9 @@ function ProgressDots({
             key={i}
             className={`
               rounded-full transition-all duration-300
-              ${done    ? "w-2 h-2 bg-[#085041]"   : ""}
-              ${active  ? "w-2.5 h-2.5 bg-[#534AB7]" : ""}
-              ${!done && !active ? "w-1.5 h-1.5 bg-[#E0DDD4]" : ""}
+              ${done    ? "w-2 h-2 bg-[#5FD1A8]"   : ""}
+              ${active  ? "w-2.5 h-2.5 bg-[#6B63C8]" : ""}
+              ${!done && !active ? "w-1.5 h-1.5 bg-white/15" : ""}
             `}
           />
         );
@@ -107,6 +113,7 @@ export function GuidedExerciseFlow({
 }: GuidedExerciseFlowProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showAddExercise, setShowAddExercise] = useState(false);
+  const [showUpNext, setShowUpNext] = useState(false);
 
   // Only show warmup if it exists and the user hasn't already made progress
   // (e.g. resuming an in-progress session after a refresh shouldn't re-show it).
@@ -130,6 +137,7 @@ export function GuidedExerciseFlow({
   const isLast       = currentIdx === exercises.length - 1;
   const anySetsDone  = Object.values(actuals).some(s => s.some(r => r.completed));
   const allDone      = exercises.every((_, i) => completedIndices.has(i));
+  const upNext       = exercises.slice(currentIdx + 1);
 
   // Determine primary CTA based on state
   const primaryAction: "next_exercise" | "finish_workout" | null =
@@ -149,21 +157,49 @@ export function GuidedExerciseFlow({
     <div className="space-y-5">
       {/* ── Top bar: progress + timer ─────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9B9690] mb-1.5">
+        <button
+          type="button"
+          className="flex-1 text-left"
+          onClick={() => upNext.length > 0 && setShowUpNext(v => !v)}
+          aria-expanded={showUpNext}
+          aria-label="Toggle remaining exercises"
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8A8580] mb-1.5">
             Exercise {currentIdx + 1} of {exercises.length}
+            {upNext.length > 0 && <span className="ml-1 text-[#6B63C8]">{showUpNext ? "▲" : "▼"}</span>}
           </p>
           <ProgressDots
             total={exercises.length}
             current={currentIdx}
             completedIndices={completedIndices}
           />
-        </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 bg-[#F5F3EE] rounded-full border border-[#E0DDD4]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#534AB7] animate-pulse" />
-          <span className="text-[11px] font-bold text-[#534AB7] tabular-nums">{formatTime(elapsedSeconds)}</span>
+        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 bg-white/5 rounded-full border border-white/10">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#6B63C8] animate-pulse" />
+          <span className="text-[11px] font-bold text-[#8B84DD] tabular-nums">{formatTime(elapsedSeconds)}</span>
         </div>
       </div>
+
+      {/* ── Up next (collapsible) — proposal §5 ──────────────────────── */}
+      {showUpNext && upNext.length > 0 && (
+        <div className="space-y-1 px-1">
+          {upNext.map((ex, i) => {
+            const idx  = currentIdx + 1 + i;
+            const done = completedIndices.has(idx);
+            return (
+              <div
+                key={idx}
+                className="flex items-center justify-between gap-2 py-1.5 text-[12px]"
+              >
+                <span className={`truncate ${done ? "text-[#5FD1A8] line-through" : "text-[#D9D5CC]"}`}>
+                  {ex.name}
+                </span>
+                <span className="flex-shrink-0 text-[#8A8580] tabular-nums">{ex.sets} sets</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Exercise focus card ──────────────────────────────────────── */}
       <ExerciseFocusCard
@@ -183,7 +219,7 @@ export function GuidedExerciseFlow({
         <button
           type="button"
           onClick={() => setCurrentIdx(i => i + 1)}
-          className="w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all"
+          className="w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all min-h-[56px]"
         >
           Next Exercise →
         </button>
@@ -194,8 +230,8 @@ export function GuidedExerciseFlow({
           {/* Overall difficulty */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-semibold text-[#1C1B18]">Session difficulty</span>
-              <span className="text-[11px] text-[#9B9690]">{overallDifficulty}/10</span>
+              <span className="text-[11px] font-semibold text-[#F5F3EE]">Session difficulty</span>
+              <span className="text-[11px] text-[#8A8580]">{overallDifficulty}/10</span>
             </div>
             <input
               type="range"
@@ -203,19 +239,19 @@ export function GuidedExerciseFlow({
               max="10"
               value={overallDifficulty}
               onChange={e => onDifficultyChange(Number(e.target.value))}
-              className="w-full accent-[#534AB7] cursor-pointer"
+              className="w-full accent-[#6B63C8] cursor-pointer"
               aria-label="Overall session difficulty"
             />
             <div className="flex justify-between">
-              <span className="text-[10px] text-[#9B9690]">Easy</span>
-              <span className="text-[10px] text-[#9B9690]">Hard</span>
+              <span className="text-[10px] text-[#8A8580]">Easy</span>
+              <span className="text-[10px] text-[#8A8580]">Hard</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => recoveryBlock ? setPhase("cooldown") : onFinish("completed")}
-            className="w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all"
+            className="w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all min-h-[56px]"
           >
             {recoveryBlock ? "Continue to Cooldown" : "Finish Workout"}
           </button>
@@ -228,7 +264,7 @@ export function GuidedExerciseFlow({
           <button
             type="button"
             onClick={() => setCurrentIdx(i => i - 1)}
-            className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-white/5 text-[#D9D5CC] text-[12px] font-medium border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
           >
             ← Prev
           </button>
@@ -238,7 +274,7 @@ export function GuidedExerciseFlow({
           <button
             type="button"
             onClick={() => setCurrentIdx(i => i + 1)}
-            className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-white/5 text-[#D9D5CC] text-[12px] font-medium border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
           >
             Skip exercise →
           </button>
@@ -252,7 +288,7 @@ export function GuidedExerciseFlow({
           <button
             type="button"
             onClick={() => onPostpone(currentIdx)}
-            className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-white/5 text-[#D9D5CC] text-[12px] font-medium border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
             aria-label={`Postpone ${current.name} until after the next exercise`}
           >
             Postpone ⇄
@@ -263,7 +299,7 @@ export function GuidedExerciseFlow({
           <button
             type="button"
             onClick={() => onFinish("partial")}
-            className="flex-1 py-2.5 rounded-xl bg-[#F5F3EE] text-[#5C5850] text-[12px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-white/5 text-[#D9D5CC] text-[12px] font-medium border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
           >
             Partial finish
           </button>
@@ -273,7 +309,7 @@ export function GuidedExerciseFlow({
           <button
             type="button"
             onClick={() => onFinish("partial")}
-            className="py-2.5 px-3 rounded-xl bg-[#F5F3EE] text-[#9B9690] text-[11px] font-medium border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+            className="py-2.5 px-3 rounded-xl bg-white/5 text-[#8A8580] text-[11px] font-medium border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
             aria-label="End workout early with partial completion"
           >
             End early
@@ -285,7 +321,7 @@ export function GuidedExerciseFlow({
       <button
         type="button"
         onClick={() => setShowAddExercise(true)}
-        className="w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#534AB7] hover:text-[#3C3489] transition-colors"
+        className="w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#8B84DD] hover:text-[#A9A2E8] transition-colors min-h-[44px]"
       >
         + Add Exercise
       </button>

@@ -3,6 +3,10 @@
 // ─── components/workout/ExerciseFocusCard.tsx ─────────────────────────────────
 // Phase UX-1 — single-exercise guided card.
 // Shows one exercise at a time with stepper controls and a clear primary action.
+//
+// Workout Engine Sprint — Phase C.9: re-skinned for the dark Workout Mode
+// canvas (docs/ux/WorkoutModeProposal.md) — this only ever renders inside
+// WorkoutModeShell now, so the dark palette applies unconditionally.
 
 import { useState, useMemo } from "react";
 import type { WorkoutExercise }    from "@/lib/exercises/generateWorkout";
@@ -47,18 +51,18 @@ function CompletedSetRow({
     : `${repsNum} ${secondaryUnit}`;
 
   return (
-    <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#F0FAF6] border border-[#A3DCCA]/60">
-      <span className="w-5 h-5 rounded-full bg-[#085041] flex items-center justify-center flex-shrink-0">
+    <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#0F6E56]/15 border border-[#0F6E56]/40">
+      <span className="w-5 h-5 rounded-full bg-[#0F6E56] flex items-center justify-center flex-shrink-0">
         <AxisIcon name="check" size={9} strokeWidth={1.8} className="text-white" />
       </span>
-      <span className="text-[11px] font-bold text-[#9B9690] tabular-nums w-10 flex-shrink-0">
+      <span className="text-[11px] font-bold text-[#8A8580] tabular-nums w-10 flex-shrink-0">
         Set {index + 1}
       </span>
-      <span className="text-[12px] font-semibold text-[#085041] flex-1 min-w-0">{label}</span>
+      <span className="text-[12px] font-semibold text-[#5FD1A8] flex-1 min-w-0">{label}</span>
       <button
         type="button"
         onClick={onUndo}
-        className="text-[10px] text-[#9B9690] hover:text-[#5C5850] transition-colors flex-shrink-0"
+        className="text-[10px] text-[#8A8580] hover:text-[#D9D5CC] transition-colors flex-shrink-0"
       >
         Undo
       </button>
@@ -78,10 +82,10 @@ function PreviousBest({ exerciseName }: { exerciseName: string }) {
     : `${bestSet.reps} reps`;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-[#F3F2FD] rounded-xl border border-[#C9C5EE]">
-      <span className="text-[9px] font-bold uppercase tracking-widest text-[#6B5ECC] flex-shrink-0">Last</span>
-      <span className="text-[12px] font-semibold text-[#3C3489] flex-1 min-w-0 truncate">{label}</span>
-      <span className="text-[10px] text-[#9B9690] flex-shrink-0">{history.completionCount}×</span>
+    <div className="flex items-center gap-2 px-3 py-2 bg-[#534AB7]/10 rounded-xl border border-[#534AB7]/30">
+      <span className="text-[9px] font-bold uppercase tracking-widest text-[#8B84DD] flex-shrink-0">Last</span>
+      <span className="text-[12px] font-semibold text-[#D6D2F5] flex-1 min-w-0 truncate">{label}</span>
+      <span className="text-[10px] text-[#8A8580] flex-shrink-0">{history.completionCount}×</span>
     </div>
   );
 }
@@ -189,17 +193,17 @@ export function ExerciseFocusCard({
       <div>
         <div className="flex items-start justify-between gap-2">
           <h2
-            className="text-[1.35rem] font-semibold text-[#1C1B18] leading-snug"
+            className="text-[1.35rem] font-semibold text-[#F5F3EE] leading-snug"
             style={{ fontFamily: "'Lora', Georgia, serif" }}
           >
             {ex.name}
           </h2>
           <div className="flex-shrink-0 flex items-center gap-1 mt-1">
-            <span className="text-[11px] font-bold text-[#534AB7] tabular-nums">
+            <span className="text-[11px] font-bold text-[#8B84DD] tabular-nums">
               {completedCount}/{ex.sets}
             </span>
             {allDone && (
-              <span className="text-[11px] text-[#085041]">✓</span>
+              <span className="text-[11px] text-[#5FD1A8]">✓</span>
             )}
           </div>
         </div>
@@ -209,13 +213,13 @@ export function ExerciseFocusCard({
           {muscles.map(m => (
             <span
               key={m}
-              className="text-[10px] font-medium text-[#534AB7] bg-[#F0EEF8] px-2 py-0.5 rounded-full"
+              className="text-[10px] font-medium text-[#B3ACEB] bg-[#534AB7]/20 px-2 py-0.5 rounded-full"
             >
               {m}
             </span>
           ))}
-          <span className="text-[#D8D4CC]">·</span>
-          <span className="text-[10px] text-[#9B9690]">
+          <span className="text-white/15">·</span>
+          <span className="text-[10px] text-[#8A8580]">
             {ex.sets} sets · {ex.reps} {secondaryUnit === "sec" ? "" : secondaryUnit === "m" ? "" : "reps"} · {ex.rest}
           </span>
         </div>
@@ -227,10 +231,10 @@ export function ExerciseFocusCard({
       {warmupSets.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9B9690]">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8A8580]">
               Warm-up
             </span>
-            <span className="text-[10px] text-[#9B9690] tabular-nums">
+            <span className="text-[10px] text-[#8A8580] tabular-nums">
               {warmupSets.filter(s => s.completed).length}/{warmupSets.length}
             </span>
           </div>
@@ -239,21 +243,21 @@ export function ExerciseFocusCard({
               key={i}
               type="button"
               onClick={() => toggleWarmupSet(i)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border text-left transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border text-left transition-colors min-h-[44px] ${
                 s.completed
-                  ? "bg-[#F0FAF6] border-[#A3DCCA]/60"
-                  : "bg-[#FAFAF7] border-[#E5E2DA] hover:border-[#534AB7]/30"
+                  ? "bg-[#0F6E56]/15 border-[#0F6E56]/40"
+                  : "bg-white/5 border-white/10 hover:border-[#6B63C8]/40"
               }`}
               aria-pressed={s.completed}
             >
               <span
                 className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border ${
-                  s.completed ? "bg-[#085041] border-[#085041]" : "border-[#D8D4CC]"
+                  s.completed ? "bg-[#0F6E56] border-[#0F6E56]" : "border-white/20"
                 }`}
               >
                 {s.completed && <AxisIcon name="check" size={9} strokeWidth={1.8} className="text-white" />}
               </span>
-              <span className={`text-[12px] font-medium flex-1 ${s.completed ? "text-[#085041]" : "text-[#5C5850]"}`}>
+              <span className={`text-[12px] font-medium flex-1 ${s.completed ? "text-[#5FD1A8]" : "text-[#D9D5CC]"}`}>
                 {s.weight} kg × {s.targetReps}
               </span>
             </button>
@@ -284,13 +288,13 @@ export function ExerciseFocusCard({
 
       {/* Active set */}
       {activeSet && !allDone && (
-        <div className="bg-white rounded-2xl border-2 border-[#534AB7]/20 shadow-[0_2px_16px_rgba(83,74,183,0.08)] p-5">
+        <div className="bg-white/[0.06] rounded-2xl border-2 border-[#6B63C8]/30 shadow-[0_2px_16px_rgba(0,0,0,0.3)] p-5">
           <div className="flex items-center justify-between mb-5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#9B9690]">
+            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#8A8580]">
               Set {activeSetIdx + 1} of {sets.length}
             </span>
             {ex.rpe !== undefined && (
-              <span className="text-[10px] font-semibold text-[#633806] bg-[#FDF6EC] px-2 py-0.5 rounded-full border border-[#E8C98A]">
+              <span className="text-[10px] font-semibold text-[#F0D9A0] bg-[#E8C98A]/15 px-2 py-0.5 rounded-full border border-[#E8C98A]/35">
                 Target RPE {ex.rpe}
               </span>
             )}
@@ -326,7 +330,7 @@ export function ExerciseFocusCard({
           <button
             type="button"
             onClick={completeActiveSet}
-            className="mt-5 w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all"
+            className="mt-5 w-full py-4 rounded-2xl bg-[#534AB7] text-white text-[15px] font-semibold tracking-wide hover:bg-[#3C3489] active:scale-[0.98] transition-all min-h-[56px]"
             aria-label={`Complete set ${activeSetIdx + 1}`}
           >
             Complete Set {activeSetIdx + 1}
@@ -336,7 +340,7 @@ export function ExerciseFocusCard({
           <button
             type="button"
             onClick={markAllSetsComplete}
-            className="mt-2.5 w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#5C5850] hover:text-[#1C1B18] transition-colors"
+            className="mt-2.5 w-full py-2.5 rounded-xl text-[12px] font-semibold text-[#B5B0A6] hover:text-[#F5F3EE] transition-colors min-h-[44px]"
           >
             Mark all {sets.length} sets complete
           </button>
@@ -345,9 +349,9 @@ export function ExerciseFocusCard({
 
       {/* Exercise done state */}
       {allDone && (
-        <div className="flex items-center justify-center gap-2 px-4 py-3 bg-[#E1F5EE] rounded-2xl border border-[#A3DCCA]">
-          <span className="text-[14px] font-semibold text-[#085041]">Exercise complete</span>
-          <span className="text-[13px] text-[#085041]">✓</span>
+        <div className="flex items-center justify-center gap-2 px-4 py-3 bg-[#0F6E56]/15 rounded-2xl border border-[#0F6E56]/40">
+          <span className="text-[14px] font-semibold text-[#5FD1A8]">Exercise complete</span>
+          <span className="text-[13px] text-[#5FD1A8]">✓</span>
         </div>
       )}
 
@@ -358,22 +362,22 @@ export function ExerciseFocusCard({
           <button
             type="button"
             onClick={() => setShowNotes(n => !n)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F3EE] text-left"
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/5 text-left min-h-[44px]"
           >
-            <span className="text-[11px] font-semibold text-[#5C5850]">Technique notes</span>
-            <span className="text-[10px] text-[#9B9690]">{showNotes ? "▲" : "▼"}</span>
+            <span className="text-[11px] font-semibold text-[#D9D5CC]">Technique notes</span>
+            <span className="text-[10px] text-[#8A8580]">{showNotes ? "▲" : "▼"}</span>
           </button>
         )}
         {showNotes && (
-          <div className="px-3 py-3 bg-[#F5F3EE] rounded-xl space-y-2">
+          <div className="px-3 py-3 bg-white/5 rounded-xl space-y-2">
             {ex.notes && (
-              <p className="text-[11px] text-[#633806] leading-relaxed">{ex.notes}</p>
+              <p className="text-[11px] text-[#F0D9A0] leading-relaxed">{ex.notes}</p>
             )}
             {ex.exercise.biomechanicalNote && (
-              <p className="text-[11px] text-[#5C5850] leading-relaxed">{ex.exercise.biomechanicalNote}</p>
+              <p className="text-[11px] text-[#B5B0A6] leading-relaxed">{ex.exercise.biomechanicalNote}</p>
             )}
             {ex.rationale && (
-              <p className="text-[11px] text-[#3C3489] leading-relaxed italic">{ex.rationale}</p>
+              <p className="text-[11px] text-[#D6D2F5] leading-relaxed italic">{ex.rationale}</p>
             )}
           </div>
         )}
@@ -384,10 +388,10 @@ export function ExerciseFocusCard({
             <button
               type="button"
               onClick={() => setShowSwap(s => !s)}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F3EE] text-left"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/5 text-left min-h-[44px]"
             >
-              <span className="text-[11px] font-semibold text-[#5C5850]">Swap exercise</span>
-              <span className="text-[10px] text-[#9B9690]">{showSwap ? "▲" : "▼"}</span>
+              <span className="text-[11px] font-semibold text-[#D9D5CC]">Swap exercise</span>
+              <span className="text-[10px] text-[#8A8580]">{showSwap ? "▲" : "▼"}</span>
             </button>
             {showSwap && (
               <div className="space-y-1.5">
@@ -396,10 +400,10 @@ export function ExerciseFocusCard({
                     key={alt.name}
                     type="button"
                     onClick={() => { onSwap(alt); setShowSwap(false); }}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-[#FAFAF7] rounded-xl border border-[#E5E2DA] text-left hover:border-[#534AB7]/40 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 bg-white/[0.03] rounded-xl border border-white/10 text-left hover:border-[#6B63C8]/40 transition-colors min-h-[44px]"
                   >
-                    <span className="text-[12px] font-medium text-[#1C1B18]">{alt.name}</span>
-                    <span className="text-[10px] text-[#9B9690]">{alt.equipment}</span>
+                    <span className="text-[12px] font-medium text-[#F5F3EE]">{alt.name}</span>
+                    <span className="text-[10px] text-[#8A8580]">{alt.equipment}</span>
                   </button>
                 ))}
               </div>

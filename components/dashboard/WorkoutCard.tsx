@@ -29,6 +29,7 @@ import { generateWarmupSets } from "@/lib/exercises/warmupSets";
 import { canPostpone, postponeArray, postponeRecord } from "@/lib/exercises/postponeExercise";
 import type { SetRecord }         from "@/components/workout/types";
 import { WorkoutHeroView }        from "@/components/workout/WorkoutHeroView";
+import { WorkoutModeShell }       from "@/components/workout/WorkoutModeShell";
 import { GuidedExerciseFlow }     from "@/components/workout/GuidedExerciseFlow";
 import { RestScreen }             from "@/components/workout/RestScreen";
 import { WorkoutCompletionView }  from "@/components/workout/WorkoutCompletionView";
@@ -379,53 +380,60 @@ export function WorkoutCard({
         />
       )}
 
-      {/* ── Active: guided exercise flow ─────────────────────────────────── */}
-      {mode === "active" && (
-        <GuidedExerciseFlow
-          exercises={exercises}
-          actuals={actuals}
-          onChange={(idx, sets) => setActuals(prev => ({ ...prev, [idx]: sets }))}
-          warmupActuals={warmupActuals}
-          onWarmupChange={(idx, sets) => setWarmupActuals(prev => ({ ...prev, [idx]: sets }))}
-          onRestStart={(totalSeconds, exerciseName) => {
-            if (!restTimerEnabled) return; // preference off — continue without a forced screen
-            // Find the next exercise name for the rest screen preview
-            const currentIdx  = exercises.findIndex(e => e.name === exerciseName);
-            const nextExercise = currentIdx >= 0 && currentIdx < exercises.length - 1
-              ? exercises[currentIdx + 1].name
-              : null;
-            setRestTimer({ totalSeconds, exerciseName, nextExercise });
-          }}
-          elapsedSeconds={elapsedSeconds}
-          environment={environment}
-          onSwap={handleSwap}
-          onPostpone={handlePostpone}
-          onFinish={handleFinish}
-          overallDifficulty={overallDifficulty}
-          onDifficultyChange={setOverallDifficulty}
-          warmupBlock={workout.warmupBlock}
-          recoveryBlock={workout.recoveryBlock}
-          onAddExercise={handleAddExercise}
-        />
-      )}
+      {/* ── Active + Done: dedicated Workout Mode ────────────────────────────
+          Phase C.9 — a full-viewport dark overlay (WorkoutModeShell), not
+          inline in this card. The dashboard's nav is unreachable underneath
+          it. See docs/ux/WorkoutModeProposal.md. */}
+      {(mode === "active" || mode === "done") && (
+        <WorkoutModeShell>
+          {mode === "active" && (
+            <GuidedExerciseFlow
+              exercises={exercises}
+              actuals={actuals}
+              onChange={(idx, sets) => setActuals(prev => ({ ...prev, [idx]: sets }))}
+              warmupActuals={warmupActuals}
+              onWarmupChange={(idx, sets) => setWarmupActuals(prev => ({ ...prev, [idx]: sets }))}
+              onRestStart={(totalSeconds, exerciseName) => {
+                if (!restTimerEnabled) return; // preference off — continue without a forced screen
+                // Find the next exercise name for the rest screen preview
+                const currentIdx  = exercises.findIndex(e => e.name === exerciseName);
+                const nextExercise = currentIdx >= 0 && currentIdx < exercises.length - 1
+                  ? exercises[currentIdx + 1].name
+                  : null;
+                setRestTimer({ totalSeconds, exerciseName, nextExercise });
+              }}
+              elapsedSeconds={elapsedSeconds}
+              environment={environment}
+              onSwap={handleSwap}
+              onPostpone={handlePostpone}
+              onFinish={handleFinish}
+              overallDifficulty={overallDifficulty}
+              onDifficultyChange={setOverallDifficulty}
+              warmupBlock={workout.warmupBlock}
+              recoveryBlock={workout.recoveryBlock}
+              onAddExercise={handleAddExercise}
+            />
+          )}
 
-      {/* ── Done: completion summary ─────────────────────────────────────── */}
-      {mode === "done" && (
-        <WorkoutCompletionView
-          exercises={exercises}
-          actuals={actuals}
-          durationMinutes={finishedDuration}
-          onDone={() => setMode("idle")}
-        />
-      )}
+          {mode === "done" && (
+            <WorkoutCompletionView
+              exercises={exercises}
+              actuals={actuals}
+              durationMinutes={finishedDuration}
+              onDone={() => setMode("idle")}
+            />
+          )}
 
-      {/* ── Rest screen ──────────────────────────────────────────────────── */}
-      {restTimer && mode === "active" && (
-        <RestScreen
-          totalSeconds={restTimer.totalSeconds}
-          nextExerciseName={restTimer.nextExercise}
-          onDismiss={() => setRestTimer(null)}
-        />
+          {/* Rest screen — inside the shell so its z-50 stacks correctly
+              against the shell's own z-[100] instead of racing it. */}
+          {restTimer && mode === "active" && (
+            <RestScreen
+              totalSeconds={restTimer.totalSeconds}
+              nextExerciseName={restTimer.nextExercise}
+              onDismiss={() => setRestTimer(null)}
+            />
+          )}
+        </WorkoutModeShell>
       )}
     </div>
     </ErrorBoundary>

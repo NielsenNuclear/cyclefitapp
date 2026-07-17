@@ -74,20 +74,20 @@ export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend
       />
 
       <div
-        className="relative w-full max-w-md mx-auto rounded-t-3xl border border-[#EAE7DE]/60 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] px-8 pt-8 pb-10"
+        className="relative w-full max-w-md mx-auto rounded-t-3xl border border-white/10 shadow-[0_-8px_40px_rgba(0,0,0,0.4)] px-8 pt-8 pb-10"
         style={{
-          background:           "rgba(253,252,249,0.98)",
+          background:           "rgba(28,27,24,0.96)",
           backdropFilter:       "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
         }}
       >
         {/* Drag handle */}
         <div className="absolute top-3 inset-x-0 flex justify-center">
-          <div className="w-9 h-1 rounded-full bg-[#E0DDD4]" />
+          <div className="w-9 h-1 rounded-full bg-white/15" />
         </div>
 
         {/* Label */}
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#9B9690] text-center mb-6">
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#8A8580] text-center mb-6">
           Rest
         </p>
 
@@ -95,11 +95,11 @@ export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend
         <div className="flex justify-center mb-6">
           <div className="relative w-32 h-32">
             <svg viewBox="0 0 112 112" className="w-full h-full -rotate-90">
-              <circle cx="56" cy="56" r={R} fill="none" stroke="#EAE7DE" strokeWidth="5" />
+              <circle cx="56" cy="56" r={R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5" />
               <circle
                 cx="56" cy="56" r={R}
                 fill="none"
-                stroke="#534AB7"
+                stroke="#6B63C8"
                 strokeWidth="5"
                 strokeDasharray={CIRC}
                 strokeDashoffset={CIRC * (1 - pct)}
@@ -108,21 +108,21 @@ export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[36px] font-bold text-[#1C1B18] tabular-nums leading-none">
+              <span className="text-[36px] font-bold text-[#F5F3EE] tabular-nums leading-none">
                 {formatTime(remaining)}
               </span>
-              <span className="text-[11px] text-[#9B9690] mt-0.5">{unit}</span>
+              <span className="text-[11px] text-[#8A8580] mt-0.5">{unit}</span>
             </div>
           </div>
         </div>
 
         {/* Next exercise preview */}
         {nextExerciseName && (
-          <div className="flex items-center gap-2 px-4 py-3 bg-[#F5F3EE] rounded-2xl mb-6">
-            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#9B9690] flex-shrink-0">
+          <div className="flex items-center gap-2 px-4 py-3 bg-white/5 rounded-2xl mb-6">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8A8580] flex-shrink-0">
               Up next
             </span>
-            <span className="text-[13px] font-semibold text-[#1C1B18] leading-snug truncate">
+            <span className="text-[13px] font-semibold text-[#F5F3EE] leading-snug truncate">
               {nextExerciseName}
             </span>
           </div>
@@ -134,7 +134,7 @@ export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend
             <button
               type="button"
               onClick={handleExtend}
-              className="flex-1 py-3 rounded-2xl bg-[#F5F3EE] text-[#5C5850] text-[13px] font-semibold border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+              className="flex-1 py-3 rounded-2xl bg-white/5 text-[#D9D5CC] text-[13px] font-semibold border border-white/10 hover:border-white/25 transition-colors min-h-[44px]"
             >
               +{EXTEND_SECONDS}s
             </button>
@@ -142,7 +142,7 @@ export function RestScreen({ totalSeconds, nextExerciseName, onDismiss, onExtend
           <button
             type="button"
             onClick={onDismiss}
-            className="flex-1 py-3 rounded-2xl bg-[#534AB7] text-white text-[13px] font-semibold hover:bg-[#3C3489] transition-colors"
+            className="flex-1 py-3 rounded-2xl bg-[#534AB7] text-white text-[13px] font-semibold hover:bg-[#3C3489] transition-colors min-h-[44px]"
           >
             Skip rest
           </button>
