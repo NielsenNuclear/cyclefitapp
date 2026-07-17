@@ -5,5 +5,4 @@ export { SignalContributions,
 export { WhatChangedCard }           from "./WhatChangedCard";
 export { AdaptiveInsightsPanel }     from "./AdaptiveInsightsPanel";
 export { ExerciseRationale }         from "./ExerciseRationale";
-export { PredictionCard }            from "./PredictionCard";
 export { Tooltip, TermChip, GLOSSARY } from "./Tooltip";

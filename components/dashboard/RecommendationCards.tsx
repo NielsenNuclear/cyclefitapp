@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { TrainingRecommendation, NutritionRecommendation, RecoveryRecommendation } from "@/types/recommendation";
+import type { TrainingRecommendation, RecoveryRecommendation } from "@/types/recommendation";
 import { AxisIcon } from "@/components/ui/Icon";
 
 // ─── Shared UI atoms ──────────────────────────────────────────────────────────
@@ -20,23 +20,6 @@ function ListItem({ children }: { children: React.ReactNode }) {
       <span className="mt-[5px] w-1 h-1 rounded-full bg-ink-faint flex-shrink-0" />
       <span>{children}</span>
     </li>
-  );
-}
-
-function PillTag({ children, variant = "neutral" }: {
-  children: React.ReactNode;
-  variant?: "neutral" | "teal" | "purple" | "amber";
-}) {
-  const styles = {
-    neutral: "bg-surface-hover text-ink-secondary border-border-strong",
-    teal:    "bg-success-bg text-success-text border-success-border",
-    purple:  "bg-brand-bg-mid text-brand-text border-brand-border",
-    amber:   "bg-caution-bg text-caution-text border-caution-border",
-  };
-  return (
-    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium border ${styles[variant]}`}>
-      {children}
-    </span>
   );
 }
 
@@ -128,69 +111,6 @@ export function TrainingCard({
               <p className="text-[11px] text-caution-text leading-relaxed">{training.avoidNote}</p>
             </div>
           )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── NutritionCard ────────────────────────────────────────────────────────────
-
-export function NutritionCard({ nutrition }: { nutrition: NutritionRecommendation }) {
-  return (
-    <div className="bg-white rounded-2xl border border-border p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <CardLabel>Nutrition</CardLabel>
-
-      <h3
-        className="text-[1.1rem] font-light text-ink leading-snug mb-1.5"
-        style={{ fontFamily: "'Lora', Georgia, serif" }}
-      >
-        {nutrition.focus}
-      </h3>
-
-      <p className="text-[12px] text-ink-secondary leading-relaxed mb-4">{nutrition.body}</p>
-
-      {/* Macro emphasis */}
-      <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-surface-subtle rounded-xl">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Macro emphasis</span>
-        <span className="text-[12px] font-medium text-ink">{nutrition.macroEmphasis}</span>
-      </div>
-
-      {/* Priorities */}
-      <div className="mb-4">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Priorities</div>
-        <ul className="space-y-1.5">
-          {nutrition.priorities?.map((p, i) => (
-  <ListItem key={i}>{p}</ListItem>
-))}
-        </ul>
-      </div>
-
-      {/* Key nutrients */}
-      <div className="mb-3">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Key nutrients</div>
-        <div className="flex flex-wrap gap-1.5">
-          {nutrition.keyNutrients.map(n => (
-            <PillTag key={n} variant="teal">{n}</PillTag>
-          ))}
-        </div>
-      </div>
-
-      {/* Hydration */}
-      <div className="flex items-start gap-2 mt-3 pt-3 border-t border-surface-hover">
-        <span className="text-brand mt-0.5">
-          <AxisIcon name="droplet" size={13} />
-        </span>
-        <p className="text-[11px] text-ink-secondary leading-relaxed">
-          <span className="font-semibold text-ink">Hydration: </span>
-          {nutrition.hydration}
-        </p>
-      </div>
-
-      {/* Timing note */}
-      {nutrition.timingNote && (
-        <div className="mt-3 p-3 bg-brand-bg-mid rounded-xl border border-brand-border">
-          <p className="text-[11px] text-brand-dark leading-relaxed">{nutrition.timingNote}</p>
         </div>
       )}
     </div>

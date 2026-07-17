@@ -35,6 +35,11 @@ export function LockedInsight({
         <p className="text-[11px] text-ink-muted leading-relaxed">
           Available after {remaining} more check-in{remaining === 1 ? "" : "s"}
         </p>
+        {/* Dashboard 2.0 — Data Maturity requirement: locked cards must explain
+            why, not just show a countdown. */}
+        <p className="text-[10px] text-ink-faint leading-relaxed">
+          Axis needs enough data to learn your personal patterns before showing this insight.
+        </p>
       </div>
     </div>
   );

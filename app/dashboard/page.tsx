@@ -90,32 +90,26 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
-import { TrainingCard, NutritionCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
+import { TrainingCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard";
-import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
 import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { ProgressionCard } from "@/components/dashboard/ProgressionCard";
-import { ReadinessCard }      from "@/components/dashboard/ReadinessCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
-import { CyclePatternsCard }     from "@/components/dashboard/CyclePatternsCard";
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
 import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCard";
 import { PerformanceTrendsCard }    from "@/components/dashboard/PerformanceTrendsCard";
 import { CoachingMemoryCard }       from "@/components/dashboard/CoachingMemoryCard";
-import { UpcomingTrendsCard }  from "@/components/dashboard/UpcomingTrendsCard";
 import { WeeklyPlanCard }       from "@/components/dashboard/WeeklyPlanCard";
 import { TrainingBlockCard }    from "@/components/dashboard/TrainingBlockCard";
 import { OverloadCard }         from "@/components/dashboard/OverloadCard";
 import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
-import { RecoveryCapacityCard }      from "@/components/dashboard/RecoveryCapacityCard";
 import { PeriodizedCalendarCard }    from "@/components/dashboard/PeriodizedCalendarCard";
 import { CoachViewCard }             from "@/components/dashboard/CoachViewCard";
-import { CycleIntelligenceCard }    from "@/components/dashboard/CycleIntelligenceCard";
-import { OvulationEstimateCard }   from "@/components/dashboard/OvulationEstimateCard";
-import { TrainingWindowCard }      from "@/components/dashboard/TrainingWindowCard";
-import { RecoveryWindowCard }      from "@/components/dashboard/RecoveryWindowCard";
+import { RecoveryHubCard }          from "@/components/dashboard/RecoveryHubCard";
+import { CycleHubCard }             from "@/components/dashboard/CycleHubCard";
+import { NutritionHubCard }         from "@/components/dashboard/NutritionHubCard";
 import { ProgressCard }             from "@/components/dashboard/ProgressCard";
 import { ProgressInsightsCard }     from "@/components/dashboard/ProgressInsightsCard";
 import { GoalProgressCard }         from "@/components/dashboard/GoalProgressCard";
@@ -165,7 +159,6 @@ import {
   type AdaptiveInsight,
 } from "@/lib/adaptive/adaptiveDecisionEngine";
 import { AdaptiveInsightsCard }         from "@/components/dashboard/AdaptiveInsightsCard";
-import { RecoveryIntelligenceCard }     from "@/components/dashboard/RecoveryIntelligenceCard";
 import {
   detectSymptomEscalation,
   type SymptomEscalationEntry,
@@ -199,7 +192,6 @@ import {
   scoreNutritionDay,
   getNutritionOutcomes,
 } from "@/lib/nutrition/nutritionLearning";
-import { FuelingCard }                   from "@/components/dashboard/FuelingCard";
 import { useRecoveryOptimizationData }  from "@/hooks/useRecoveryOptimizationData";
 import { usePerformanceData }           from "@/hooks/usePerformanceData";
 import { logRecoveryResponse, scoreRecoveryResponses } from "@/lib/recovery/recoveryResponse";
@@ -210,7 +202,6 @@ import { computeRiskPrediction }        from "@/lib/performance/riskPrediction";
 import { computeReadinessForecast }     from "@/lib/performance/readinessForecast";
 import { computeStrategyPrediction }    from "@/lib/performance/strategyPrediction";
 import { detectOpportunity }            from "@/lib/performance/opportunityDetection";
-import { RecoveryOptimizationCard }     from "@/components/dashboard/RecoveryOptimizationCard";
 import { PerformanceForecastCard }      from "@/components/dashboard/PerformanceForecastCard";
 import { EquipmentInsightsCard }        from "@/components/dashboard/EquipmentInsightsCard";
 import { useEquipmentData }             from "@/hooks/useEquipmentData";
@@ -221,7 +212,6 @@ import { logEquipmentUsage, analyzeEquipmentUsage } from "@/lib/equipment/equipm
 import { saveFatigueEntry, getFatigueHistory, sleepQualityToScore } from "@/lib/recovery/fatigueHistory";
 import type { SleepQuality as FatigueSleepQuality } from "@/lib/recovery/fatigueHistory";
 import { predictFatigue, type FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
-import { FatigueInsightsCard } from "@/components/dashboard/FatigueInsightsCard";
 import { logMobilityComplaints } from "@/lib/movement/mobilityLearning";
 import { generateDailyGuidance, type DailyGuidance } from "@/lib/coaching/dailyGuidance";
 import { computeWeeklyReview, type WeeklyReview }    from "@/lib/coaching/weeklyReview";
@@ -251,7 +241,6 @@ import {
 import { buildNutritionPatterns, type NutritionPattern }                     from "@/lib/nutrition/nutritionPatterns";
 import { buildPersonalizedNutritionProfile, type PersonalizedNutritionProfile } from "@/lib/nutrition/personalNutritionProfile";
 import { NutritionCheckinCard }                                               from "@/components/dashboard/NutritionCheckinCard";
-import { NutritionIntelligenceCard }                                          from "@/components/dashboard/NutritionIntelligenceCard";
 // ─── Phase 33: Recovery Intelligence ──────────────────────────────────────────
 import { computeRecoveryBank, type RecoveryBank }                            from "@/lib/recovery/recoveryBank";
 import { getDailyRecoveryLog, getRecoveryStrategyHistory }                   from "@/lib/recovery/recoveryStrategyCatalog";
@@ -265,7 +254,6 @@ import { computeRecoveryOutlook, type RecoveryOutlook }                      fro
 import { buildPersonalRecoveryProfile, type PersonalRecoveryProfile }        from "@/lib/recovery/personalRecoveryProfile";
 import { computeCorrelations }                                                from "@/lib/recovery/recoveryCorrelation";
 import { RecoveryCheckinCard }                                                from "@/components/dashboard/RecoveryCheckinCard";
-import { PersonalRecoveryCard }                                               from "@/components/dashboard/PersonalRecoveryCard";
 // ─── Phase 34: Habit & Adherence Intelligence ──────────────────────────────────
 import {
   recordDailyAdherence,
@@ -311,7 +299,6 @@ import { validateOutcome, getPredictionAccuracy, type PredictionAccuracyReport }
 import { computeWorkoutRecoveryCost, type WorkoutRecoveryCost }                from "@/lib/autoregulation/recoveryCost";
 import { buildPerformanceProgressionReport, type PerformanceProgressionReport } from "@/lib/autoregulation/performanceProgression";
 import { TrainingDecisionCard }                                                 from "@/components/dashboard/TrainingDecisionCard";
-import { FatigueCard }                                                          from "@/components/dashboard/FatigueCard";
 import { ReadinessConfidenceCard }                                              from "@/components/dashboard/ReadinessConfidenceCard";
 import { PredictionAccuracyCard }                                               from "@/components/dashboard/PredictionAccuracyCard";
 // ─── Phase 36: Performance Intelligence Engine ─────────────────────────────────
@@ -459,7 +446,6 @@ import { BodyStatusCard }                                                       
 import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
 import type { BodyIntelligenceSnapshot }                                        from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
 import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
-import { PredictionCard }                                                       from "@/components/intelligence/PredictionCard";
 // ─── Phase 62: Athlete Profile & Longitudinal Intelligence ───────────────────
 import { buildAthleteProfile, type AthleteProfile }                            from "@/lib/athlete/athleteProfile";
 import { AthleteProfileCard }                                                   from "@/components/athlete/AthleteProfileCard";
@@ -3001,9 +2987,23 @@ export default function DashboardPage() {
             ambient Primary content, not an alert). */}
         <OverloadCard recommendation={overloadRec} />
 
-        {/* ── LAYER 2: EXPANDABLE INTELLIGENCE ──────────────────────────── */}
+        {/* ── LAYER 2: DAILY STATUS ────────────────────────────────────────
+            Dashboard 2.0 — PhaseCard/SymptomSummaryCard moved out of the
+            Cycle accordion: today-only facts, not historical intelligence. */}
+        <div className="space-y-2 pt-1">
+          <PhaseCard phase={recommendation.phase} />
+          <SymptomSummaryCard symptoms={todaySymptoms} />
+        </div>
+
         <div className="space-y-2 pt-1">
 
+          {/* Dashboard 2.0 — RecoveryHubCard merges 8 of the 10 previously-
+              separate recovery cards (ReadinessCard/FatigueCard/
+              RecoveryIntelligenceCard/FatigueInsightsCard/
+              RecoveryOptimizationCard/RecoveryCapacityCard/
+              PersonalRecoveryCard/RecoveryStatusCard) into one Summary ->
+              Details card. BurnoutPreventionCard and RecoveryCheckinCard
+              stay separate (different model / an input, not a display). */}
           <AccordionSection
             id="recovery"
             title="Recovery"
@@ -3012,9 +3012,7 @@ export default function DashboardPage() {
               ? `${recoveryScore.category} · ${recoveryScore.score}/100`
               : "Track your recovery"}
           >
-            <ReadinessCard score={readinessScore} trend={readinessTrend} history={readinessHistory} />
-            <FatigueCard entry={fatigueEntry} />
-            <RecoveryIntelligenceCard
+            <RecoveryHubCard
               recoveryScore={recoveryScore}
               recoveryTrend={recoveryTrend}
               recoveryDebt={recoveryDebt}
@@ -3023,32 +3021,29 @@ export default function DashboardPage() {
               recoveryPlan={recoveryPlan}
               symptomEscalations={symptomEscalations}
               strategyOutcomes={strategyOutcomes}
-            />
-            <FatigueInsightsCard prediction={fatiguePrediction} />
-            <BurnoutPreventionCard report={lifestyleBurnout} />
-            <RecoveryOptimizationCard
+              fatigueEntry={fatigueEntry}
+              fatiguePrediction={fatiguePrediction}
               effectiveness={recoveryEffectiveness}
               forecast={recoveryForecast}
               capacity={recoveryCapacity}
-              debt={recoveryDebt}
+              loadReport={loadReport}
+              personalProfile={personalRecovery}
+              recoveryBank={recoveryBank}
+              recoveryOutlook={recoveryOutlook}
             />
-            <RecoveryCapacityCard capacity={recoveryCapacity} />
-            <RecoveryStatusCard report={loadReport} />
+            <BurnoutPreventionCard report={lifestyleBurnout} />
             {!recoveryCheckinDone && (
               <RecoveryCheckinCard
                 date={new Date().toISOString().slice(0, 10)}
                 onComplete={() => setRecoveryCheckinDone(true)}
               />
             )}
-            {recoveryBank && recoveryOutlook && personalRecovery && (
-              <PersonalRecoveryCard
-                profile={personalRecovery}
-                bank={recoveryBank}
-                outlook={recoveryOutlook}
-              />
-            )}
           </AccordionSection>
 
+          {/* Dashboard 2.0 — CycleHubCard merges 7 of the 9 previously-
+              separate cycle cards; the standalone cards were confirmed
+              richer than CycleIntelligenceCard's own inline sections, so
+              this uses their content, not the thin inline versions. */}
           <AccordionSection
             id="cycle"
             title="Cycle Intelligence"
@@ -3056,26 +3051,22 @@ export default function DashboardPage() {
               ? `${recommendation.phase.name} · Day ${recommendation.phase.cycleDay}`
               : "Not tracked"}
           >
-            <PhaseCard phase={recommendation.phase} />
-            <SymptomSummaryCard symptoms={todaySymptoms} />
-            <CycleIntelligenceCard
+            <CycleHubCard
               cycleAccuracy={cycleAccuracy}
               performanceProfile={performanceProfile}
-              symptomTimeline={symptomTimeline}
-              ovulationEstimate={ovulationEstimate}
               cycleHealthReport={cycleHealthReport}
-            />
-            <OvulationEstimateCard estimate={ovulationEstimate} />
-            <TrainingWindowCard    window={primeTrainingWindow} />
-            <RecoveryWindowCard    window={recoveryWindow} />
-            <CyclePatternsCard     patterns={learnedPatterns} />
-            <UpcomingTrendsCard    forecast={cycleForecast} />
-            <PredictionCard
-              forecasts={cycleForecast?.readinessDays ?? []}
+              ovulationEstimate={ovulationEstimate}
+              trainingWindow={primeTrainingWindow}
+              recoveryWindow={recoveryWindow}
+              patterns={learnedPatterns}
+              forecast={cycleForecast}
               todayDayOfWeek={new Date().getDay()}
             />
           </AccordionSection>
 
+          {/* Dashboard 2.0 — NutritionHubCard merges 3 of the 4 previously-
+              separate nutrition cards; NutritionCheckinCard stays separate
+              (an input, not a display). */}
           <AccordionSection
             id="nutrition"
             title="Nutrition"
@@ -3083,11 +3074,14 @@ export default function DashboardPage() {
               ? fuelTargets.fuelingLevel.replace(/_/g, " ")
               : "Log check-ins for guidance"}
           >
-            <FuelingCard
+            <NutritionHubCard
               fuelTargets={fuelTargets}
               workoutFueling={workoutFueling}
               nutritionAdjustments={nutritionAdjustments}
               nutritionOutcomes={nutritionOutcomes}
+              profile={nutritionProfile ?? undefined}
+              targets={nutritionTargets ?? undefined}
+              periodizationNote={nutritionPeriodNote}
             />
             {!nutritionCheckinDone && (
               <NutritionCheckinCard
@@ -3100,14 +3094,6 @@ export default function DashboardPage() {
                 }}
               />
             )}
-            {nutritionTargets && nutritionProfile && (
-              <NutritionIntelligenceCard
-                profile={nutritionProfile}
-                targets={nutritionTargets}
-                periodizationNote={nutritionPeriodNote}
-              />
-            )}
-            <NutritionCard nutrition={recommendation.nutrition} />
           </AccordionSection>
 
           <AccordionSection
