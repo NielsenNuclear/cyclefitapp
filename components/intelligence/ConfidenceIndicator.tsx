@@ -5,10 +5,14 @@ import type { ConfidenceLevel } from "@/lib/accuracy/recommendationConfidence";
 // ── ConfidenceBar ──────────────────────────────────────────────────────────
 // Compact visual bar used inline within cards.
 
+// Dashboard 2.0 — "low" maps to "Learning" rather than "Low confidence": the
+// brief's preferred vocabulary avoids discouraging framing in favor of a
+// learning-in-progress framing. See components/intelligence/ConfidenceBadge.tsx
+// for the same discipline applied to the 5-tier confidence system.
 const LEVEL_META: Record<ConfidenceLevel, { label: string; fill: string; track: string; text: string }> = {
   high:     { label: "High confidence",     fill: "bg-success",  track: "bg-success-bg",  text: "text-success-text"  },
   moderate: { label: "Moderate confidence", fill: "bg-brand",    track: "bg-brand-bg",    text: "text-brand-text"    },
-  low:      { label: "Low confidence",      fill: "bg-caution",  track: "bg-caution-bg",  text: "text-caution-text"  },
+  low:      { label: "Learning",            fill: "bg-caution",  track: "bg-caution-bg",  text: "text-caution-text"  },
 };
 
 const LEVEL_PCT: Record<ConfidenceLevel, number> = { high: 85, moderate: 55, low: 25 };

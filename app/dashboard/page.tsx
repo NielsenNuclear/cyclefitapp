@@ -91,7 +91,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { TrainingCard, NutritionCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
-import { RecommendationExplanation } from "@/components/dashboard/RecommendationExplanation";
+import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { TrainingSummaryCard } from "@/components/dashboard/TrainingSummaryCard";
 import { RecoveryStatusCard } from "@/components/dashboard/RecoveryStatusCard";
@@ -364,7 +364,6 @@ import { generateRecommendationExplanation, saveRecommendationExplanation, type 
 import { beginTrace, recordSignal, recordModifier, recordSafetyGate, finalizeTrace } from "@/lib/intelligence/audit/traceRecorder";
 import { buildPipelineTrace, savePipelineTrace, type PipelineTrace }          from "@/lib/intelligence/pipelineTrace";
 import { validateRecommendationConsistency, type ValidationResult as RecValidationResult } from "@/lib/intelligence/validationEngine";
-import { RecommendationExplanationCard }                                       from "@/components/intelligence/RecommendationExplanationCard";
 // ─── Phase 57: Prediction Calibration & Forecast Accuracy ────────────────────
 import {
   registerPrediction,
@@ -440,7 +439,6 @@ import { buildCounterfactual, type Counterfactual }                           fr
 import { getFeedbackSummary, type FeedbackSummary }                           from "@/lib/evidence/recommendationValidation";
 import { buildAdaptiveNarrative, type AdaptiveNarrative }                     from "@/lib/evidence/adaptiveNarrative";
 import { UserTrustCard }                                                       from "@/components/dashboard/UserTrustCard";
-import { ExplainabilityCard }                                                  from "@/components/dashboard/ExplainabilityCard";
 // ─── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────────
 import { buildGoalRoadmap, type GoalRoadmap }                                  from "@/lib/planning/goalRoadmap";
 import { getOrBuildMacrocycle, type MacroCyclePlan }                           from "@/lib/planning/macrocyclePlanner";
@@ -457,12 +455,9 @@ import { ForecastCard }                                                         
 import { TrainingMaturityCard }                                                 from "@/components/dashboard/TrainingMaturityCard";
 import { AccordionSection }                                                     from "@/components/dashboard/AccordionSection";
 import { DailyStatus }                                                          from "@/components/dashboard/DailyStatus";
-import { TodayHighlights }                                                      from "@/components/dashboard/TodayHighlights";
 import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
 import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
 import type { BodyIntelligenceSnapshot }                                        from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
-// ─── Phase 60: Explainable Intelligence Experience ───────────────────────────
-import { ExplainableRecommendation }                                            from "@/components/intelligence/ExplainableRecommendation";
 import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
 import { PredictionCard }                                                       from "@/components/intelligence/PredictionCard";
 // ─── Phase 62: Athlete Profile & Longitudinal Intelligence ───────────────────
@@ -2973,29 +2968,38 @@ export default function DashboardPage() {
             onExit={handleExitRescueMode}
           />
         )}
-        <OverloadCard recommendation={overloadRec} />
         <DeloadAlertCard recommendation={deloadRec} />
-        <RecommendationExplanationCard
+
+        {/* Dashboard 2.0 — Layer 1. Consolidated "Why" card replaces four
+            previously-separate surfaces (RecommendationExplanationCard,
+            ExplainableRecommendation, RecommendationExplanation,
+            ExplainabilityCard) plus TodayHighlights. See
+            components/dashboard/RecommendationWhyCard.tsx and
+            docs/ux/UXStabilizationAudit.md Batch 15. */}
+        <RecommendationWhyCard
+          training={recommendation.training}
           explanation={recExplanation}
           validation={recValidation}
-        />
-        <ExplainableRecommendation
-          training={recommendation.training}
-          explanation={recExplanation ?? null}
-          evidence={recEvidence ?? null}
-          confidence={recConfidence ?? null}
-        />
-        <TodayHighlights
-          readinessCategory={readinessScore?.category}
-          recoveryCategory={recoveryScore?.category}
-          recoveryTrend={recoveryTrend?.status7d}
-          phaseName={recommendation.phase.name}
-          daysUntilNextPhase={recommendation.phase.daysUntilNextPhase}
-          fatigueZone={fatigueEntry?.zone}
-          momentumDirection={unifiedMomentum?.direction}
+          evidence={recEvidence}
+          confidence={recConfidence}
+          counterfactual={counterfactual}
+          points={recommendation.explanationPoints}
+          disclaimer={recommendation.disclaimer}
+          highlights={{
+            readinessCategory: readinessScore?.category,
+            recoveryCategory:  recoveryScore?.category,
+            recoveryTrend:     recoveryTrend?.status7d,
+            phaseName:         recommendation.phase.name,
+            daysUntilNextPhase: recommendation.phase.daysUntilNextPhase,
+            fatigueZone:       fatigueEntry?.zone,
+            momentumDirection: unifiedMomentum?.direction,
+          }}
         />
 
-        <BodyStatusCard snapshot={bodySnapshot} />
+        {/* Progressive overload — demoted below the "Why" card (Dashboard 2.0
+            reclassification: renders on nearly every session, so it's
+            ambient Primary content, not an alert). */}
+        <OverloadCard recommendation={overloadRec} />
 
         {/* ── LAYER 2: EXPANDABLE INTELLIGENCE ──────────────────────────── */}
         <div className="space-y-2 pt-1">
@@ -3311,7 +3315,6 @@ export default function DashboardPage() {
             <RecommendationEffectivenessCard profile={recEffectiveness} />
             <ConfidenceDashboardCard confidence={recConfidence} calibration={calibrationReport} drift={driftReport} />
             <AccuracyTimelineCard accuracy={forecastAccuracy} />
-            <ExplainabilityCard evidence={recEvidence} counterfactual={counterfactual} />
             <UserTrustCard
               physiologyConf={physiologyConf}
               accuracy={forecastAccuracy}
@@ -3350,11 +3353,16 @@ export default function DashboardPage() {
             />
             <InsightsCard report={insightReport} />
             <RecoveryCard recovery={recommendation.recovery} />
-            <RecommendationExplanation
-              points={recommendation.explanationPoints}
-              disclaimer={recommendation.disclaimer}
-            />
           </AccordionSection>
+        </div>
+
+        {/* ── LAYER 5: EDUCATION & EXPLORATION ───────────────────────────── */}
+        {/* Dashboard 2.0 — intentionally low emphasis, optional content only.
+            BodyStatusCard relocated here from Layer 1 — it's a self-contained
+            nav entry point (tap to open the muscle map), not today-actionable
+            information. */}
+        <div className="pt-1">
+          <BodyStatusCard snapshot={bodySnapshot} />
         </div>
 
       </div>

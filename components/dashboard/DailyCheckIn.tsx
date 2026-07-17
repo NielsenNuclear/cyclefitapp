@@ -90,6 +90,10 @@ interface DailyCheckInProps {
 export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyCheckInProps) {
   const [priorCheckin]   = useState<CheckinData | null>(() => getTodayCheckin());
   const [isEditing, setIsEditing]             = useState(false);
+  // Dashboard 2.0 — Layer 1. Check-in no longer blocks the workout hero: it
+  // starts as a compact, non-blocking banner and only expands to the full
+  // multi-step form when the user taps it.
+  const [showForm, setShowForm]               = useState(false);
   const [step, setStep]                       = useState<1 | 2 | 3 | 4>(1);
   const [sleepQuality, setSleepQuality]       = useState<CheckinData["sleepQuality"] | null>(null);
   const [stressLevel, setStressLevel]         = useState(5);
@@ -158,6 +162,31 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
           Edit
         </button>
       </div>
+    );
+  }
+
+  // ── Compact "not yet checked in" prompt (Dashboard 2.0 — non-blocking) ────
+
+  if (!showForm && !isEditing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setShowForm(true)}
+        className="w-full bg-surface rounded-2xl border border-border px-5 py-3.5 shadow-card flex items-center gap-3 text-left hover:border-brand-border transition-colors min-h-[44px]"
+      >
+        <div className="w-7 h-7 rounded-full bg-brand-bg-mid flex items-center justify-center flex-shrink-0">
+          <AxisIcon name="check" size={12} strokeWidth={2.5} className="text-brand" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] font-semibold text-ink">How did you sleep last night?</div>
+          <div className="text-[11px] text-ink-muted">
+            {lowReadinessAlert
+              ? "Yesterday's readiness was cautious — a quick check-in helps calibrate today's plan"
+              : "30-second check-in shapes today's recommendation"}
+          </div>
+        </div>
+        <span className="flex-shrink-0 text-[11px] font-semibold text-brand">Check in</span>
+      </button>
     );
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { TrainingRecommendation, NutritionRecommendation, RecoveryRecommendation } from "@/types/recommendation";
 import { AxisIcon } from "@/components/ui/Icon";
 
@@ -58,6 +59,10 @@ export function TrainingCard({
   restDaySignal?: boolean;
 }) {
   const badge = BADGE_CONFIG[training.badge] ?? BADGE_CONFIG.Maintain;
+  // Dashboard 2.0 — Layer 1. Collapsed by default: focus/badge/intensity/
+  // headline only, so the workout hero clears the fold on mobile without
+  // losing the body/suggestions/avoid-note content — one tap reveals it.
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="bg-surface rounded-2xl border border-border p-5 shadow-card">
@@ -89,28 +94,40 @@ export function TrainingCard({
         <span className="text-[11px] font-semibold text-ink">{training.intensity}</span>
       </div>
 
-      {/* Body */}
-      <p className="text-[12px] text-ink-secondary leading-relaxed mb-4 italic border-l-2 border-border-strong pl-3">
-        "{training.headline}"
+      {/* Headline — always visible, the "at a glance" summary */}
+      <p className="text-[12px] text-ink-secondary leading-relaxed italic border-l-2 border-border-strong pl-3">
+        &ldquo;{training.headline}&rdquo;
       </p>
-      <p className="text-[12px] text-ink-secondary leading-relaxed mb-4">{training.body}</p>
 
-      {/* Suggestions */}
-     {training.suggestions?.length > 0 && (
-        <div className="mb-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Suggested focus</div>
-          <ul className="space-y-1.5">
-         {training.suggestions?.map((s, i) => (
-  <ListItem key={i}>{s}</ListItem>
-))}
-          </ul>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        className="mt-3 text-[11px] font-semibold text-brand hover:text-brand-dark transition-colors min-h-[44px] flex items-center"
+        aria-expanded={expanded}
+      >
+        {expanded ? "Show less ↑" : "More detail ↓"}
+      </button>
 
-      {/* Avoid note */}
-      {training.avoidNote && (
-        <div className="mt-3 p-3 bg-caution-bg rounded-xl border border-caution-border">
-          <p className="text-[11px] text-caution-text leading-relaxed">{training.avoidNote}</p>
+      {expanded && (
+        <div className="mt-2">
+          <p className="text-[12px] text-ink-secondary leading-relaxed mb-4">{training.body}</p>
+
+          {training.suggestions?.length > 0 && (
+            <div className="mb-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Suggested focus</div>
+              <ul className="space-y-1.5">
+                {training.suggestions?.map((s, i) => (
+                  <ListItem key={i}>{s}</ListItem>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {training.avoidNote && (
+            <div className="mt-3 p-3 bg-caution-bg rounded-xl border border-caution-border">
+              <p className="text-[11px] text-caution-text leading-relaxed">{training.avoidNote}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -24,7 +24,6 @@ export function DeloadAlertCard({ recommendation }: DeloadAlertCardProps) {
   if (!recommendation?.needed) return null;
 
   const confLabel = confidenceLabel(recommendation.confidence);
-  const confPct   = Math.round(recommendation.confidence * 100);
 
   return (
     <div className="bg-[#FFFBF5] rounded-2xl border border-[#F5D9B0] p-5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
@@ -35,7 +34,7 @@ export function DeloadAlertCard({ recommendation }: DeloadAlertCardProps) {
           A deload week is recommended
         </p>
         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FDF6EC] text-[#854F0B]">
-          {confLabel} · {confPct}%
+          {confLabel}
         </span>
       </div>
 

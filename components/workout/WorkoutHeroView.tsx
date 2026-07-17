@@ -155,45 +155,38 @@ export function WorkoutHeroView({
         <Stat label="Exercises" value={String(workout.exercises.length)} />
       </div>
 
-      {/* Muscles */}
-      {muscles && (
-        <p className="text-[11px] text-[#6B6860] leading-relaxed">
-          <span className="font-semibold text-[#5C5850]">Focus · </span>
-          {muscles}
+      {/* Dashboard 2.0 — Layer 1. Muscles + session structure + confidence
+          condensed into one compact caption row (was 3 stacked lines) so the
+          primary CTA sits closer to the fold on mobile. */}
+      {(muscles || workout.warmupBlock || workout.recoveryBlock || confInfo) && (
+        <p className="text-[10px] text-[#9B9690] leading-relaxed">
+          {muscles && <><span className="font-semibold text-[#6B6860]">Focus · </span>{muscles}</>}
+          {(workout.warmupBlock || workout.recoveryBlock) && (
+            <>
+              {muscles && "  ·  "}
+              {[
+                workout.warmupBlock && `~${workout.warmupBlock.totalMinutes}m warmup`,
+                "main",
+                workout.recoveryBlock && `~${workout.recoveryBlock.totalMinutes}m cooldown`,
+              ].filter(Boolean).join(" → ")}
+            </>
+          )}
+          {confInfo && (
+            <>
+              {(muscles || workout.warmupBlock || workout.recoveryBlock) && "  ·  "}
+              <span className={`font-semibold uppercase tracking-[0.06em] ${confInfo.color}`}>{confInfo.text}</span>
+            </>
+          )}
         </p>
       )}
 
-      {/* Session structure — warmup/cooldown are included but skippable */}
-      {(workout.warmupBlock || workout.recoveryBlock) && (
-        <p className="text-[10px] text-[#9B9690]">
-          {[
-            workout.warmupBlock && `~${workout.warmupBlock.totalMinutes} min warmup`,
-            "main workout",
-            workout.recoveryBlock && `~${workout.recoveryBlock.totalMinutes} min cooldown`,
-          ].filter(Boolean).join(" → ")}
-        </p>
-      )}
-
-      {/* Confidence (subtle) */}
-      {confInfo && (
-        <p className={`text-[10px] font-semibold uppercase tracking-[0.08em] ${confInfo.color}`}>
-          {confInfo.text}
-        </p>
-      )}
-
-      {/* Workout rationale */}
-      {workout.workoutRationale && (
-        <p className="text-[11px] text-[#9B9690] italic leading-relaxed border-l-2 border-[#E0DDD4] pl-3">
-          {workout.workoutRationale}
-        </p>
-      )}
-
-      {/* Exercise preview (collapsed by default) */}
+      {/* Exercise preview (collapsed by default) — workout rationale folded
+          in here rather than shown as its own always-visible line. */}
       <div>
         <button
           type="button"
           onClick={() => setShowExercises(e => !e)}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F3EE] border border-[#E0DDD4] hover:border-[#A09C94] transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F3EE] border border-[#E0DDD4] hover:border-[#A09C94] transition-colors min-h-[44px]"
         >
           <span className="text-[11px] font-semibold text-[#5C5850]">
             Preview exercises ({workout.exercises.length})
@@ -203,6 +196,11 @@ export function WorkoutHeroView({
 
         {showExercises && (
           <div className="mt-2 space-y-1">
+            {workout.workoutRationale && (
+              <p className="text-[11px] text-[#9B9690] italic leading-relaxed border-l-2 border-[#E0DDD4] pl-3 pb-1">
+                {workout.workoutRationale}
+              </p>
+            )}
             {workout.exercises.map((ex, i) => (
               <div
                 key={i}
