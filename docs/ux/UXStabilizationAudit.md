@@ -522,16 +522,55 @@ Also see `docs/intelligence/RecommendationExplainability.md` §7 for a proposed 
 
 ---
 
-### Batch 11 — Exercise Postponement
-**Scope:** Issue #15, split out of the original Batch 5 scoping once the AXIS Beta Readiness Program brief separated "Recommendation Integrity" (Priority 1, now shipped as the real Batch 5) from "Workout Engine" (Priority 2, still pending). Not implemented in this pass. Full detail remains as originally specified in Issue #15 above: postpone-to-next-position behavior, and the real risk — `actuals: Record<number, SetRecord[]>` is keyed by array index, so a reorder must re-key every shifted entry in the same atomic update, or logged sets can silently reattach to the wrong exercise.
+### Batch 11 — Exercise Postponement ✅ IMPLEMENTED (2026-07-17)
+**Scope, as executed:** Issue #15, implemented as part of the Workout Engine Sprint's Phase B.7 — swaps the current exercise with the next one (`A B C D → A C B D` postponing B), exactly as originally specified, not sent to the end.
 
-**Files changed:** `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`.
+**What shipped, and how it differed from the original plan:** the reorder logic (originally scoped to live inline in `WorkoutCard.tsx`) was extracted into `lib/exercises/postponeExercise.ts` as pure, framework-free functions (`canPostpone`/`postponeArray`/`postponeRecord`) instead — this issue's own write-up flagged the `actuals` re-keying as "the real implementation risk," and a pure function is directly unit-testable in a way an inline closure inside a component isn't. `WorkoutCard.tsx`'s `handlePostpone(idx)` calls all three (`exercises`, `actuals`, `warmupActuals` — the last one didn't exist when this issue was originally written, added by Phase A.1 earlier in the same sprint) with the same `idx`/`idx+1` swap in one state-update pass, so no render happens with a stale/partially-reordered set of arrays. `GuidedExerciseFlow.tsx` gets a "Postpone ⇄" button alongside "Skip exercise", both gated on `!isLast && !currentDone`; `currentIdx` intentionally doesn't change on postpone — the slot already shows what was next.
 
-**Risks:** Medium — see Issue #15's original write-up for the full reasoning.
+**Files changed:** `lib/exercises/postponeExercise.ts` (new), `lib/exercises/__tests__/postponeExercise.test.ts` (new), `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`.
 
-**Tests required:** Postpone an exercise with 1 of 3 sets already logged; confirm the logged set stays attached to the correct exercise after the reorder, and that workout-history persistence reflects the postponed exercise's original prescription.
+**Verification:** `tsc --noEmit` clean, 379/379 tests passing (11 new — including the exact scenario this issue called out: an exercise with 1 of 3 sets logged, postponed, confirmed to keep its logged set and its own progress counter after the reorder, not the counter of whatever exercise took its old slot). Live-verified in a real browser session: logged 1 of 3 sets on the current exercise, clicked Postpone, confirmed the next exercise slid into the vacated slot immediately while the postponed exercise reappeared one position later still showing "1/3" with its logged set and Undo control intact. No console errors. Verified at 1280×900 and 390×844.
 
-**Visual QA plan:** Full postpone flow on both desktop and mobile.
+**Remaining technical debt:** none identified for this issue specifically. A pre-existing, unrelated workout-generator quirk was observed during QA (the same exercise name appearing twice in a single generated session) — not caused by or related to postponement, not investigated further in this pass, flagged here only so it isn't mistaken for a postpone-introduced bug if seen again.
+
+---
+
+### Batch 12 — Weighted vs. Non-Weighted Exercises ✅ IMPLEMENTED (2026-07-17)
+**Scope, as executed:** Issue #14 — a `LoadingType` classification (`"bodyweight" | "weighted" | "assisted" | "timed" | "distance" | "repetitions"`) so `ExerciseFocusCard` stops rendering a weight stepper for every exercise unconditionally.
+
+**What shipped:** `deriveLoadingType()`/`getLoadingType()` in `lib/exercises/exerciseSubstitutions.ts`, built on top of (not duplicating) `deriveEquipmentCategory()` — including the exact weight-belt edge case this issue's write-up flagged in advance ("Parallel Bars, Weight Belt" checked before the bodyweight fallback, so weighted dips don't default to bodyweight). `ExerciseFocusCard.tsx` now conditionally renders the weight `SetStepper` only for `"weighted"`/`"assisted"`; timed/distance exercises log duration (sec) or distance (m) through the same stepper instead of a rep count.
+
+**Files changed:** `lib/exercises/exerciseLibrary.ts` (`LoadingType` export, optional `loadingType` override field), `lib/exercises/exerciseSubstitutions.ts`, `components/workout/ExerciseFocusCard.tsx`, `lib/exercises/__tests__/loadingType.test.ts` (new).
+
+**Verification:** `tsc --noEmit` clean, full-library sweep test (every exercise classifies with no throw) plus targeted real-exercise assertions (Ab Wheel Rollout, Pull-Up Bodyweight, Weighted Pull-Up, Weighted Dips, Plank, Farmers Carry, Band Pull-Apart). Live-verified: a bodyweight exercise (Glute Bridge) shows no weight stepper in the guided flow.
+
+---
+
+### Batch 13 — Realistic Set Generation (Warm-up Sets) ✅ IMPLEMENTED (2026-07-17)
+**Scope, as executed:** Issue #13's warm-up-sets half — progressive-loading ramp sets (3 for heavy compounds, 2 for medium compounds, 1–2 for isolation, none for accessory/bodyweight) that never count as working volume. The other half of Issue #13 (the four-independent-reduction-passes working-set-count investigation) is a separate, not-yet-scheduled piece of work — this batch does not touch `generateWorkout.ts`'s working-set math at all, only adds a ramp *before* it.
+
+**What shipped:** `getWarmupTier()`/`generateWarmupSets()` in `lib/exercises/warmupSets.ts`, ramping toward the athlete's last logged weight (50/70/85% for heavy compounds, 60/80% for medium, 50/75% or a single 60% set for isolation depending on load) with reps tapering as load climbs and weights rounded to the nearest 2.5kg plate. `WorkoutCard.tsx` tracks completions in a separate `warmupActuals` map (mirroring the existing `actuals` pattern) that never reaches `buildExercisePerformances()`/`buildLog()`. `ExerciseFocusCard.tsx` renders a non-gating "Warm-up" section above the working sets — sets toggle independently in any order and don't block working-set completion.
+
+**A misclassification caught before any test ran:** the first draft of `getWarmupTier()` classified "Dumbbell Bicep Curl (Seated)" as a compound (its `movementPattern`/`secondaryMuscles.length` both look compound on paper) — fixed with a name-pattern check (curl/extension/raise/fly/pushdown/etc.) that takes precedence over the movement-pattern/muscle-count heuristic. Caught by hand-inspecting real exercise-library data during implementation, not by a failing test.
+
+**Files changed:** `lib/exercises/warmupSets.ts` (new), `lib/exercises/__tests__/warmupSets.test.ts` (new), `components/dashboard/WorkoutCard.tsx`, `components/workout/GuidedExerciseFlow.tsx`, `components/workout/ExerciseFocusCard.tsx`.
+
+**Verification:** `tsc --noEmit` clean, 14 new tests (tier classification against real exercises, set-generation ramps, plate-rounding, full-library sweep). Live-verified: seeded 100kg squat / 30kg curl history, added both mid-session via Add Exercise, confirmed the squat's warm-up renders 50kg×8 / 70kg×5 / 85kg×3, the curl's renders 15kg×8 / 22.5kg×5, and toggling a warm-up set moves only its own counter (e.g. "1/3") while the working-set counter stays at "0/3". No console errors. Verified at 1280×900 and 390×844.
+
+---
+
+### Batch 14 — Workout Mode ✅ IMPLEMENTED (2026-07-17)
+**Scope, as executed:** Issue #16 / the full `docs/ux/WorkoutModeProposal.md` — Option A (overlay/portal), shipped per the proposal's own recommendation. Full implementation notes live in `WorkoutModeProposal.md`'s "Implementation Notes" section rather than duplicated here; summary only.
+
+**What shipped:** `components/workout/WorkoutModeShell.tsx` (new) — a full-viewport dark portal reusing `Sheet.tsx`'s existing pattern, mounted whenever `WorkoutCard`'s `mode` is `"active"` or `"done"`. Six components re-skinned for the dark canvas (`GuidedExerciseFlow`, `ExerciseFocusCard`, `RestScreen`, `WarmupScreen`, `CooldownScreen`, `WorkoutCompletionView`) plus `SetStepper`, using existing design tokens rather than inventing new ones. Secondary touch targets bumped to 44px, primary CTAs to 56px (WCAG 2.5.5). Added the "Up next" expandable strip from the proposal's §5. `AddExerciseSheet` intentionally stayed on the light `Sheet.tsx` primitive — a deliberate, documented deviation, not an oversight.
+
+**Also confirmed correct, no change needed:** Issue #7 (the "Done" button) — `WorkoutCompletionView.tsx`'s `onDone` was already wired to `setMode("idle")` by the time this sprint started; re-verified live rather than re-implemented. Issue #10 (nutrition celebration) — `app/dashboard/page.tsx` already fires a `showToast("Nutrition goal achieved! 🎯", ...)` on an all-three-targets-hit check-in; re-verified live (toggled all three, saved, confirmed the toast fires) rather than re-implemented.
+
+**Files changed:** `components/workout/WorkoutModeShell.tsx` (new), `components/workout/GuidedExerciseFlow.tsx`, `components/workout/ExerciseFocusCard.tsx`, `components/workout/RestScreen.tsx`, `components/workout/WarmupScreen.tsx`, `components/workout/CooldownScreen.tsx`, `components/workout/WorkoutCompletionView.tsx`, `components/workout/SetStepper.tsx`, `components/dashboard/WorkoutCard.tsx`.
+
+**Verification:** `tsc --noEmit` clean, 379/379 tests passing (unchanged — this batch is container/UI work with no new pure logic). Live-verified end-to-end: Dashboard → Start Workout → warmup screen → 4-exercise main flow (rest screen between sets, "Up next" strip, Skip/Postpone) → cooldown → Workout Complete → Done → back on the light dashboard with nav restored. No console errors at any step. Verified at 1280×900 and 390×844.
+
+**Remaining technical debt:** see `WorkoutModeProposal.md`'s "Implementation Notes" — formal contrast-ratio verification (colors were hand-picked and screenshot-checked, not tool-measured), a full screen-reader/`inert` pass, and exit-confirmation for the native-back-gesture edge case are all explicitly still open, matching the proposal's own §7 batch 4/5 sequencing.
 
 ---
 

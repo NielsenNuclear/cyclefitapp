@@ -1,7 +1,7 @@
 # Workout Mode Proposal — Axis
 
 **Date:** 2026-07-16
-**Status:** Proposal only. No implementation in this pass.
+**Status:** ✅ IMPLEMENTED — Workout Engine Sprint, Phase C.9 (2026-07-17). Option A (overlay/portal) shipped as specified. See "Implementation Notes" at the end of this document for what shipped as-is, what deviated, and what's still open.
 **Origin:** UX Stabilization extension — "Axis UX Stabilization — Workout Engine & Recommendation Explainability" brief, Part 2.
 
 **Framing:** the dashboard is the coach's briefing room — review status, review today's plan, decide to start. Workout Mode is the gym floor — one exercise, one decision, minimal chrome. The two surfaces currently share one visual language (white cards, dense information, the full navigation shell) because the guided flow (`GuidedExerciseFlow` / `ExerciseFocusCard`, built in Phase UX-1) is rendered *inside* `WorkoutCard`, which itself lives inside the dashboard's accordion stack. It already behaves like a distinct mode functionally — this proposal is about giving it a distinct visual and navigational identity to match.
@@ -136,3 +136,26 @@ Recommended sequencing, not a commitment to build now:
 ## Constraints Honored
 
 Per the brief: this is a proposal, not an implementation. No code changes were made producing this document. Dashboard 2.0's information architecture is untouched — this proposal only concerns the surface that already exists behind "Start Workout," and explicitly recommends the lowest-risk path (overlay, not a redesign of the dashboard or a new routing architecture) as the default.
+
+---
+
+## Implementation Notes (Workout Engine Sprint, Phase C.9 — 2026-07-17)
+
+**Shipped as specified:**
+- Option A (overlay/portal), exactly as recommended in §7 — `components/workout/WorkoutModeShell.tsx` reuses `Sheet.tsx`'s `createPortal` + scroll-lock pattern. No routing changes, no lifted state; `WorkoutCard.tsx` still owns `actuals`/`exercises`/timers.
+- Dark canvas reuses the existing `ink` token (`#1C1B18`) per §4's explicit fallback rather than inventing a new hex. Brand purple (`#534AB7`/`#6B63C8`) used more heavily, per §4.
+- §7 batch 2 (overlay + re-skin all six components) and batch 3 ("Up next" strip) shipped together in one pass, since they're the same architectural change end to end.
+- §6 touch targets: secondary controls bumped 40px → 44px (WCAG 2.5.5 AA), primary CTAs to 56px, across `SetStepper`, `GuidedExerciseFlow`'s nav row, and every screen's primary button.
+- §5 reduced-motion gating: the entrance fade is wrapped in Tailwind's `motion-safe:` variant — reduced-motion users get an instant cut, no JS branching needed.
+- Dashboard nav unreachability: solid full-viewport `z-[100]` layer (above `Sheet.tsx`'s `z-50`) — functionally unreachable, confirmed via live click-through.
+
+**Deviated from the proposal:**
+- `AddExerciseSheet` was intentionally **left on the light `Sheet.tsx` primitive**, not re-skinned dark. It's a transient secondary picker (search + tap to add), not the execution surface itself — forking a shared DS-2 component for one mode's color scheme wasn't judged worth the duplication. Not covered by §7 batch 2's component list one way or the other; a judgment call made during implementation.
+- §7 batch 1 ("contrast-audit and finalize the dark token set... blocks everything else") was **not run as a formal blocking gate**. Colors were chosen by hand (status colors lightened for dark backgrounds — e.g. success text `#5FD1A8` instead of the light-mode `#085041`) and spot-checked visually via live screenshots, not measured against WCAG ratios with a contrast tool. This is the one piece of §7's suggested sequencing skipped outright — see "Still open" below.
+
+**Still open (§7 batch 4 and 5, not attempted this pass):**
+- Formal contrast-ratio verification (a real tool pass, not eyeballing) — §6's "biggest risk if skipped" is still un-mitigated by anything more than visual inspection.
+- Full screen-reader pass. `WorkoutModeShell` sets `role="main"`/`aria-label="Workout Mode"` but does not `inert` the rest of the page, so a screen-reader user tabbing past the portal's content could still reach the hidden dashboard nav underneath.
+- Exit-confirmation for the native-back-gesture edge case (§5) — the only implemented exits are Finish/Partial Finish/"Done"; a browser back-gesture mid-workout has no confirmation dialog. `getActiveWorkout()`/`setActiveWorkout()` still make an accidental exit recoverable (the session resumes on return), just not confirmed in the moment.
+
+**Also shipped this sprint, referenced in §3 as "a third lateral move":** Postpone Exercise (Phase B.7) — see `docs/ux/UXStabilizationAudit.md` Issue #15 / Batch 11 for its own implementation notes.
