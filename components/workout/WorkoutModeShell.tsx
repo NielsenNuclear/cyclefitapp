@@ -46,8 +46,15 @@ export function WorkoutModeShell({ children }: { children: React.ReactNode }) {
     <div
       role="main"
       aria-label="Workout Mode"
+      // #171717 is a deliberate dark grey, not pure black — chosen over the
+      // prior #1C1B18 (actually the light theme's `ink`/primary-text color,
+      // reused as a dark background) for a more premium feel with less
+      // OLED-style eye strain. Not pulled from a token file: lib/design/
+      // tokens.ts is documented as inline-style/canvas/SVG only (not
+      // classNames), and design/tokens/colors.ts has zero importers
+      // anywhere despite its "canonical" header comment.
       className={`
-        fixed inset-0 z-[100] bg-[#1C1B18] overflow-y-auto overscroll-contain
+        fixed inset-0 z-[100] bg-[#171717] overflow-y-auto overscroll-contain
         motion-safe:transition-opacity motion-safe:duration-300 motion-safe:ease-out
         ${visible ? "opacity-100" : "opacity-0"}
       `}
