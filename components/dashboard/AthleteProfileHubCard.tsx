@@ -157,7 +157,7 @@ export function AthleteProfileHubCard({
         <button
           type="button"
           onClick={() => setShowDetails(v => !v)}
-          className="w-full flex items-center justify-between px-5 py-2.5 bg-surface-raised border-t border-border hover:bg-surface-hover transition-colors min-h-[44px]"
+          className="w-full flex items-center justify-between px-5 py-2.5 bg-surface-raised border-t border-border hover:bg-surface-hover transition-colors min-h-[44px] focus-ring"
           aria-expanded={showDetails}
         >
           <span className="text-[12px] font-semibold text-brand">{showDetails ? "Hide details" : "Full athlete profile"}</span>

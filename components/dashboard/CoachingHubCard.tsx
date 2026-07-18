@@ -152,7 +152,7 @@ export function CoachingHubCard({ daily, weekly, monthly, decision, prediction, 
               <button
                 type="button"
                 onClick={() => { recordCoachFeedback("daily_readiness", "dismissed"); setDailyDismissed(true); }}
-                className="shrink-0 text-ink-faint hover:text-brand text-[14px] leading-none mt-0.5"
+                className="shrink-0 min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-ink-faint hover:text-brand text-[14px] leading-none"
                 aria-label="Dismiss"
               >×</button>
             </div>
@@ -178,7 +178,7 @@ export function CoachingHubCard({ daily, weekly, monthly, decision, prediction, 
                 <button
                   type="button"
                   onClick={() => { recordCoachFeedback("weekly_win", "dismissed"); setWeeklyDismissed(true); }}
-                  className="text-ink-faint hover:text-brand text-[14px] leading-none"
+                  className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-ink-faint hover:text-brand text-[14px] leading-none"
                   aria-label="Dismiss weekly review"
                 >×</button>
               </div>
@@ -209,7 +209,7 @@ export function CoachingHubCard({ daily, weekly, monthly, decision, prediction, 
                 <button
                   type="button"
                   onClick={() => { recordCoachFeedback("monthly_grade", "dismissed"); setMonthlyDismissed(true); }}
-                  className="text-ink-faint hover:text-brand text-[14px] leading-none"
+                  className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-ink-faint hover:text-brand text-[14px] leading-none"
                   aria-label="Dismiss monthly review"
                 >×</button>
               </div>
@@ -228,7 +228,7 @@ export function CoachingHubCard({ daily, weekly, monthly, decision, prediction, 
         <button
           type="button"
           onClick={() => setShowMore(v => !v)}
-          className="w-full flex items-center justify-between px-5 py-2.5 bg-surface-raised border-t border-border hover:bg-surface-hover transition-colors min-h-[44px]"
+          className="w-full flex items-center justify-between px-5 py-2.5 bg-surface-raised border-t border-border hover:bg-surface-hover transition-colors min-h-[44px] focus-ring"
           aria-expanded={showMore}
         >
           <span className="text-[12px] font-semibold text-brand">{showMore ? "Hide more" : "More coaching detail"}</span>

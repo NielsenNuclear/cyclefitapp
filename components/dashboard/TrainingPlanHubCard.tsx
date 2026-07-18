@@ -82,13 +82,17 @@ export function TrainingPlanHubCard({ weeklyPlan, trainingBlock, calendar, perio
       </div>
 
       {tabs.length > 1 && (
-        <div className="flex px-5 pt-3 gap-1 border-b border-surface-hover">
+        <div className="flex px-5 pt-3 gap-1 border-b border-surface-hover" role="tablist" aria-label="Training plan timescale">
           {tabs.map(t => (
             <button
               key={t.id}
               type="button"
+              role="tab"
+              id={`training-plan-tab-${t.id}`}
+              aria-selected={activeTab === t.id}
+              aria-controls={`training-plan-panel-${t.id}`}
               onClick={() => setTab(t.id)}
-              className={`px-3 py-2 text-[12px] font-semibold rounded-t-lg transition-colors min-h-[36px] ${
+              className={`px-3 py-2 text-[12px] font-semibold rounded-t-lg transition-colors min-h-[44px] flex items-center focus-ring ${
                 activeTab === t.id ? "text-brand border-b-2 border-brand" : "text-ink-muted hover:text-ink-secondary"
               }`}
             >
@@ -98,7 +102,13 @@ export function TrainingPlanHubCard({ weeklyPlan, trainingBlock, calendar, perio
         </div>
       )}
 
-      <div className="px-5 py-4">
+      <div
+        className="px-5 py-4"
+        role="tabpanel"
+        id={`training-plan-panel-${activeTab}`}
+        aria-labelledby={`training-plan-tab-${activeTab}`}
+        tabIndex={0}
+      >
         {activeTab === "week" && weeklyPlan && (
           <div>
             <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${INTENSITY_CONFIG[weeklyPlan.plannedIntensity].cls}`}>
