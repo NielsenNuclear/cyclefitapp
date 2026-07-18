@@ -13,7 +13,6 @@ export function useReadinessData() {
   const [readinessTrend,        setReadinessTrend]        = useState<ReadinessTrend>("insufficient_data");
   const [readinessHistory,      setReadinessHistory]      = useState<ReadinessHistoryEntry[]>([]);
   const [todaySymptoms,         setTodaySymptoms]         = useState<SymptomEntry[]>([]);
-  const [showFeedback,          setShowFeedback]          = useState(false);
   const [accuracyReport,        setAccuracyReport]        = useState<AccuracyReport>({ last30Days: 0, last90Days: 0, lifetime: 0, totalSamples: 0 });
   const [physiologyFingerprint, setPhysiologyFingerprint] = useState<PhysiologyFingerprint | null>(null);
   const [personalWeights,       setPersonalWeights]       = useState<PersonalWeights | null>(null);
@@ -23,7 +22,6 @@ export function useReadinessData() {
     readinessTrend,        setReadinessTrend,
     readinessHistory,      setReadinessHistory,
     todaySymptoms,         setTodaySymptoms,
-    showFeedback,          setShowFeedback,
     accuracyReport,        setAccuracyReport,
     physiologyFingerprint, setPhysiologyFingerprint,
     personalWeights,       setPersonalWeights,

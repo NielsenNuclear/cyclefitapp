@@ -4,9 +4,23 @@
 // Phase UX-1 — Workout Experience Redesign.
 // This component manages ALL workout state and data writes.
 // Rendering is delegated to focused sub-components:
-//   idle  → WorkoutHeroView
+//   idle  → WorkoutHeroView (+ training header, rescue banners)
+//   skip-reason → inline reason picker
+//   feedback → inline post-workout feedback
 //   active → GuidedExerciseFlow + RestScreen
 //   done  → WorkoutCompletionView
+//
+// Dashboard 3.0 — Layer 1 consolidation. Merges what were 6 separate sibling
+// cards (TrainingCard, ConfidenceBadge, SkipReasonCard, WorkoutFeedbackCard,
+// MinimumViableWorkoutCard, RescueModeCard) into this one card as internal
+// render branches. Trigger/detection logic for rescue-session-offer and
+// rescue-mode-active stays external (computed in app/dashboard/page.tsx's
+// adherence-risk refresh routine, which this component has no visibility
+// into) — only their presentation moved. skip-reason and feedback modes are
+// fully internal now: both were driven by this component's own lifecycle
+// already (a click inside WorkoutHeroView, or handleFinish() completing),
+// so page.tsx no longer needs to own showSkipReason/showFeedback at all.
+// See docs/ux/UXStabilizationAudit.md for the Dashboard 3.0 batch entry.
 
 import { useState, useEffect, useRef } from "react";
 import type { GeneratedWorkout, WorkoutExercise } from "@/lib/exercises/generateWorkout";
@@ -19,6 +33,7 @@ import {
   setActiveWorkout,
   getActiveWorkout,
   clearActiveWorkout,
+  getLoggedWorkout,
 } from "@/lib/workoutExecution/workoutLogging";
 import {
   saveExercisePerformances,
@@ -34,10 +49,19 @@ import { GuidedExerciseFlow }     from "@/components/workout/GuidedExerciseFlow"
 import { RestScreen }             from "@/components/workout/RestScreen";
 import { WorkoutCompletionView }  from "@/components/workout/WorkoutCompletionView";
 import { ErrorBoundary }          from "@/components/resilience/ErrorBoundary";
+import { AxisIcon }               from "@/components/ui/Icon";
+import { ConfidenceBadge }        from "@/components/intelligence/ConfidenceBadge";
+import type { ConfidenceProfile } from "@/lib/intelligence/confidence/ConfidenceTypes";
+import type { TrainingRecommendation } from "@/types/recommendation";
+import { SKIP_REASONS, type SkipReason } from "@/lib/adherence/skipReasonStore";
+import type { RecoveryRating, PerformanceRating, WorkoutFeedback } from "@/lib/workoutExecution/feedback";
+import { saveWorkoutFeedback, getWorkoutFeedback } from "@/lib/workoutExecution/feedback";
+import type { MinimumViableWorkout } from "@/lib/adherence/minimumWorkout";
+import type { RescueModeState }      from "@/lib/adherence/rescueMode";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type WorkoutMode = "idle" | "active" | "done";
+type WorkoutMode = "idle" | "skip-reason" | "feedback" | "active" | "done";
 
 const REST_TIMER_STORAGE_KEY = "axis_rest_timer_enabled";
 
@@ -75,6 +99,315 @@ function parseReps(repsStr: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ─── Training header (merged TrainingCard) ────────────────────────────────────
+
+const BADGE_CONFIG = {
+  Push:     { bg: "bg-success-bg",    text: "text-success-text", label: "Push day"    },
+  Maintain: { bg: "bg-brand-bg-mid",  text: "text-brand-text",   label: "Maintain"    },
+  Watch:    { bg: "bg-caution-bg",    text: "text-caution-text", label: "Watch"       },
+  Recover:  { bg: "bg-neutral-bg",    text: "text-neutral-text", label: "Recovery day" },
+};
+
+function TrainingHeader({
+  training, restDaySignal, confidenceProfile,
+}: {
+  training: TrainingRecommendation;
+  restDaySignal: boolean;
+  confidenceProfile?: ConfidenceProfile | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const badge = BADGE_CONFIG[training.badge] ?? BADGE_CONFIG.Maintain;
+
+  return (
+    <div className="mb-4 pb-4 border-b border-border">
+      {restDaySignal && (
+        <div className="mb-3 p-3 bg-neutral-bg rounded-xl border border-neutral-border">
+          <p className="text-[11px] text-neutral-text leading-relaxed">
+            Readiness has been below threshold for 3 consecutive days. A rest day or active
+            recovery session may better serve training outcomes than structured load today.
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug">{training.focus}</h3>
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${badge.bg} ${badge.text}`}>
+            {badge.label}
+          </span>
+          {confidenceProfile && <ConfidenceBadge level={confidenceProfile.level} size="sm" />}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[11px] text-ink-muted font-medium uppercase tracking-wider">Intensity</span>
+        <span className="text-[11px] font-semibold text-ink">{training.intensity}</span>
+      </div>
+
+      <p className="text-[12px] text-ink-secondary leading-relaxed italic border-l-2 border-border-strong pl-3">
+        &ldquo;{training.headline}&rdquo;
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        className="mt-2 text-[11px] font-semibold text-brand hover:text-brand-dark transition-colors min-h-[44px] flex items-center focus-ring"
+        aria-expanded={expanded}
+      >
+        {expanded ? "Show less ↑" : "More detail ↓"}
+      </button>
+
+      {expanded && (
+        <div className="mt-2">
+          <p className="text-[12px] text-ink-secondary leading-relaxed mb-3">{training.body}</p>
+          {training.suggestions?.length > 0 && (
+            <div className="mb-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Suggested focus</div>
+              <ul className="space-y-1.5">
+                {training.suggestions.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-[12px] text-ink-secondary leading-relaxed">
+                    <span className="mt-[5px] w-1 h-1 rounded-full bg-ink-faint flex-shrink-0" />
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {training.avoidNote && (
+            <div className="mt-3 p-3 bg-caution-bg rounded-xl border border-caution-border">
+              <p className="text-[11px] text-caution-text leading-relaxed">{training.avoidNote}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Rescue banners (merged RescueModeCard + MinimumViableWorkoutCard) ────────
+
+function RescueModeBanner({ rescueMode, onExit }: { rescueMode: RescueModeState; onExit: () => void }) {
+  const { adjustments, daysRemaining } = rescueMode;
+  const progress = Math.max(0, Math.min(100, ((7 - daysRemaining) / 7) * 100));
+  return (
+    <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 space-y-3 mb-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[10px] text-rose-400 font-semibold uppercase tracking-widest mb-0.5">Rescue Mode Active</div>
+          <h4 className="text-sm font-semibold text-ink">Protecting Your Momentum</h4>
+          <p className="text-[11px] text-ink-muted mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining</p>
+        </div>
+        <button onClick={onExit} className="text-[11px] text-ink-muted hover:text-ink-secondary border border-border rounded-full px-3 py-1 transition-colors flex-shrink-0 min-h-[44px] focus-ring">
+          Exit mode
+        </button>
+      </div>
+      <div className="space-y-1">
+        <div className="text-[10px] text-ink-muted flex justify-between">
+          <span>Started</span><span>Day {7 - daysRemaining + 1} of 7</span>
+        </div>
+        <div className="w-full h-1.5 rounded-full bg-black/8">
+          <div className="h-1.5 rounded-full bg-rose-400 transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { label: "Sessions", value: `${adjustments.targetSessions} / week` },
+          { label: "Duration", value: `${adjustments.sessionDurationMin} min` },
+          { label: "Nutrition", value: adjustments.nutritionFocus },
+          { label: "Recovery", value: `${adjustments.recoveryHabits} habit / day` },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-surface-subtle border border-border rounded-xl px-3 py-2.5">
+            <div className="text-[10px] text-ink-muted mb-0.5">{label}</div>
+            <div className="text-xs font-medium text-ink">{value}</div>
+          </div>
+        ))}
+      </div>
+      <p className="text-[11px] text-ink-muted leading-relaxed text-center">
+        Rescue mode reduces volume and expectations so you stay in the habit without burning out further.
+        Axis will gradually restore normal load once momentum returns.
+      </p>
+    </div>
+  );
+}
+
+function RescueOfferBanner({ workout, onDismiss }: { workout: MinimumViableWorkout; onDismiss: () => void }) {
+  return (
+    <div className="bg-caution-bg border border-caution-border rounded-2xl p-4 space-y-3 mb-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[10px] text-caution font-semibold uppercase tracking-widest mb-0.5">Rescue Session</div>
+          <h4 className="text-sm font-semibold text-ink">{workout.name}</h4>
+          <p className="text-[11px] text-ink-muted mt-0.5">{workout.durationMin} min · No equipment needed</p>
+        </div>
+        <button onClick={onDismiss} className="min-w-[44px] min-h-[44px] -m-2.5 flex items-center justify-center text-ink-muted hover:text-ink-secondary text-lg leading-none flex-shrink-0" aria-label="Dismiss">×</button>
+      </div>
+      <p className="text-[11px] text-ink-secondary leading-relaxed">{workout.rationale}</p>
+      <div className="space-y-2">
+        {workout.exercises.map((ex, i) => (
+          <div key={i} className="flex items-center justify-between bg-white/60 border border-caution-border rounded-xl px-3 py-2.5">
+            <div>
+              <div className="text-xs font-medium text-ink">{ex.name}</div>
+              <div className="text-[10px] text-ink-muted mt-0.5">{ex.sets} sets × {ex.reps}</div>
+            </div>
+            <div className="text-[10px] text-ink-muted">{ex.restSec}s rest</div>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-ink-muted text-center">
+        Something is always better than nothing. Ten minutes today keeps the habit alive.
+      </p>
+    </div>
+  );
+}
+
+// ─── Skip-reason (merged SkipReasonCard) ──────────────────────────────────────
+
+function SkipReasonView({ onComplete, onDismiss }: { onComplete: (reason: SkipReason) => void; onDismiss: () => void }) {
+  const [selected, setSelected] = useState<SkipReason | null>(null);
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold text-ink">Why did you skip?</h3>
+        <p className="text-[11px] text-ink-muted mt-0.5">This helps Axis learn when to offer you a shorter session.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {SKIP_REASONS.map(reason => (
+          <button
+            key={reason}
+            onClick={() => setSelected(reason)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+              selected === reason
+                ? "bg-brand-bg-mid border-brand-border text-brand-dark"
+                : "bg-surface-hover border-border text-ink-secondary hover:text-ink"
+            }`}
+          >
+            {reason}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={() => { if (selected) onComplete(selected); }}
+          disabled={!selected}
+          className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-brand text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-dark transition-colors min-h-[44px]"
+        >
+          Save
+        </button>
+        <button onClick={onDismiss} className="px-4 py-2.5 rounded-xl text-sm text-ink-secondary hover:text-ink transition-colors min-h-[44px]">
+          Skip
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Feedback (merged WorkoutFeedbackCard) ────────────────────────────────────
+
+const RECOVERY_OPTIONS: { value: RecoveryRating; label: string }[] = [
+  { value: "fully_recovered",     label: "Fully recovered"     },
+  { value: "slight_fatigue",      label: "Slight fatigue"      },
+  { value: "moderate_fatigue",    label: "Moderate fatigue"    },
+  { value: "significant_fatigue", label: "Significant fatigue" },
+];
+const PERFORMANCE_OPTIONS: { value: PerformanceRating; label: string }[] = [
+  { value: "better",   label: "Better than expected" },
+  { value: "expected", label: "As expected"          },
+  { value: "worse",    label: "Worse than expected"  },
+];
+
+function FeedbackOptionButton({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex-1 py-2 rounded-xl text-[11px] font-semibold border transition-colors text-center min-h-[44px] ${
+        selected ? "bg-brand-bg-mid text-brand-dark border-brand-border" : "bg-surface-subtle text-ink-secondary border-border hover:border-border-strong"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FeedbackView({ date, onComplete }: { date: string; onComplete: (feedback: WorkoutFeedback) => void }) {
+  const [sessionRPE,        setSessionRPE]        = useState<number>(5);
+  const [recoveryRating,    setRecoveryRating]    = useState<RecoveryRating | null>(null);
+  const [performanceRating, setPerformanceRating] = useState<PerformanceRating | null>(null);
+  const canSubmit = recoveryRating !== null && performanceRating !== null;
+
+  function handleSubmit() {
+    if (!canSubmit) return;
+    const feedback: WorkoutFeedback = {
+      id: date, date, sessionRPE,
+      recoveryRating: recoveryRating!, performanceRating: performanceRating!,
+      savedAt: new Date().toISOString(),
+    };
+    saveWorkoutFeedback(feedback);
+    onComplete(feedback);
+  }
+
+  return (
+    <div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted mb-3">Session feedback</div>
+      <div className="mb-5">
+        <div className="text-[12px] font-semibold text-ink mb-2">How difficult was today&apos;s workout?</div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[11px] text-ink-muted">Effort level</span>
+          <span className="text-[13px] font-semibold text-ink">{sessionRPE}<span className="text-ink-muted font-normal">/10</span></span>
+        </div>
+        <input type="range" min="1" max="10" value={sessionRPE} onChange={e => setSessionRPE(Number(e.target.value))} className="w-full accent-brand cursor-pointer" />
+        <div className="flex justify-between mt-0.5">
+          <span className="text-[10px] text-ink-muted">Very easy</span>
+          <span className="text-[10px] text-ink-muted">Maximal effort</span>
+        </div>
+      </div>
+      <div className="mb-5">
+        <div className="text-[12px] font-semibold text-ink mb-2">How recovered do you feel?</div>
+        <div className="flex flex-col gap-2">
+          {RECOVERY_OPTIONS.map(opt => (
+            <FeedbackOptionButton key={opt.value} selected={recoveryRating === opt.value} onClick={() => setRecoveryRating(opt.value)}>{opt.label}</FeedbackOptionButton>
+          ))}
+        </div>
+      </div>
+      <div className="mb-5">
+        <div className="text-[12px] font-semibold text-ink mb-2">How was your performance today?</div>
+        <div className="flex gap-2">
+          {PERFORMANCE_OPTIONS.map(opt => (
+            <FeedbackOptionButton key={opt.value} selected={performanceRating === opt.value} onClick={() => setPerformanceRating(opt.value)}>{opt.label}</FeedbackOptionButton>
+          ))}
+        </div>
+      </div>
+      <button
+        type="button" onClick={handleSubmit} disabled={!canSubmit}
+        className={`w-full py-3 rounded-xl text-[13px] font-semibold transition-colors min-h-[44px] ${
+          canSubmit ? "bg-brand text-white hover:bg-brand-dark" : "bg-surface-hover text-ink-faint cursor-not-allowed"
+        }`}
+      >
+        Save feedback
+      </button>
+      {!canSubmit && <p className="text-center text-[11px] text-ink-muted mt-2">Select recovery and performance to continue</p>}
+    </div>
+  );
+}
+
+function FeedbackSavedNote() {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-7 h-7 rounded-full bg-success-bg border border-success-border flex items-center justify-center flex-shrink-0">
+        <AxisIcon name="check" size={12} strokeWidth={2.5} className="text-success" />
+      </div>
+      <div>
+        <div className="text-[12px] font-semibold text-ink">Session feedback saved</div>
+        <div className="text-[11px] text-ink-muted">Used to improve future recommendations</div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface WorkoutCardProps {
@@ -86,7 +419,16 @@ interface WorkoutCardProps {
   onMarkPartial:        () => void;
   onMarkSkip:           () => void;
   onWorkoutLogged?:     (log: LoggedWorkout) => void;
-  confidenceLevel?:     string; // Phase D — optional, display only
+  confidenceProfile?:   ConfidenceProfile | null;
+  training:             TrainingRecommendation;
+  restDaySignal?:       boolean;
+  onSkipReasonComplete: (reason: SkipReason) => void;
+  onFeedbackComplete?:  (feedback: WorkoutFeedback) => void;
+  rescueWorkout?:          MinimumViableWorkout;
+  showRescueSession?:      boolean;
+  onDismissRescueSession?: () => void;
+  rescueModeState?:        RescueModeState | null;
+  onExitRescueMode?:       () => void;
 }
 
 // ─── WorkoutCard ──────────────────────────────────────────────────────────────
@@ -100,9 +442,18 @@ export function WorkoutCard({
   onMarkPartial,
   onMarkSkip,
   onWorkoutLogged,
-  confidenceLevel,
+  confidenceProfile,
+  training,
+  restDaySignal = false,
+  onSkipReasonComplete,
+  onFeedbackComplete,
+  rescueWorkout,
+  showRescueSession = false,
+  onDismissRescueSession,
+  rescueModeState,
+  onExitRescueMode,
 }: WorkoutCardProps) {
-  const today = new Date().toISOString().slice(0, 10);
+  const todayStr = today();
 
   // Mutable exercise list — supports in-session swaps
   const [exercises, setExercises] = useState<WorkoutExercise[]>(workout.exercises);
@@ -145,18 +496,33 @@ export function WorkoutCard({
     setWarmupActuals(prev => ({ ...prev, [newIdx]: defaultWarmupSets(added, lastWeight) }));
   }
 
-  // Restore in-progress state from localStorage on mount
+  // Restore in-progress state from localStorage on mount. Also detects the
+  // "workout logged this session, feedback not yet given" state (previously
+  // page.tsx's own showFeedback, seeded from getLoggedWorkout() !== null at
+  // mount) — skip-reason mode is intentionally NOT re-derived here: it's a
+  // one-time same-session prompt, not something that should reappear on
+  // every reload once a workout is already marked skipped.
   const [mode, setMode] = useState<WorkoutMode>(() => {
-    if (typeof window === "undefined" || completionStatus !== "pending") return "idle";
-    const active = getActiveWorkout();
-    return active?.date === today ? "active" : "idle";
+    if (typeof window === "undefined") return "idle";
+    if (completionStatus === "pending") {
+      const active = getActiveWorkout();
+      return active?.date === todayStr ? "active" : "idle";
+    }
+    if (
+      (completionStatus === "completed" || completionStatus === "partially_completed") &&
+      getLoggedWorkout(todayStr) !== null &&
+      getWorkoutFeedback(todayStr) === null
+    ) {
+      return "feedback";
+    }
+    return "idle";
   });
 
   const startedAtRef = useRef<number>(
     typeof window !== "undefined"
       ? (() => {
           const active = getActiveWorkout();
-          if (active?.date === today) return new Date(active.startedAt).getTime();
+          if (active?.date === todayStr) return new Date(active.startedAt).getTime();
           return Date.now();
         })()
       : Date.now()
@@ -198,6 +564,9 @@ export function WorkoutCard({
     exerciseName:  string;
     nextExercise:  string | null;
   } | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(
+    () => typeof window !== "undefined" && getWorkoutFeedback(todayStr) !== null
+  );
 
   // Rest-timer preference (Settings → Workout preferences) — defaults to on.
   // onRestStart still fires either way; when off, we simply don't surface the
@@ -236,10 +605,26 @@ export function WorkoutCard({
   // ── Handlers ──────────────────────────────────────────────────────────────────
 
   function handleStart() {
-    setActiveWorkout(today);
+    setActiveWorkout(todayStr);
     startedAtRef.current = Date.now();
     setElapsedSeconds(0);
     setMode("active");
+  }
+
+  function handleSkip() {
+    onMarkSkip();
+    setMode("skip-reason");
+  }
+
+  function handleSkipReasonSave(reason: SkipReason) {
+    onSkipReasonComplete(reason);
+    setMode("idle");
+  }
+
+  function handleFeedbackSave(feedback: WorkoutFeedback) {
+    setFeedbackSubmitted(true);
+    onFeedbackComplete?.(feedback);
+    setMode("idle");
   }
 
   function buildExercisePerformances(
@@ -297,7 +682,6 @@ export function WorkoutCard({
   }
 
   function buildLog(status: "completed" | "partial"): LoggedWorkout {
-    const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
     const loggedExercises: LoggedExercise[] = exercises.map((ex, i) => {
       const sets    = actuals[i] ?? defaultSets(ex);
       const done    = sets.filter(s => s.completed);
@@ -320,8 +704,8 @@ export function WorkoutCard({
       };
     });
     return {
-      id:               today,
-      date:             today,
+      id:               todayStr,
+      date:             todayStr,
       workoutName:      workout.workoutName,
       completionStatus: status,
       exercises:        loggedExercises,
@@ -334,7 +718,7 @@ export function WorkoutCard({
     const dur = Math.max(1, Math.round(elapsedSeconds / 60));
     setFinishedDuration(dur);
     const log  = buildLog(status);
-    const perfs = buildExercisePerformances(exercises, actuals, today, status === "completed");
+    const perfs = buildExercisePerformances(exercises, actuals, todayStr, status === "completed");
     saveLoggedWorkout(log);
     saveExercisePerformances(perfs);
     clearActiveWorkout();
@@ -344,15 +728,23 @@ export function WorkoutCard({
   }
 
   function handleQuickMarkComplete() {
-    saveExercisePerformances(buildPlannedPerformances(exercises, today));
+    saveExercisePerformances(buildPlannedPerformances(exercises, todayStr));
     onMarkComplete();
   }
 
   function handleQuickMarkPartial() {
     saveExercisePerformances(
-      buildPlannedPerformances(exercises, today).map(p => ({ ...p, completed: false }))
+      buildPlannedPerformances(exercises, todayStr).map(p => ({ ...p, completed: false }))
     );
     onMarkPartial();
+  }
+
+  function handleDoneAcknowledged() {
+    // Matches the pre-merge behavior: finishing the guided flow set
+    // showFeedback=true in the background while the completion screen was
+    // still showing; clicking through landed on the feedback prompt (not a
+    // bare idle dashboard) if feedback hadn't been given yet.
+    setMode(feedbackSubmitted ? "idle" : "feedback");
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -364,20 +756,40 @@ export function WorkoutCard({
         Today's Workout
       </div>
 
-      {/* ── Idle: pre-workout hero ───────────────────────────────────────── */}
+      {/* ── Idle: training header + rescue banners + pre-workout hero ────── */}
       {mode === "idle" && (
-        <WorkoutHeroView
-          workout={workout}
-          environment={environment}
-          onEnvironmentChange={onEnvironmentChange}
-          completionStatus={completionStatus}
-          stateWarning={stateWarning}
-          confidenceLevel={confidenceLevel}
-          onStart={handleStart}
-          onQuickMarkComplete={handleQuickMarkComplete}
-          onQuickMarkPartial={handleQuickMarkPartial}
-          onMarkSkip={onMarkSkip}
-        />
+        <>
+          {rescueModeState && onExitRescueMode && (
+            <RescueModeBanner rescueMode={rescueModeState} onExit={onExitRescueMode} />
+          )}
+          {showRescueSession && rescueWorkout && onDismissRescueSession && (
+            <RescueOfferBanner workout={rescueWorkout} onDismiss={onDismissRescueSession} />
+          )}
+          <TrainingHeader training={training} restDaySignal={restDaySignal} confidenceProfile={confidenceProfile} />
+          <WorkoutHeroView
+            workout={workout}
+            environment={environment}
+            onEnvironmentChange={onEnvironmentChange}
+            completionStatus={completionStatus}
+            stateWarning={stateWarning}
+            onStart={handleStart}
+            onQuickMarkComplete={handleQuickMarkComplete}
+            onQuickMarkPartial={handleQuickMarkPartial}
+            onMarkSkip={handleSkip}
+          />
+        </>
+      )}
+
+      {/* ── Skip reason ───────────────────────────────────────────────────── */}
+      {mode === "skip-reason" && (
+        <SkipReasonView onComplete={handleSkipReasonSave} onDismiss={() => setMode("idle")} />
+      )}
+
+      {/* ── Post-workout feedback ────────────────────────────────────────── */}
+      {mode === "feedback" && (
+        feedbackSubmitted
+          ? <FeedbackSavedNote />
+          : <FeedbackView date={todayStr} onComplete={handleFeedbackSave} />
       )}
 
       {/* ── Active + Done: dedicated Workout Mode ────────────────────────────
@@ -420,7 +832,7 @@ export function WorkoutCard({
               exercises={exercises}
               actuals={actuals}
               durationMinutes={finishedDuration}
-              onDone={() => setMode("idle")}
+              onDone={handleDoneAcknowledged}
             />
           )}
 

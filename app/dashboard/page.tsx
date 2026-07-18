@@ -49,7 +49,7 @@ import type { CycleForecast } from "@/lib/forecasting/forecastCycle";
 import { computeCycleForecast } from "@/lib/forecasting/forecastCycle";
 import { applyPatternModifiers, applyTodaySymptomsModifier } from "@/lib/adaptive/recommendationModifiers";
 import type { LoggedWorkout } from "@/lib/workoutExecution/workoutLogging";
-import { getLoggedWorkout, getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
+import { getWorkoutLog } from "@/lib/workoutExecution/workoutLogging";
 import { getAllFeedback, type WorkoutFeedback } from "@/lib/workoutExecution/feedback";
 import { computeWeeklyPlan, type WeeklyPlan } from "@/lib/planning/weeklyPlanner";
 import { getOrCreateBlock, type TrainingBlock } from "@/lib/planning/trainingBlocks";
@@ -90,11 +90,10 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
-import { TrainingCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
+import { RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
-import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
 import { ConfidenceAccuracyHubCard } from "@/components/dashboard/ConfidenceAccuracyHubCard";
 import { WhatAxisLearnedHubCard }    from "@/components/dashboard/WhatAxisLearnedHubCard";
 import { OutcomeIntelligenceHubCard } from "@/components/dashboard/OutcomeIntelligenceHubCard";
@@ -266,8 +265,6 @@ import { saveRisk35Level, loadRisk35Level, risk35ToVolumeScale }       from "@/l
 import { getMinimumViableWorkout, type MinimumViableWorkout } from "@/lib/adherence/minimumWorkout";
 import { buildPersonalAdherenceProfile, type PersonalAdherenceProfile } from "@/lib/adherence/personalAdherenceProfile";
 import { HabitIntelligenceCard }       from "@/components/dashboard/HabitIntelligenceCard";
-import { SkipReasonCard }              from "@/components/dashboard/SkipReasonCard";
-import { MinimumViableWorkoutCard }    from "@/components/dashboard/MinimumViableWorkoutCard";
 // ─── Phase 35: Adherence Intelligence Engine ──────────────────────────────────
 import { computeConsistencyScore, saveConsistencyScore, getConsistencyHistory, type ConsistencyScore } from "@/lib/adherence/consistency";
 import { detectAdherenceRisk, type AdherenceRiskReport }           from "@/lib/adherence/riskDetection";
@@ -280,7 +277,6 @@ import { buildMotivationPatterns, type MotivationPatterns }        from "@/lib/a
 import { buildSuccessFormula, type SuccessFormula }                from "@/lib/adherence/successFormula";
 import { AdherenceCard }   from "@/components/dashboard/AdherenceCard";
 import { MomentumCard }    from "@/components/dashboard/MomentumCard";
-import { RescueModeCard }  from "@/components/dashboard/RescueModeCard";
 // ─── Phase 37: Auto-Regulation & Dynamic Training Intelligence ─────────────────
 import { computeCurrentFatigueScore, saveFatigueScore, getFatigueScoreHistory, type FatigueScoreEntry } from "@/lib/autoregulation/fatigueModel";
 import { computeReadinessConfidence, type ReadinessConfidence }               from "@/lib/autoregulation/readinessConfidence";
@@ -439,7 +435,6 @@ import type { VerificationRecord }                                              
 import { buildConfidenceProfile, confidenceVolumeDamping }                      from "@/lib/intelligence/confidence/ConfidenceEngine";
 import { buildConfidenceInputs }                                                from "@/lib/intelligence/confidence/buildConfidenceInputs";
 import type { ConfidenceProfile }                                               from "@/lib/intelligence/confidence/ConfidenceTypes";
-import { ConfidenceBadge }                                                      from "@/components/intelligence/ConfidenceBadge";
 import { daysBetween }                                                          from "@/lib/cycle/cycleUtils";
 import {
   trackSafetyEvaluation,
@@ -677,7 +672,6 @@ export default function DashboardPage() {
     readinessTrend,        setReadinessTrend,
     readinessHistory,      setReadinessHistory,
     todaySymptoms,         setTodaySymptoms,
-    showFeedback,          setShowFeedback,
     accuracyReport,        setAccuracyReport,
     physiologyFingerprint, setPhysiologyFingerprint,
     personalWeights,       setPersonalWeights,
@@ -785,7 +779,6 @@ export default function DashboardPage() {
   const [behaviorPatterns,     setBehaviorPatterns]      = useState<BehaviorPatterns | undefined>(undefined);
   const [adherenceRisk,        setAdherenceRisk]         = useState<AdherenceRisk | undefined>(undefined);
   const [adherenceProfile,     setAdherenceProfile]      = useState<PersonalAdherenceProfile | undefined>(undefined);
-  const [showSkipReason,       setShowSkipReason]        = useState(false);
   const [showRescueSession,    setShowRescueSession]     = useState(false);
   const [rescueWorkout,        setRescueWorkout]         = useState<MinimumViableWorkout | undefined>(undefined);
   // Phase 35 state
@@ -961,7 +954,6 @@ export default function DashboardPage() {
     const todaySymptomsVal = getSymptomsForDate(todayStr);
     setTodaySymptoms(todaySymptomsVal);
     logMobilityComplaints(todayStr, todaySymptomsVal);
-    setShowFeedback(getLoggedWorkout(todayStr) !== null);
     setAccuracyReport(getAccuracyReport());
     const exerciseSummariesVal = getExerciseProgress(getWorkoutLog());
     setExerciseSummaries(exerciseSummariesVal);
@@ -2708,7 +2700,6 @@ export default function DashboardPage() {
     markWorkoutCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
     setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
-    setShowSkipReason(false);
     setShowRescueSession(false);
     refreshAfterMark();
     refreshAdherenceAfterMark("completed");
@@ -2718,15 +2709,17 @@ export default function DashboardPage() {
     markWorkoutPartiallyCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
     setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
-    setShowSkipReason(false);
     setShowRescueSession(false);
     refreshAfterMark();
     refreshAdherenceAfterMark("partially_completed");
   }
 
+  // Dashboard 3.0 — skip-reason UI moved inside WorkoutCard (mode
+  // "skip-reason"), triggered internally when its own Skip action calls this
+  // handler. This function still owns the storage write + adherence refresh
+  // side effects, which stay page-level.
   function handleMarkSkip() {
     markWorkoutSkipped(new Date().toISOString().slice(0, 10));
-    setShowSkipReason(true);
     refreshAfterMark();
     refreshAdherenceAfterMark("skipped");
   }
@@ -2735,7 +2728,6 @@ export default function DashboardPage() {
     const todayStr = new Date().toISOString().slice(0, 10);
     recordSkipReason(todayStr, reason);
     updateSkipReason(todayStr, reason);
-    setShowSkipReason(false);
     const hist34    = getAdherenceHistory();
     const analytics34 = computeAdherenceAnalytics(hist34, todayStr);
     const patterns34  = buildBehaviorPatterns(hist34);
@@ -2760,8 +2752,10 @@ export default function DashboardPage() {
     setRescueModeState(null);
   }
 
+  // Dashboard 3.0 — the feedback-mode transition itself now happens inside
+  // WorkoutCard (after WorkoutCompletionView's "Done" is acknowledged); this
+  // handler keeps only the page-level refresh side effect.
   function handleWorkoutLogged(_log: LoggedWorkout) {
-    setShowFeedback(true);
     refreshAfterMark();
   }
 
@@ -2877,21 +2871,7 @@ export default function DashboardPage() {
           phase={recommendation.phase}
         />
 
-        <TrainingCard
-          training={recommendation.training}
-          restDaySignal={
-            readinessHistory.length >= 3 &&
-            readinessHistory.slice(0, 3).every(
-              e => e.category === "cautious" || e.category === "recover"
-            )
-          }
-        />
         {safetyResult && <SafetyConstraintBanner result={safetyResult} />}
-        {confidenceProfile && (
-          <div className="flex justify-end px-1 -mt-1">
-            <ConfidenceBadge level={confidenceProfile.level} size="sm" />
-          </div>
-        )}
         {workout && (
           <WorkoutCard
             workout={workout}
@@ -2902,32 +2882,21 @@ export default function DashboardPage() {
             onMarkPartial={handleMarkPartial}
             onMarkSkip={handleMarkSkip}
             onWorkoutLogged={handleWorkoutLogged}
-            confidenceLevel={confidenceProfile?.level}
-          />
-        )}
-        {showSkipReason && (
-          <SkipReasonCard
-            date={new Date().toISOString().slice(0, 10)}
-            onComplete={handleSkipReasonComplete}
-            onDismiss={() => setShowSkipReason(false)}
-          />
-        )}
-        {showFeedback && (
-          <WorkoutFeedbackCard
-            date={new Date().toISOString().slice(0, 10)}
-            onComplete={handleFeedbackComplete}
-          />
-        )}
-        {showRescueSession && rescueWorkout && (
-          <MinimumViableWorkoutCard
-            workout={rescueWorkout}
-            onDismiss={() => setShowRescueSession(false)}
-          />
-        )}
-        {rescueModeState && (
-          <RescueModeCard
-            rescueMode={rescueModeState}
-            onExit={handleExitRescueMode}
+            confidenceProfile={confidenceProfile}
+            training={recommendation.training}
+            restDaySignal={
+              readinessHistory.length >= 3 &&
+              readinessHistory.slice(0, 3).every(
+                e => e.category === "cautious" || e.category === "recover"
+              )
+            }
+            onSkipReasonComplete={handleSkipReasonComplete}
+            onFeedbackComplete={handleFeedbackComplete}
+            rescueWorkout={rescueWorkout}
+            showRescueSession={showRescueSession}
+            onDismissRescueSession={() => setShowRescueSession(false)}
+            rescueModeState={rescueModeState}
+            onExitRescueMode={handleExitRescueMode}
           />
         )}
         <DeloadAlertCard recommendation={deloadRec} />

@@ -18,15 +18,6 @@ const ENV_OPTIONS: { value: TrainingEnvironment; label: string }[] = [
   { value: "bodyweight_only", label: "Bodyweight" },
 ];
 
-// ─── Confidence label ─────────────────────────────────────────────────────────
-
-const CONFIDENCE_LABEL: Record<string, { text: string; color: string }> = {
-  high:     { text: "High confidence",     color: "text-[#085041]" },
-  moderate: { text: "Moderate confidence", color: "text-[#534AB7]" },
-  low:      { text: "Building confidence", color: "text-[#9B9690]" },
-  minimal:  { text: "Early stage",         color: "text-[#9B9690]" },
-};
-
 // ─── Muscle summary ───────────────────────────────────────────────────────────
 
 function getMuscles(workout: GeneratedWorkout): string {
@@ -59,7 +50,6 @@ interface WorkoutHeroViewProps {
   onEnvironmentChange:  (env: TrainingEnvironment) => void;
   completionStatus:     WorkoutCompletionStatus;
   stateWarning:         string | null;
-  confidenceLevel?:     string;
   onStart:              () => void;
   onQuickMarkComplete:  () => void;
   onQuickMarkPartial:   () => void;
@@ -74,7 +64,6 @@ export function WorkoutHeroView({
   onEnvironmentChange,
   completionStatus,
   stateWarning,
-  confidenceLevel,
   onStart,
   onQuickMarkComplete,
   onQuickMarkPartial,
@@ -83,8 +72,7 @@ export function WorkoutHeroView({
   const [showExercises, setShowExercises] = useState(false);
   const [showQuickMark, setShowQuickMark] = useState(false);
 
-  const muscles  = getMuscles(workout);
-  const confInfo = confidenceLevel ? (CONFIDENCE_LABEL[confidenceLevel] ?? null) : null;
+  const muscles = getMuscles(workout);
 
   // Already completed today
   if (completionStatus !== "pending") {
@@ -155,10 +143,13 @@ export function WorkoutHeroView({
         <Stat label="Exercises" value={String(workout.exercises.length)} />
       </div>
 
-      {/* Dashboard 2.0 — Layer 1. Muscles + session structure + confidence
-          condensed into one compact caption row (was 3 stacked lines) so the
-          primary CTA sits closer to the fold on mobile. */}
-      {(muscles || workout.warmupBlock || workout.recoveryBlock || confInfo) && (
+      {/* Dashboard 2.0 — Layer 1. Muscles + session structure condensed into
+          one compact caption row so the primary CTA sits closer to the fold
+          on mobile. Confidence moved to WorkoutCard's TrainingHeader
+          (Dashboard 3.0) — this used to also render a confidence caption
+          here via a lowercase-keyed lookup that never matched the real
+          capitalized ConfidenceLevel values, so it was silently dead code. */}
+      {(muscles || workout.warmupBlock || workout.recoveryBlock) && (
         <p className="text-[10px] text-[#9B9690] leading-relaxed">
           {muscles && <><span className="font-semibold text-[#6B6860]">Focus · </span>{muscles}</>}
           {(workout.warmupBlock || workout.recoveryBlock) && (
@@ -169,12 +160,6 @@ export function WorkoutHeroView({
                 "main",
                 workout.recoveryBlock && `~${workout.recoveryBlock.totalMinutes}m cooldown`,
               ].filter(Boolean).join(" → ")}
-            </>
-          )}
-          {confInfo && (
-            <>
-              {(muscles || workout.warmupBlock || workout.recoveryBlock) && "  ·  "}
-              <span className={`font-semibold uppercase tracking-[0.06em] ${confInfo.color}`}>{confInfo.text}</span>
             </>
           )}
         </p>
