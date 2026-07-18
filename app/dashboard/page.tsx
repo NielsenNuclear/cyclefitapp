@@ -90,7 +90,6 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
-import { RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
@@ -2942,6 +2941,16 @@ export default function DashboardPage() {
 
         <div className="space-y-2 pt-1">
 
+          {/* Dashboard 3.0 — "Body Today" umbrella: visual grouping only
+              (small uppercase label), not a new accordion or merged
+              component. Groups Recovery / Cycle Intelligence / Nutrition
+              here; Lifestyle joins this group in Phase 3, alongside the
+              AdherenceHubCard build (avoids moving this JSX block twice). */}
+          <div className="flex items-center gap-3 px-1">
+            <span className="text-[10px] font-semibold text-[#9B9690] uppercase tracking-[0.12em]">Body Today</span>
+            <div className="flex-1 h-px bg-[#EAE7DE]" />
+          </div>
+
           {/* Dashboard 2.0 — RecoveryHubCard merges 8 of the 10 previously-
               separate recovery cards (ReadinessCard/FatigueCard/
               RecoveryIntelligenceCard/FatigueInsightsCard/
@@ -2975,6 +2984,7 @@ export default function DashboardPage() {
               personalProfile={personalRecovery}
               recoveryBank={recoveryBank}
               recoveryOutlook={recoveryOutlook}
+              recovery={recommendation.recovery}
             />
             <BurnoutPreventionCard report={lifestyleBurnout} />
             {!recoveryCheckinDone && (
@@ -3300,7 +3310,6 @@ export default function DashboardPage() {
               trajectory={trajectoryScore}
               insights={unifiedInsights}
             />
-            <RecoveryCard recovery={recommendation.recovery} />
           </AccordionSection>
         </div>
 

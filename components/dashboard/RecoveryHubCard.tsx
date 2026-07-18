@@ -14,6 +14,17 @@
 // most from (RecoveryIntelligenceCard, RecoveryOptimizationCard, FatigueCard's
 // zone colors) mixed raw Tailwind grays with tokens; this card uses tokens
 // exclusively, per the brief's "preserve the Design System" requirement.
+//
+// Dashboard 3.0 — Batch 20. Gains a "Cycle-phase guidance" Details section
+// from the standalone RecoveryCard (recommendation.recovery), which was
+// stranded in the unrelated "Axis Intelligence" advanced section — a user
+// investigating "can I recover well today?" (this card's own tagline) would
+// never think to look there for phase-specific sleep/practice guidance.
+// Confirmed zero field-level overlap with this card's own 17 props before
+// merging: RecoveryHubCard is entirely quantitative analytics
+// (score/trend/debt/capacity/fatigue from check-in tracking);
+// recommendation.recovery is entirely a qualitative cycle-phase rules
+// engine. This is a relocation-with-a-new-section, not a dedup.
 
 import { useState, useMemo } from "react";
 import type { RecoveryScore }          from "@/lib/recovery/recoveryScore";
@@ -41,6 +52,7 @@ import type { TrainingLoadReport }      from "@/lib/analytics/trainingLoad";
 import type { PersonalRecoveryProfile } from "@/lib/recovery/personalRecoveryProfile";
 import type { RecoveryBank }            from "@/lib/recovery/recoveryBank";
 import type { RecoveryOutlook }         from "@/lib/recovery/recoveryOutlook";
+import type { RecoveryRecommendation }  from "@/types/recommendation";
 import { getFatigueHistory, getRecentFatigueHistory } from "@/lib/recovery/fatigueHistory";
 import { computeCorrelations, consecutiveSessionImpact } from "@/lib/recovery/recoveryCorrelation";
 import { LockedInsight } from "@/components/ui/LockedInsight";
@@ -120,6 +132,7 @@ interface RecoveryHubCardProps {
   personalProfile?:   PersonalRecoveryProfile;
   recoveryBank?:      RecoveryBank;
   recoveryOutlook?:   RecoveryOutlook;
+  recovery?:          RecoveryRecommendation;
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -128,6 +141,7 @@ export function RecoveryHubCard({
   recoveryScore, recoveryTrend, recoveryDebt, burnoutRisk, healthTrend, recoveryPlan,
   symptomEscalations, strategyOutcomes = [], fatigueEntry, fatiguePrediction,
   effectiveness, forecast, capacity, loadReport, personalProfile, recoveryBank, recoveryOutlook,
+  recovery,
 }: RecoveryHubCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -155,7 +169,7 @@ export function RecoveryHubCard({
 
   const hasDetails = !!(healthTrend || (recoveryPlan && recoveryPlan.urgency !== "none") ||
     recoveryDebt || burnoutRisk || fatigueEntry || hasEffectiveness || hasCapacity ||
-    (forecast) || personalProfile || loadReport);
+    (forecast) || personalProfile || loadReport || recovery);
 
   return (
     <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-card">
@@ -229,7 +243,49 @@ export function RecoveryHubCard({
       {/* ── Details ────────────────────────────────────────────────────── */}
       {showDetails && (
         <div className="px-5 py-4 space-y-0 border-t border-border">
+          {/* Cycle-phase guidance — Dashboard 3.0, relocated from the
+              standalone RecoveryCard. Phase-based prescriptive guidance,
+              distinct from the quantitative analytics below it. */}
+          {recovery && (
+            <div>
+              <SectionLabel>Cycle-phase guidance</SectionLabel>
+              <p className="text-[13px] font-medium text-ink mb-1.5">{recovery.focus}</p>
+              <p className="text-[12px] text-ink-secondary leading-relaxed mb-3">{recovery.body}</p>
+
+              <div className="flex items-start gap-2.5 p-3 bg-surface-subtle rounded-xl mb-3">
+                <span className="text-brand mt-0.5"><AxisIcon name="moon" size={13} /></span>
+                <p className="text-[11px] text-ink-secondary leading-relaxed">{recovery.sleepTarget}</p>
+              </div>
+              {recovery.sleepNote && (
+                <p className="text-[11px] text-ink-muted leading-relaxed mb-3">{recovery.sleepNote}</p>
+              )}
+
+              {recovery.practices.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">Practices</p>
+                  <ul className="space-y-1.5">
+                    {recovery.practices.map((p, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-[12px] text-ink-secondary leading-relaxed">
+                        <span className="mt-[5px] w-1 h-1 rounded-full bg-ink-faint flex-shrink-0" />
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {recovery.stressNote && (
+                <div className="p-3 bg-caution-bg rounded-xl border border-caution-border mb-1">
+                  <p className="text-[11px] text-caution-text leading-relaxed">{recovery.stressNote}</p>
+                </div>
+              )}
+
+              <p className="text-[11px] text-ink-muted leading-relaxed mt-1">{recovery.rationale}</p>
+            </div>
+          )}
+
           {/* Trend detail (14d/28d) */}
+          {recovery && recoveryTrend && recoveryTrend.dataPoints >= 3 && <Divider />}
           {recoveryTrend && recoveryTrend.dataPoints >= 3 && (
             <div>
               <SectionLabel>Recovery trend</SectionLabel>
