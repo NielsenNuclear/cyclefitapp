@@ -93,11 +93,12 @@ import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { TrainingCard, RecoveryCard } from "@/components/dashboard/RecommendationCards";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
-import { InsightsCard } from "@/components/dashboard/InsightsCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
 import { WorkoutFeedbackCard }   from "@/components/dashboard/WorkoutFeedbackCard";
-import { CoachAccuracyCard }        from "@/components/dashboard/CoachAccuracyCard";
-import { CoachingMemoryCard }       from "@/components/dashboard/CoachingMemoryCard";
+import { ConfidenceAccuracyHubCard } from "@/components/dashboard/ConfidenceAccuracyHubCard";
+import { WhatAxisLearnedHubCard }    from "@/components/dashboard/WhatAxisLearnedHubCard";
+import { OutcomeIntelligenceHubCard } from "@/components/dashboard/OutcomeIntelligenceHubCard";
+import { CapacityHubCard }           from "@/components/dashboard/CapacityHubCard";
 import { OverloadCard }         from "@/components/dashboard/OverloadCard";
 import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
 import { RecoveryHubCard }          from "@/components/dashboard/RecoveryHubCard";
@@ -176,8 +177,6 @@ import {
   computePersonalizationProgress,
   type PersonalizationProgress,
 } from "@/lib/adaptive/personalizationProgress";
-import { PersonalizationCard }  from "@/components/dashboard/PersonalizationCard";
-import { WhatAxisLearnedCard }  from "@/components/dashboard/WhatAxisLearnedCard";
 import { useNutritionData }              from "@/hooks/useNutritionData";
 import { computeFuelTargets }            from "@/lib/nutrition/fuelTargets";
 import { getSymptomNutritionAdjustments } from "@/lib/nutrition/symptomNutritionMap";
@@ -290,8 +289,6 @@ import { predictSessionOutcome, saveOutcomePrediction, getOutcomePrediction, typ
 import { validateOutcome, getPredictionAccuracy, type PredictionAccuracyReport } from "@/lib/autoregulation/outcomeValidation";
 import { computeWorkoutRecoveryCost, type WorkoutRecoveryCost }                from "@/lib/autoregulation/recoveryCost";
 import { buildPerformanceProgressionReport, type PerformanceProgressionReport } from "@/lib/autoregulation/performanceProgression";
-import { ReadinessConfidenceCard }                                              from "@/components/dashboard/ReadinessConfidenceCard";
-import { PredictionAccuracyCard }                                               from "@/components/dashboard/PredictionAccuracyCard";
 // ─── Phase 36: Performance Intelligence Engine ─────────────────────────────────
 import { savePerformanceRecords }                                              from "@/lib/performance/performanceDatabase";
 import { computeTrainingQuality, type TrainingQualityScore }                  from "@/lib/performance/trainingQuality";
@@ -322,8 +319,6 @@ import { identifyLeveragePoint, type LeveragePoint }                           f
 import { computeOutcomeScorecard, type OutcomeScorecard }                      from "@/lib/outcomes/outcomeScorecard";
 import { detectBottlenecks, type BottleneckReport }                            from "@/lib/outcomes/bottleneckDetection";
 import { computeCompletionForecast, type CompletionForecast }                  from "@/lib/outcomes/completionForecast";
-import { OutcomeOptimizationCard }                                             from "@/components/dashboard/OutcomeOptimizationCard";
-import { OutcomeIntelligenceCard }                                             from "@/components/dashboard/OutcomeIntelligenceCard";
 // ─── Phase 44: Human Performance Operating System ─────────────────────────────
 import { computeCapacityScore, saveCapacityScore, type CapacityScore }        from "@/lib/unified/capacityScore";
 import { computeMomentumScore, type MomentumScore as UnifiedMomentumScore }   from "@/lib/unified/momentumScore";
@@ -333,8 +328,6 @@ import { detectLifeBalance, type LifeBalanceReport }                           f
 import { computeCapacityForecast, type CapacityForecast }                      from "@/lib/unified/capacityForecast";
 import { buildUnifiedInsightsFeed, type UnifiedInsight }                       from "@/lib/unified/unifiedInsightsFeed";
 import { assessRecoverySufficiency, type RecoverySufficiency }                 from "@/lib/unified/recoverySufficiency";
-import { CapacityCard }                                                        from "@/components/dashboard/CapacityCard";
-import { ExecutiveSummaryCard }                                                from "@/components/dashboard/ExecutiveSummaryCard";
 // ─── Phase 56: Observability & Validation Layer ───────────────────────────────
 import { useToast } from "@/components/ui/Toast";
 import { generateRecommendationExplanation, saveRecommendationExplanation, type RecommendationExplanation as RecExplanation } from "@/lib/intelligence/recommendationExplanation";
@@ -359,7 +352,6 @@ import {
   saveRecommendationProfile,
   type RecommendationProfile as RecEffectivenessProfile,
 } from "@/lib/intelligence/effectiveness/recommendationProfile";
-import { RecommendationEffectivenessCard }                                     from "@/components/intelligence/RecommendationEffectivenessCard";
 import { evaluatePendingPredictions, type EvaluationContext as P57EvalContext } from "@/lib/intelligence/calibration/evaluatePredictions";
 import {
   buildCalibrationProfile,
@@ -369,13 +361,11 @@ import {
 } from "@/lib/intelligence/calibration/calibrationProfile";
 import { detectForecastBias, type BiasReport }                                 from "@/lib/intelligence/calibration/biasDetection";
 import { calibrateConfidenceLevels, type ConfidenceCalibration }               from "@/lib/intelligence/calibration/confidenceCalibration";
-import { CalibrationIntelligenceCard }                                         from "@/components/intelligence/CalibrationIntelligenceCard";
 // ─── Phase 45: Digital Coaching Memory ────────────────────────────────────────
 import { recordSituation, scoreSituationOutcome, findSimilarSituations, type SimilarSituation } from "@/lib/memory/situationMemory";
 import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
 import { buildCoachingNarrative, type CoachingNarrative as P45Narrative }     from "@/lib/memory/coachingNarrative";
 import { buildIdentityModel, type IdentityModel }                             from "@/lib/memory/identityModel";
-import { SituationMemoryCard }                                                 from "@/components/dashboard/SituationMemoryCard";
 import { AdherenceIntelligenceCard }                                           from "@/components/dashboard/AdherenceIntelligenceCard";
 // ─── Phase 46: Behavioral Adherence Intelligence ───────────────────────────────
 import { computeAdherencePatterns, type AdherencePatternReport }              from "@/lib/adherence/patternEngine";
@@ -398,8 +388,6 @@ import { computeRecoveryResponseProfile, type RecoveryResponseProfile }       fr
 import { buildPersonalReadinessEquation, type PersonalReadinessEquation }     from "@/lib/physiology/personalReadinessEquation";
 import { computePhysiologyConfidence, type PhysiologyConfidence }             from "@/lib/physiology/physiologyConfidence";
 import { getRecoveryResponses }                                                from "@/lib/recovery/recoveryResponse";
-import { SignalImportanceCard }                                                from "@/components/dashboard/SignalImportanceCard";
-import { PersonalResponseCard }                                                from "@/components/dashboard/PersonalResponseCard";
 // ─── Phase 41: Prediction & Forecast Accuracy Engine ──────────────────────────
 import { logPrediction, scoreActual, getPredictionHistory, type PredictionLogEntry } from "@/lib/accuracy/predictionHistory";
 import { computeCalibrationReport, type CalibrationReport }                   from "@/lib/accuracy/calibrationEngine";
@@ -407,14 +395,11 @@ import { computeForecastAccuracy, type ForecastAccuracyReport }               fr
 import { computeRecommendationConfidence, type RecommendationConfidence }     from "@/lib/accuracy/recommendationConfidence";
 import { detectUncertainty, saveUncertaintySignal, loadUncertaintySignal, type UncertaintySignal } from "@/lib/accuracy/uncertaintyDetection";
 import { detectDrift, type DriftReport }                                      from "@/lib/accuracy/driftDetection";
-import { ConfidenceDashboardCard }                                             from "@/components/dashboard/ConfidenceDashboardCard";
-import { AccuracyTimelineCard }                                                from "@/components/dashboard/AccuracyTimelineCard";
 // ─── Phase 42: Evidence-Based Recommendation Engine ───────────────────────────
 import { buildRecommendationEvidence, saveRecommendationEvidence, type RecommendationEvidence } from "@/lib/evidence/recommendationEvidence";
 import { buildCounterfactual, type Counterfactual }                           from "@/lib/evidence/counterfactualEngine";
 import { getFeedbackSummary, type FeedbackSummary }                           from "@/lib/evidence/recommendationValidation";
 import { buildAdaptiveNarrative, type AdaptiveNarrative }                     from "@/lib/evidence/adaptiveNarrative";
-import { UserTrustCard }                                                       from "@/components/dashboard/UserTrustCard";
 // ─── Phase 38: Long-Term Planning & Goal Achievement Engine ────────────────────
 import { buildGoalRoadmap, type GoalRoadmap }                                  from "@/lib/planning/goalRoadmap";
 import { getOrBuildMacrocycle, type MacroCyclePlan }                           from "@/lib/planning/macrocyclePlanner";
@@ -3191,13 +3176,15 @@ export default function DashboardPage() {
             <AdaptiveInsightsPanel insights={adaptiveInsights} />
           </AccordionSection>
 
+          {/* Dashboard 2.0 — CoachAccuracyCard and CoachingMemoryCard
+              relocated to the Axis Intelligence hubs below: both answer "how
+              accurate/what has Axis learned," not an athletic-performance
+              question — they were misfiled here. */}
           <AccordionSection
             id="performance-tracking"
             title="Performance Tracking"
             summary="Metrics, coaching history & forecasts"
           >
-            <CoachAccuracyCard   report={accuracyReport} />
-            <CoachingMemoryCard  items={coachingMemory} />
             <PerformanceForecastCard
               potential={performancePotential}
               trainingRisk={trainingRisk}
@@ -3269,73 +3256,73 @@ export default function DashboardPage() {
             <span className="text-[10px] font-semibold text-[#C8C5BC] uppercase tracking-[0.12em]">Advanced</span>
             <div className="flex-1 h-px bg-[#EAE7DE]" />
           </div>
+          {/* Dashboard 2.0 — four hubs replace 19 previously-separate cards.
+              Confidence & Accuracy Hub merges 9 "how accurate is Axis" cards
+              (including CoachAccuracyCard, relocated) — every raw percentage
+              converted to qualitative language, the biggest single violation
+              of the brief's "no numerical contribution percentages" rule
+              found in the whole audit. What Axis Learned Hub merges 5
+              related-but-distinct "what does Axis know about me" cards
+              (including CoachingMemoryCard, relocated — its own header was
+              literally "What Axis has learned"). Outcome Intelligence Hub and
+              Capacity Hub each merge 2 confirmed-duplicate cards. InsightsCard
+              (legacy, superseded by InsightDiscoveryCard + this hub's unified
+              insights) is removed outright. */}
           <AccordionSection
             id="intelligence"
             title="Axis Intelligence"
             summary="Calibration, accuracy, and learning data"
           >
-            <PersonalizationCard progress={personalizationProgress} />
-            <WhatAxisLearnedCard
+            <ConfidenceAccuracyHubCard
+              calibration={predictionCalibration}
+              bias={forecastBias}
+              confCalibration={confCalibration}
+              readinessConfidence={readinessConfidence}
+              predictionAccuracy={predictionAccuracy}
+              recConfidence={recConfidence}
+              calibrationReport={calibrationReport}
+              driftReport={driftReport}
+              forecastAccuracy={forecastAccuracy}
+              physiologyConf={physiologyConf}
+              feedbackSummary={feedbackSummary}
+              predictorRanking={predictorRanking}
+              personalEquation={personalEquation}
+              coachAccuracy={accuracyReport}
+              recEffectiveness={recEffectiveness}
+            />
+            <WhatAxisLearnedHubCard
               fingerprint={physiologyFingerprint}
               patternConfidences={patternConfidences}
               recoveryCapacity={recoveryCapacity}
               personalWeights={personalWeights}
               personalizationProgress={personalizationProgress}
-            />
-            <PersonalResponseCard
               phaseResponse={phaseResponse}
               symptomImpact={symptomImpact}
               recoveryModel={recoveryResponseProf}
-              confidence={physiologyConf}
-            />
-            <SignalImportanceCard ranking={predictorRanking} equation={personalEquation} />
-            <ReadinessConfidenceCard confidence={readinessConfidence} />
-            <PredictionAccuracyCard report={predictionAccuracy} />
-            <CalibrationIntelligenceCard
-              calibration={predictionCalibration}
-              bias={forecastBias}
-              confidence={confCalibration}
-            />
-            <RecommendationEffectivenessCard profile={recEffectiveness} />
-            <ConfidenceDashboardCard confidence={recConfidence} calibration={calibrationReport} drift={driftReport} />
-            <AccuracyTimelineCard accuracy={forecastAccuracy} />
-            <UserTrustCard
               physiologyConf={physiologyConf}
-              accuracy={forecastAccuracy}
-              feedback={feedbackSummary}
-              narrative={adaptiveNarrative}
+              narrative={p45Narrative}
+              identity={identityModel}
+              similar={similarSituations}
+              memoryItems={coachingMemory}
             />
-            <OutcomeOptimizationCard
-              scorecard={outcomeScorecard}
-              leveragePoint={leveragePoint}
-              successPatterns={successPatterns}
-            />
-            <OutcomeIntelligenceCard
+            <OutcomeIntelligenceHubCard
               successModel={goalSuccessModel}
               behaviorImpact={behaviorImpact}
               bottlenecks={bottleneckReport}
               leveragePoint={leveragePoint}
               forecast={completionForecast}
+              scorecard={outcomeScorecard}
+              successPatterns={successPatterns}
             />
-            <ExecutiveSummaryCard
-              capacity={capacityScore}
-              momentum={unifiedMomentum}
-              trajectory={trajectoryScore}
-              insights={unifiedInsights}
-            />
-            <CapacityCard
+            <CapacityHubCard
               capacity={capacityScore}
               momentum={unifiedMomentum}
               forecast={capacityForecast}
               balance={lifeBalance}
               sufficiency={recoverySufficiency}
+              trajectory={trajectoryScore}
+              insights={unifiedInsights}
             />
-            <SituationMemoryCard
-              narrative={p45Narrative}
-              identity={identityModel}
-              similar={similarSituations}
-            />
-            <InsightsCard report={insightReport} />
             <RecoveryCard recovery={recommendation.recovery} />
           </AccordionSection>
         </div>
