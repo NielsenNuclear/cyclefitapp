@@ -417,6 +417,7 @@ import { computeExerciseAnalytics, type ExerciseAnalyticsReport }              f
 import { computeTrainingEfficiency, type TrainingEfficiencyReport }            from "@/lib/insights/trainingEfficiency";
 import { computeCorrelations as computeSignalCorrelations, type CorrelationReport } from "@/lib/insights/correlationEngine";
 import { buildInsightDiscoveryReport, type InsightDiscoveryReport }            from "@/lib/insights/insightDiscovery";
+import { writeInsightsSnapshot }                                               from "@/lib/insights/insightsSnapshot";
 import { InsightDiscoveryCard }                                                 from "@/components/insights/InsightDiscoveryCard";
 import { ExerciseAnalyticsCard }                                                from "@/components/insights/ExerciseAnalyticsCard";
 import { CorrelationExplorerCard }                                              from "@/components/insights/CorrelationExplorerCard";
@@ -2462,6 +2463,101 @@ export default function DashboardPage() {
     setRecEffectiveness(recProfileVal);
     saveRecommendationProfile(recProfileVal);
   }, [router]);
+
+  // Dashboard 3.0 — Batch 20, Phase 4. Writes the Insights snapshot cache
+  // whenever any of the 10 Insights-bound cards' underlying state changes.
+  // A separate effect (not appended inline to the mount effect above) is
+  // deliberate: most of the setX(...) calls above pass inline expressions
+  // rather than named consts, so reading the *state* variables at the tail
+  // of that same synchronous effect pass would capture last render's stale
+  // values, not what was just computed. Depending on the state itself and
+  // letting this effect fire after React commits sidesteps that entirely.
+  // Read-only with respect to existing behavior — no new side effects.
+  useEffect(() => {
+    if (!recommendation) return;
+    writeInsightsSnapshot({
+      forecast: {
+        forecast: annualForecast,
+        macrocycle: macrocyclePlan,
+        goalConflict: goalConflict,
+      },
+      adaptiveInsights: { insights: adaptiveInsights },
+      performanceForecast: {
+        potential: performancePotential,
+        trainingRisk: trainingRisk,
+        readinessForecast: readinessForecast,
+        strategyPrediction: strategyPrediction,
+        opportunity: performanceOpportunity,
+        primeWindow: primeTrainingWindow,
+        currentCycleDay: recommendation.phase.cycleDay,
+      },
+      insightDiscovery: insightDiscovery ?? null,
+      exerciseAnalytics: exerciseAnalytics ?? null,
+      correlationExplorer: correlationReport ?? null,
+      confidenceAccuracy: {
+        calibration: predictionCalibration,
+        bias: forecastBias,
+        confCalibration,
+        readinessConfidence,
+        predictionAccuracy,
+        recConfidence,
+        calibrationReport,
+        driftReport,
+        forecastAccuracy,
+        physiologyConf,
+        feedbackSummary,
+        predictorRanking,
+        personalEquation,
+        coachAccuracy: accuracyReport,
+        recEffectiveness,
+      },
+      whatAxisLearned: {
+        fingerprint: physiologyFingerprint,
+        patternConfidences,
+        recoveryCapacity,
+        personalWeights,
+        personalizationProgress,
+        phaseResponse,
+        symptomImpact,
+        recoveryModel: recoveryResponseProf,
+        physiologyConf,
+        narrative: p45Narrative,
+        identity: identityModel,
+        similar: similarSituations,
+        memoryItems: coachingMemory,
+      },
+      outcomeIntelligence: {
+        successModel: goalSuccessModel,
+        behaviorImpact,
+        bottlenecks: bottleneckReport,
+        leveragePoint,
+        forecast: completionForecast,
+        scorecard: outcomeScorecard,
+        successPatterns,
+      },
+      capacity: {
+        capacity: capacityScore,
+        momentum: unifiedMomentum,
+        forecast: capacityForecast,
+        balance: lifeBalance,
+        sufficiency: recoverySufficiency,
+        trajectory: trajectoryScore,
+        insights: unifiedInsights,
+      },
+    }, new Date().toISOString().slice(0, 10));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    recommendation, annualForecast, macrocyclePlan, goalConflict, adaptiveInsights,
+    performancePotential, trainingRisk, readinessForecast, strategyPrediction, performanceOpportunity, primeTrainingWindow,
+    insightDiscovery, exerciseAnalytics, correlationReport,
+    predictionCalibration, forecastBias, confCalibration, readinessConfidence, predictionAccuracy, recConfidence,
+    calibrationReport, driftReport, forecastAccuracy, physiologyConf, feedbackSummary, predictorRanking, personalEquation,
+    accuracyReport, recEffectiveness,
+    physiologyFingerprint, patternConfidences, recoveryCapacity, personalWeights, personalizationProgress,
+    phaseResponse, symptomImpact, recoveryResponseProf, p45Narrative, identityModel, similarSituations, coachingMemory,
+    goalSuccessModel, behaviorImpact, bottleneckReport, leveragePoint, completionForecast, outcomeScorecard, successPatterns,
+    capacityScore, unifiedMomentum, capacityForecast, lifeBalance, recoverySufficiency, trajectoryScore, unifiedInsights,
+  ]);
 
   function handleCheckinComplete(data: CheckinData) {
     setCheckinComplete(true);
