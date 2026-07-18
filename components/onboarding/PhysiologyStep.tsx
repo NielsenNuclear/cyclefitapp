@@ -10,6 +10,7 @@
 // Dietary preference is stored for future use and does not affect any
 // current calculation.
 
+import { useEffect } from "react";
 import { NumberStepper, OptionCard, SegmentedControl } from "@/components/ui/onboarding-primitives";
 import type { OnboardingData } from "@/lib/onboarding-types";
 
@@ -17,6 +18,10 @@ interface StepProps {
   data:     OnboardingData;
   onChange: (patch: Partial<OnboardingData>) => void;
 }
+
+const DEFAULT_AGE = 25;
+const DEFAULT_HEIGHT_CM = 165;
+const DEFAULT_WEIGHT_KG = 65;
 
 // Values here must match lib/nutrition/tdee.ts's ACTIVITY_MULTIPLIERS keys —
 // the same loose-coupling convention already accepted for goals/GoalType
@@ -44,26 +49,43 @@ const DIETARY_OPTIONS = [
 ];
 
 export function Step12Physiology({ data, onChange }: StepProps) {
+  // The steppers below display a sensible default (25yrs/165cm/65kg) via
+  // NumberStepper's `value` prop before the user ever touches them — but
+  // that default was purely visual: data.age/heightCm/weightKg stayed
+  // undefined until a +/- click, so canAdvance(12) never passed for a user
+  // who (reasonably) assumed a displayed number meant an answered field.
+  // Initializing them for real as soon as the step mounts means the
+  // displayed value always matches actual state, and it's editable from
+  // there rather than a dead end with no visible explanation.
+  useEffect(() => {
+    const patch: Partial<OnboardingData> = {};
+    if (data.age === undefined)       patch.age       = DEFAULT_AGE;
+    if (data.heightCm === undefined)  patch.heightCm  = DEFAULT_HEIGHT_CM;
+    if (data.weightKg === undefined)  patch.weightKg  = DEFAULT_WEIGHT_KG;
+    if (Object.keys(patch).length > 0) onChange(patch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <NumberStepper
           label="Age"
-          value={data.age ?? 25}
+          value={data.age ?? DEFAULT_AGE}
           onChange={val => onChange({ age: val })}
           min={13} max={90} step={1}
           unit="yrs"
         />
         <NumberStepper
           label="Height"
-          value={data.heightCm ?? 165}
+          value={data.heightCm ?? DEFAULT_HEIGHT_CM}
           onChange={val => onChange({ heightCm: val })}
           min={120} max={220} step={1}
           unit="cm"
         />
         <NumberStepper
           label="Weight"
-          value={data.weightKg ?? 65}
+          value={data.weightKg ?? DEFAULT_WEIGHT_KG}
           onChange={val => onChange({ weightKg: val })}
           min={35} max={180} step={1}
           unit="kg"
