@@ -21,6 +21,7 @@ import type { NutritionAdjustment }          from "@/lib/nutrition/symptomNutrit
 import type { NutritionOutcome }             from "@/lib/nutrition/nutritionLearning";
 import type { PersonalizedNutritionProfile } from "@/lib/nutrition/personalNutritionProfile";
 import type { NutritionTargets }             from "@/lib/nutrition/nutritionTargets";
+import { getMicronutrientInsights }          from "@/lib/nutrition/micronutrientCatalog";
 import { AxisIcon } from "@/components/ui/Icon";
 
 const LEVEL_LABELS: Record<FuelingLevel, string> = {
@@ -85,15 +86,26 @@ export function NutritionHubCard({
 }: NutritionHubCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const hasProfile = profile && targets && !(profile.sampleDays === 0 && profile.confidence === "early");
-  if (!fuelTargets && !hasProfile) return null;
+  // Two independent kinds of "ready": a mature *learned* compliance profile
+  // (needs check-in history, Phase 32J) vs. real personalized numeric
+  // targets (needs only body metrics, available from day one — Nutrition
+  // Intelligence 2.0). The MacroBar view should show whenever either is
+  // true, not just the learned profile — otherwise a user who has
+  // completed body-metrics onboarding still sees the bare protein-range
+  // fallback until they've logged a week of check-ins, defeating the
+  // "Axis understands me before it starts learning me" goal.
+  const hasLearnedProfile = !!profile && !(profile.sampleDays === 0 && profile.confidence === "early");
+  const hasNumericTargets = !!targets && (targets.isPersonalized || hasLearnedProfile);
+  if (!fuelTargets && !hasNumericTargets) return null;
 
   const outcomeNote = fuelTargets ? bestOutcomeNote(nutritionOutcomes, fuelTargets.fuelingLevel) : null;
   const topSymptoms = nutritionAdjustments.slice(0, 3);
   const hasTiming = workoutFueling && (workoutFueling.preWorkout || workoutFueling.postWorkout || workoutFueling.evening);
-  const hasLearned = hasProfile && profile.sampleDays >= 7;
+  const hasLearned = hasLearnedProfile && profile!.sampleDays >= 7;
+  const microInsights = fuelTargets ? getMicronutrientInsights(fuelTargets.microFocus) : [];
+  const showBackfillNudge = !!targets && !targets.isPersonalized;
 
-  const hasDetails = !!(fuelTargets || topSymptoms.length > 0 || hasTiming || outcomeNote || hasLearned || (profile && profile.recommendations.length > 0));
+  const hasDetails = !!(fuelTargets || topSymptoms.length > 0 || hasTiming || outcomeNote || hasLearned || microInsights.length > 0 || (profile && profile.recommendations.length > 0));
 
   return (
     <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-card">
@@ -110,7 +122,7 @@ export function NutritionHubCard({
       </div>
 
       <div className="px-5 py-4">
-        {hasProfile && targets ? (
+        {hasNumericTargets && targets ? (
           <div className="space-y-2">
             <MacroBar label="Calories"  value={targets.calories}        unit=" kcal" color="#534AB7" max={3000} />
             <MacroBar label="Protein"   value={targets.protein}         unit="g"     color="#1A7A3E" max={200}  />
@@ -131,6 +143,18 @@ export function NutritionHubCard({
           <div className="px-3 py-2 bg-surface-subtle rounded-xl mt-3">
             <p className="text-[11px] text-ink-secondary leading-relaxed">{targets.phaseNote}</p>
           </div>
+        )}
+        {showBackfillNudge && (
+          <a
+            href="/profile"
+            className="flex items-center gap-2.5 px-3 py-2.5 bg-brand-bg-mid rounded-xl mt-3 hover:bg-brand-bg transition-colors"
+          >
+            <AxisIcon name="lock" size="sm" className="text-brand shrink-0" />
+            <p className="text-[11px] text-brand-dark leading-relaxed flex-1">
+              Add your body stats for personalized nutrition targets, instead of a general estimate.
+            </p>
+            <AxisIcon name="arrow-right" size={14} className="text-brand shrink-0" />
+          </a>
         )}
       </div>
 
@@ -165,6 +189,27 @@ export function NutritionHubCard({
               )}
               <p className="text-[12px] text-ink-secondary leading-snug">{fuelTargets.fuelingNote}</p>
             </div>
+          )}
+
+          {microInsights.length > 0 && (
+            <>
+              <Divider />
+              <div>
+                <SectionLabel>Nutrients to watch today</SectionLabel>
+                <div className="space-y-2.5">
+                  {microInsights.map(n => (
+                    <div key={n.id} className="bg-surface-hover rounded-xl px-3 py-2.5">
+                      <p className="text-[12px] font-semibold text-ink mb-0.5">{n.name}</p>
+                      <p className="text-[11px] text-ink-secondary leading-relaxed mb-1">{n.blurb}</p>
+                      <p className="text-[10px] text-ink-muted">Sources: {n.foodSources.join(", ")}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-ink-faint leading-relaxed mt-2">
+                  Educational information, not a medical assessment. If symptoms persist, consider discussing with a healthcare professional.
+                </p>
+              </div>
+            </>
           )}
 
           {topSymptoms.length > 0 && (
