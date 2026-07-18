@@ -77,3 +77,30 @@ describe("computeFuelTargets — micronutrient flags unchanged by bodyMetrics ad
     expect(result.ironFocus).toBe(true);
   });
 });
+
+describe("computeFuelTargets — microFocus (structured micronutrient catalog IDs)", () => {
+  it("Menstrual phase includes both iron and omega3", () => {
+    const result = computeFuelTargets(phase("Menstrual"), null, null, null, [], "general_fitness");
+    expect(result.microFocus).toEqual(expect.arrayContaining(["iron", "omega3"]));
+  });
+
+  it("Late Luteal phase includes magnesium", () => {
+    const result = computeFuelTargets(phase("Late Luteal"), null, null, null, [], "general_fitness");
+    expect(result.microFocus).toEqual(expect.arrayContaining(["magnesium"]));
+  });
+
+  it("Follicular phase with no symptoms has an empty microFocus", () => {
+    const result = computeFuelTargets(phase("Follicular"), null, null, null, [], "general_fitness");
+    expect(result.microFocus).toEqual([]);
+  });
+
+  it("microFocus never disagrees with ironFocus/magnesiumFocus booleans", () => {
+    const result = computeFuelTargets(
+      phase("Follicular"), null, null, null,
+      [{ symptomId: "cramps", severity: 2 } as never],
+      "general_fitness",
+    );
+    expect(result.magnesiumFocus).toBe(true);
+    expect(result.microFocus).toContain("magnesium");
+  });
+});

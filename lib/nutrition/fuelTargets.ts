@@ -14,6 +14,7 @@ import type { SymptomEntry }       from "@/lib/symptoms/symptomHistory";
 import type { GoalType }           from "@/lib/exercises/goalBasedSelection";
 import type { BodyMetrics }        from "./tdee";
 import { proteinGramsFromWeight }  from "./tdee";
+import type { MicronutrientId }    from "./micronutrientCatalog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ export interface FuelTargets {
   ironFocus:         boolean;
   magnesiumFocus:    boolean;
   electrolyteFocus:  boolean;
+  microFocus:        MicronutrientId[];  // structured micronutrient catalog entries triggered today
   fuelingNote:       string;
 }
 
@@ -92,6 +94,25 @@ const FUELING_NOTES: Record<FuelingLevel, string> = {
   recovery:    "Recovery-focused — prioritise protein, hydration, and easily digestible anti-inflammatory foods.",
 };
 
+// ─── Structured micronutrient focus ──────────────────────────────────────────
+//
+// Grounded in the same phase associations already stated in nutritionTargets.ts's
+// PHASE_NUTRITION_NOTES copy (Menstrual: "Iron, hydration, and omega-3 fats
+// take priority"; Late Luteal: "Increase magnesium-rich foods") rather than
+// inventing new nutrient-phase correlations. iron/magnesium mirror the
+// existing ironFocus/magnesiumFocus booleans exactly (including their
+// symptom overrides) so the two representations never disagree.
+
+function deriveMicroFocus(
+  phase: PhaseData, ironFocus: boolean, magnesiumFocus: boolean,
+): MicronutrientId[] {
+  const focus: MicronutrientId[] = [];
+  if (ironFocus)      focus.push("iron");
+  if (magnesiumFocus) focus.push("magnesium");
+  if (phase.name === "Menstrual") focus.push("omega3");
+  return focus;
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 /**
@@ -149,6 +170,8 @@ export function computeFuelTargets(
     // Already handled by fuelingLevel staying at recovery/maintenance — no extra change needed
   }
 
+  const microFocus = deriveMicroFocus(phase, ironFocus, magnesiumFocus);
+
   return {
     fuelingLevel,
     proteinRange:      proteinRange(fuelingLevel, goalType, bodyMetrics, trainingStyles),
@@ -158,6 +181,7 @@ export function computeFuelTargets(
     ironFocus,
     magnesiumFocus,
     electrolyteFocus,
+    microFocus,
     fuelingNote:       FUELING_NOTES[fuelingLevel],
   };
 }
