@@ -72,14 +72,16 @@ Ranked by how much it costs to leave unresolved:
 - The Recovery accordion section specifically is over-dense (12 cards, 3 visual languages) relative to every other section and is the clearest single candidate for consolidation.
 - Confidence and explainability content is currently split between Layer 1 (2 duplicate "why" cards, always visible) and Layer 3 (3 more duplicate "why" cards, plus most confidence cards, behind a collapsed "Advanced" accordion) — an information-architecture inconsistency, not just a visual one: the same conceptual content is being treated as both core and advanced simultaneously.
 
+**Status update (2026-07-18) — addressed by Dashboard 2.0:** every finding above was the direct scope of the Dashboard 2.0 initiative (`docs/ux/UXStabilizationAudit.md` Batches 15-19). The card count dropped from ~89 to ~35 meaningful surfaces via consolidation, not deletion — every card is accounted for in the approved migration map as Kept/Merged/Promoted/Moved/Hidden/Removed, with every "Removed" entry naming the surviving destination. The hierarchy became five layers (§8 of the Design System doc, rewritten) instead of three. The Recovery accordion's 12 cards became one `RecoveryHubCard`. The confidence/explainability split described above is resolved: Layer 1's "why" content now lives in one card (`RecommendationWhyCard`), and Layer 4's confidence/accuracy content lives in `ConfidenceAccuracyHubCard` — the two are now clearly distinguished by their actual question ("why this workout, today" vs. "how much should I trust Axis overall") rather than accidentally duplicating each other across layers. Composition is still manual JSX (the declarative-registry gap noted above is unchanged) — not in Dashboard 2.0's scope, still a reasonable later-phase investment.
+
 ## Refactor Priorities
 
 (Ranked; effort/risk detail follows in the next two sections and is expanded per-phase in `DesignRoadmap.md`.)
 
 1. Migrate `components/ui/` adoption across the highest-traffic surfaces (dashboard cards) — unlocks nearly every other fix.
-2. Consolidate confidence UI to one component + one vocabulary (aligns implementation with the app's own documented intent).
-3. Consolidate explainability UI to one component; relocate to Layer 1/2.
-4. Consolidate recovery cards (12 → a materially smaller, visually unified set).
+2. ✅ **Done (Dashboard 2.0, Batch 18)** — Consolidate confidence UI to one component + one vocabulary. `ConfidenceAccuracyHubCard` merges nine cards around a shared qualitative-language vocabulary (High/Moderate/Building/Early data); raw percentages no longer surface outside its own detail breakdown.
+3. ✅ **Done (Dashboard 2.0, Batch 15)** — Consolidate explainability UI to one component; relocate to Layer 1/2. `RecommendationWhyCard` merges four "why" cards into Layer 1, Collapsed → Expanded → Detailed.
+4. ✅ **Done (Dashboard 2.0, Batch 16)** — Consolidate recovery cards. Eight Recovery-domain cards (of the twelve originally in this accordion; the remaining four were confirmed to answer a genuinely different question and kept separate) merged into `RecoveryHubCard`.
 5. Delete/resolve dead code (`GltfBody.tsx` disposition, `TrustDashboard.tsx` — mount or delete, `resilience/ErrorBoundary.tsx` — wire up or delete + fix docs, orphaned body-viewer files, second `globals.css`).
 6. Fix the modal focus trap (small, isolated, high-value accessibility fix).
 7. Build missing shared primitives (Modal/Dialog, Toast, Tabs, Select, Icon system) so the next feature doesn't hand-roll a fourth overlay.
