@@ -397,6 +397,7 @@ import { buildSeasonalityReport, type SeasonalityReport }                      f
 import { detectGoalConflicts, type GoalConflictReport }                        from "@/lib/planning/goalConflict";
 import { buildAnnualForecast, type AnnualForecast }                            from "@/lib/planning/annualForecast";
 import { AccordionSection }                                                     from "@/components/dashboard/AccordionSection";
+import { getDashboardDensity, defaultOpenFor }                                  from "@/lib/preferences/dashboardDensity";
 import { DailyStatus }                                                          from "@/components/dashboard/DailyStatus";
 import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
 import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
@@ -2900,6 +2901,14 @@ export default function DashboardPage() {
     );
   }
 
+  // Dashboard 3.0 — Batch 20, Phase 6. Density only affects AccordionSections
+  // a user has never manually toggled — reading it here (not in a mount
+  // effect) is safe because this whole return is already gated behind the
+  // `!recommendation` loading-skeleton above, so it only ever runs
+  // client-side, after mount, same as every other localStorage read in this
+  // component tree.
+  const dashboardDensity = getDashboardDensity();
+
   return (
     <DashboardShell isRecalculating={isRecalculating}>
       <DashboardHeader recommendation={recommendation} />
@@ -3020,7 +3029,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="recovery"
             title="Recovery"
-            defaultOpen={true}
+            defaultOpen={defaultOpenFor("recovery", dashboardDensity)}
             summary={recoveryScore
               ? `${recoveryScore.category} · ${recoveryScore.score}/100`
               : "Track your recovery"}
@@ -3061,6 +3070,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="cycle"
             title="Cycle Intelligence"
+            defaultOpen={defaultOpenFor("cycle", dashboardDensity)}
             summary={recommendation.phase.hasCycleData
               ? `${recommendation.phase.name} · Day ${recommendation.phase.cycleDay}`
               : "Not tracked"}
@@ -3085,6 +3095,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="nutrition"
             title="Nutrition"
+            defaultOpen={defaultOpenFor("nutrition", dashboardDensity)}
             summary={fuelTargets
               ? fuelTargets.fuelingLevel.replace(/_/g, " ")
               : "Log check-ins for guidance"}
@@ -3120,6 +3131,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="lifestyle"
             title="Lifestyle"
+            defaultOpen={defaultOpenFor("lifestyle", dashboardDensity)}
             summary="Today's mode & time budget"
           >
             <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
@@ -3138,6 +3150,7 @@ export default function DashboardPage() {
           <AccordionSection
             id="this-week"
             title="This Week"
+            defaultOpen={defaultOpenFor("this-week", dashboardDensity)}
             summary={unifiedMomentum?.dataReady
               ? `Momentum: ${unifiedMomentum.direction}`
               : "Plan, trends, athlete profile & consistency"}

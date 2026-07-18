@@ -7,6 +7,7 @@ import { allExercises } from "@/lib/exercises/exerciseLibrary";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 import { AxisIcon } from "@/components/ui/Icon";
+import { getDashboardDensity, setDashboardDensity, type DashboardDensity } from "@/lib/preferences/dashboardDensity";
 
 const ENV_STORAGE_KEY  = "axis_training_env";
 const REST_TIMER_STORAGE_KEY = "axis_rest_timer_enabled";
@@ -128,6 +129,7 @@ function SettingsPageInner() {
   const { show: showToast } = useToast();
   const [environment, setEnvironment] = useState<TrainingEnvironment>("gym");
   const [restTimerEnabled, setRestTimerEnabled] = useState(true);
+  const [dashboardDensity, setDashboardDensityState] = useState<DashboardDensity>("standard");
   const [dialog, setDialog]           = useState<Dialog>(null);
 
   useEffect(() => {
@@ -135,6 +137,7 @@ function SettingsPageInner() {
     if (saved) setEnvironment(saved);
     const savedRestTimer = localStorage.getItem(REST_TIMER_STORAGE_KEY);
     if (savedRestTimer !== null) setRestTimerEnabled(savedRestTimer === "true");
+    setDashboardDensityState(getDashboardDensity());
   }, []);
 
   function handleEnvChange(env: TrainingEnvironment) {
@@ -147,6 +150,12 @@ function SettingsPageInner() {
     setRestTimerEnabled(enabled);
     localStorage.setItem(REST_TIMER_STORAGE_KEY, String(enabled));
     showToast(enabled ? "Rest timer enabled" : "Rest timer disabled");
+  }
+
+  function handleDensityChange(density: DashboardDensity) {
+    setDashboardDensityState(density);
+    setDashboardDensity(density);
+    showToast(`Dashboard density set to ${density}`);
   }
 
   function handleExportOnboarding() {
@@ -212,6 +221,17 @@ function SettingsPageInner() {
             label="Rest timer"
             desc="Show a rest screen with countdown between sets"
             right={<Toggle on={restTimerEnabled} onChange={handleRestTimerChange} />}
+          />
+        </Section>
+
+        {/* Dashboard — Dashboard 3.0, Batch 20 Phase 6. Controls only which
+            sections default open on Today, never which sections exist or
+            what's inside them; orthogonal to data-maturity gating. */}
+        <Section title="Dashboard">
+          <Row
+            label="Density"
+            desc="How much opens by default on Today — Focused starts everything collapsed, Full opens Body Today and This Week"
+            right={<DensityToggle value={dashboardDensity} onChange={handleDensityChange} />}
           />
         </Section>
 
@@ -317,6 +337,32 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       >
         OFF
       </button>
+    </div>
+  );
+}
+
+const DENSITY_OPTIONS: { value: DashboardDensity; label: string }[] = [
+  { value: "focused",  label: "Focused" },
+  { value: "standard", label: "Standard" },
+  { value: "full",     label: "Full" },
+];
+
+function DensityToggle({ value, onChange }: { value: DashboardDensity; onChange: (v: DashboardDensity) => void }) {
+  return (
+    <div className="flex gap-0.5 bg-[#F5F3EE] rounded-full p-0.5 border border-[#E0DDD4]">
+      {DENSITY_OPTIONS.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          aria-pressed={value === opt.value}
+          className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+            value === opt.value ? "bg-[#534AB7] text-white" : "text-[#9B9690]"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }
