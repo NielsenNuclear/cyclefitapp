@@ -44,6 +44,9 @@ const MEM_CONFIDENCE_LABEL: Record<CoachingMemoryItem["confidence"], string> = {
 const TIER_COLOR: Record<string, string> = {
   Starting: "text-ink-secondary", Learning: "text-caution", Personalized: "text-success", "Highly Personalized": "text-brand",
 };
+const CAPACITY_LABEL: Record<string, string> = {
+  high: "High — recovers well between sessions", moderate: "Moderate — standard recovery between sessions", low: "Low — benefits from extra recovery time",
+};
 
 interface WhatAxisLearnedHubCardProps {
   fingerprint?:  PhysiologyFingerprint | null;
@@ -77,11 +80,12 @@ export function WhatAxisLearnedHubCard({
   }
   const hasStrengthDays = fingerprint && fingerprint.bestStrengthDays.length > 0 && fingerprint.entryCount >= 30;
   const hasRecoveryDays = fingerprint && fingerprint.worstRecoveryDays.length > 0 && fingerprint.entryCount >= 30;
+  const hasCapacity = recoveryCapacity && recoveryCapacity.confidence !== "early";
   const hasPersonalization = personalizationProgress && personalizationProgress.overallProgress >= 10;
   const hasResponse = phaseResponse?.dataReady || symptomImpact?.dataReady || recoveryModel?.dataReady;
   const hasMemory = narrative?.hasMemory || identity?.dataReady || (similar && similar.length > 0);
 
-  const hasSummary = hasStrengthDays || hasRecoveryDays || reliablePatterns.length > 0 || dominantFactor || recoveryCapacity;
+  const hasSummary = hasStrengthDays || hasRecoveryDays || reliablePatterns.length > 0 || dominantFactor || hasCapacity;
   if (!hasSummary && !hasPersonalization && !hasResponse && !hasMemory && memoryItems.length === 0) return null;
 
   const hasDetails = hasPersonalization || hasResponse || hasMemory || memoryItems.length > 0;
@@ -123,6 +127,13 @@ export function WhatAxisLearnedHubCard({
             {reliablePatterns.map(p => (
               <p key={p.patternId} className="text-[13px] text-ink">{p.symptomName} <span className="text-ink-muted text-[11px]">· {p.phase.replace(" Phase", "")}</span></p>
             ))}
+          </div>
+        )}
+        {hasCapacity && recoveryCapacity && (
+          <div>
+            <p className="text-[10px] text-ink-muted uppercase tracking-wide">Recovery capacity</p>
+            <p className="text-[13px] text-ink">{CAPACITY_LABEL[recoveryCapacity.level] ?? recoveryCapacity.level}</p>
+            <p className="text-[11px] text-ink-muted">{recoveryCapacity.confidence === "established" ? "Established" : "Growing"} pattern · {recoveryCapacity.dataPoints} sessions tracked</p>
           </div>
         )}
         {!hasSummary && (

@@ -148,6 +148,9 @@ export function AthleteProfileHubCard({
             </span>
           </div>
         )}
+        {!hasSummary && !athleteIdentity?.dataReady && !trainingAge?.dataReady && (
+          <p className="text-[12px] text-ink-muted leading-relaxed">Axis is building your athlete profile. Check back after a few more workouts and check-ins.</p>
+        )}
       </div>
 
       {hasDetails && (

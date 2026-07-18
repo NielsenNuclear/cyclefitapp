@@ -3030,6 +3030,7 @@ export default function DashboardPage() {
               patterns={learnedPatterns}
               forecast={cycleForecast}
               todayDayOfWeek={new Date().getDay()}
+              periodCount={getPeriodHistory().length}
             />
           </AccordionSection>
 

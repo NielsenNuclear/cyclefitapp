@@ -96,14 +96,41 @@ interface CycleHubCardProps {
   patterns:           LearnedPattern[];
   forecast:           CycleForecast | null;
   todayDayOfWeek:      number;
+  periodCount?:        number;
 }
 
 export function CycleHubCard({
   cycleAccuracy, performanceProfile, cycleHealthReport, ovulationEstimate,
-  trainingWindow, recoveryWindow, patterns, forecast, todayDayOfWeek,
+  trainingWindow, recoveryWindow, patterns, forecast, todayDayOfWeek, periodCount = 0,
 }: CycleHubCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  if (!cycleAccuracy) return null;
+
+  if (!cycleAccuracy) {
+    const remaining = Math.max(0, 2 - periodCount);
+    return (
+      <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-card">
+        <div className="px-5 pt-5 pb-3 border-b border-surface-hover">
+          <h2 className="text-[15px] font-semibold text-ink">Cycle Intelligence</h2>
+          <p className="text-[11px] text-ink-muted mt-0.5">How does my cycle affect training?</p>
+        </div>
+        <div className="px-5 py-4">
+          <div className="flex items-start gap-3 rounded-xl bg-surface-hover border border-border px-4 py-3">
+            <AxisIcon name="lock" size="sm" className="text-ink-faint mt-0.5 shrink-0" />
+            <div className="space-y-0.5">
+              <p className="text-[11px] text-ink-muted leading-relaxed">
+                {remaining > 0
+                  ? `Available after ${remaining} more logged period${remaining === 1 ? "" : "s"}`
+                  : "Building your cycle profile"}
+              </p>
+              <p className="text-[10px] text-ink-faint leading-relaxed">
+                Axis needs at least two logged cycles to learn your personal patterns before showing this insight.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const confidence = computeConfidenceScore(cycleAccuracy.cycleCount);
   const topPatterns = patterns.slice(0, 5);
