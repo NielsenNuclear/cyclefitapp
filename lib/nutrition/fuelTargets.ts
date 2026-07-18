@@ -12,6 +12,8 @@ import type { GeneratedWorkout }   from "@/lib/exercises/generateWorkout";
 import type { RecoveryCapacity }   from "@/lib/adaptive/recoveryCapacity";
 import type { SymptomEntry }       from "@/lib/symptoms/symptomHistory";
 import type { GoalType }           from "@/lib/exercises/goalBasedSelection";
+import type { BodyMetrics }        from "./tdee";
+import { proteinGramsFromWeight }  from "./tdee";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,7 +64,20 @@ const BASE_PROTEIN: Record<FuelingLevel, { min: number; max: number }> = {
   recovery:    { min:  75, max: 100 },
 };
 
-function proteinRange(level: FuelingLevel, goalType: GoalType): { min: number; max: number } {
+// Width of the displayed protein range around a personalized g/kg-derived
+// target — roughly matches BASE_PROTEIN's own ~25g band width. Kept narrow
+// enough that the range's midpoint (what nutritionTargets.ts uses as the
+// concrete protein number) stays a faithful stand-in for today's actual
+// FuelingLevel-positioned target.
+const PERSONALIZED_PROTEIN_BAND = 12;
+
+function proteinRange(
+  level: FuelingLevel, goalType: GoalType, bodyMetrics?: BodyMetrics, trainingStyles?: string[],
+): { min: number; max: number } {
+  if (bodyMetrics) {
+    const { target } = proteinGramsFromWeight(bodyMetrics.weightKg, trainingStyles ?? [], level, goalType);
+    return { min: target - PERSONALIZED_PROTEIN_BAND, max: target + PERSONALIZED_PROTEIN_BAND };
+  }
   const base  = BASE_PROTEIN[level];
   const boost = (goalType === "strength" || goalType === "hypertrophy") ? 10 : 0;
   return { min: base.min + boost, max: base.max + boost };
@@ -81,8 +96,11 @@ const FUELING_NOTES: Record<FuelingLevel, string> = {
 
 /**
  * Computes daily fuel targets from physiology, training, and symptom signals.
- * Protein ranges are approximate for a 55–75 kg active adult; strength/hypertrophy
- * goals add ~10 g to both bounds.
+ * When `bodyMetrics` is supplied, protein is a g/kg-bodyweight range
+ * (narrowed by training emphasis, positioned by today's FuelingLevel) —
+ * otherwise falls back to the legacy flat range, approximate for a
+ * 55–75 kg active adult, with strength/hypertrophy goals adding ~10g to
+ * both bounds.
  */
 export function computeFuelTargets(
   phase:            PhaseData,
@@ -91,6 +109,8 @@ export function computeFuelTargets(
   recoveryCapacity: RecoveryCapacity | null,
   todaySymptoms:    SymptomEntry[],
   goalType:         GoalType,
+  bodyMetrics?:     BodyMetrics,
+  trainingStyles?:  string[],
 ): FuelTargets {
   const fuelingLevel = deriveFuelingLevel(phase, readinessScore, workout);
 
@@ -131,7 +151,7 @@ export function computeFuelTargets(
 
   return {
     fuelingLevel,
-    proteinRange:      proteinRange(fuelingLevel, goalType),
+    proteinRange:      proteinRange(fuelingLevel, goalType, bodyMetrics, trainingStyles),
     carbPriority,
     fatPriority,
     hydrationPriority,

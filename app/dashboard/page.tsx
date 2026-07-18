@@ -179,6 +179,7 @@ import {
 } from "@/lib/adaptive/personalizationProgress";
 import { useNutritionData }              from "@/hooks/useNutritionData";
 import { computeFuelTargets }            from "@/lib/nutrition/fuelTargets";
+import { hasBodyMetrics }                from "@/lib/nutrition/tdee";
 import { getSymptomNutritionAdjustments } from "@/lib/nutrition/symptomNutritionMap";
 import { computeWorkoutFueling }         from "@/lib/nutrition/workoutFueling";
 import {
@@ -1882,8 +1883,12 @@ export default function DashboardPage() {
     setInsightReport(insights);
     setTodayStatus(ts);
 
+    // ── Nutrition Intelligence 2.0: personalized BMR/TDEE baseline ───────────
+    const bodyMetrics = onboardingRef.current && hasBodyMetrics(onboardingRef.current) ? onboardingRef.current : undefined;
+    const trainingStylesVal = onboardingRef.current?.trainingStyles ?? [];
+
     // ── Phase 24: Nutrition Intelligence ─────────────────────────────────────
-    const fuelTargetsVal = computeFuelTargets(phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType);
+    const fuelTargetsVal = computeFuelTargets(phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType, bodyMetrics, trainingStylesVal);
     logNutritionDay(fuelTargetsVal.fuelingLevel);
     setFuelTargets(fuelTargetsVal);
     setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsVal.fuelingLevel));
@@ -1915,7 +1920,7 @@ export default function DashboardPage() {
 
     // ── Phase 32: Nutrition Intelligence ─────────────────────────────────────
     const nutritionTargetsVal = computeNutritionTargets(
-      phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType,
+      phase, readiness, wkt, recoveryCapacityVal, todaySymptomsVal, goalType, bodyMetrics, trainingStylesVal,
     );
     let finalNutritionTargets = nutritionTargetsVal;
     let nutritionPeriodNoteVal: string | undefined;
@@ -2586,7 +2591,9 @@ export default function DashboardPage() {
     setLoadReport(load);
     setInsightReport(insights);
     setTodayStatus(ts);
-    const fuelTargetsCheckin = computeFuelTargets(phase, newReadiness ?? readinessScore, wkt, recoveryCapacity, todaySymptomsVal, goalType);
+    const bodyMetricsCheckin = onboardingRef.current && hasBodyMetrics(onboardingRef.current) ? onboardingRef.current : undefined;
+    const trainingStylesCheckin = onboardingRef.current?.trainingStyles ?? [];
+    const fuelTargetsCheckin = computeFuelTargets(phase, newReadiness ?? readinessScore, wkt, recoveryCapacity, todaySymptomsVal, goalType, bodyMetricsCheckin, trainingStylesCheckin);
     logNutritionDay(fuelTargetsCheckin.fuelingLevel);
     setFuelTargets(fuelTargetsCheckin);
     setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsCheckin.fuelingLevel));
@@ -2594,7 +2601,7 @@ export default function DashboardPage() {
     setNutritionOutcomes(getNutritionOutcomes());
     // Stab-F: recompute Phase 32 nutrition targets after check-in (readiness + symptoms changed)
     const nutritionTargetsCheckin = computeNutritionTargets(
-      phase, newReadiness ?? readinessScore, wkt, recoveryCapacity ?? null, todaySymptomsVal, goalType,
+      phase, newReadiness ?? readinessScore, wkt, recoveryCapacity ?? null, todaySymptomsVal, goalType, bodyMetricsCheckin, trainingStylesCheckin,
     );
     let finalNutritionTargetsCheckin = nutritionTargetsCheckin;
     if (periodizationStatus) {
