@@ -28,6 +28,10 @@ import { getAdherenceHistory }    from "@/lib/adherence/adherenceTracker";
 import { buildScheduleLearningProfile, type ScheduleLearningProfile } from "@/lib/lifestyle/scheduleLearning";
 import { buildTrainingAvailabilityProfile, type TrainingAvailabilityProfile } from "@/lib/lifestyle/scheduleIntelligence";
 import { getUpcomingEvents, type ScheduledLifeEventWithContext } from "@/lib/lifestyle/lifeStressCalendar";
+import { EquipmentInsightsCard } from "@/components/dashboard/EquipmentInsightsCard";
+import { buildEquipmentInventory } from "@/lib/equipment/equipmentInventory";
+import { computeEquipmentProfile, type EquipmentCapabilityProfile } from "@/lib/equipment/equipmentProfile";
+import { analyzeEquipmentUsage, type EquipmentUsageAnalytics } from "@/lib/equipment/equipmentUsage";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -65,6 +69,15 @@ export default function ProfilePage() {
   const [availabilityProfile, setAvailabilityProfile] = useState<TrainingAvailabilityProfile | undefined>(undefined);
   const [upcomingLifeEvents,  setUpcomingLifeEvents]  = useState<ScheduledLifeEventWithContext[] | undefined>(undefined);
 
+  // Dashboard 3.0 — Batch 20, Phase 5. EquipmentInsightsCard relocated here
+  // from the dashboard's now-deleted "Performance Tracking" section (it was
+  // the section's one survivor once PerformanceForecastCard moved to
+  // Insights — an equipment-management insight belongs next to equipment
+  // management, not scattered on the daily dashboard). Same
+  // independent-pure-recompute pattern as the schedule data above.
+  const [equipmentProfile,        setEquipmentProfile]        = useState<EquipmentCapabilityProfile | null>(null);
+  const [equipmentUsageAnalytics, setEquipmentUsageAnalytics]  = useState<EquipmentUsageAnalytics | null>(null);
+
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
     if (!raw) { router.push("/onboarding"); return; }
@@ -82,6 +95,10 @@ export default function ProfilePage() {
     setScheduleLearning(buildScheduleLearningProfile(adherenceHistory, rawHistory));
     setAvailabilityProfile(buildTrainingAvailabilityProfile(adherenceHistory));
     setUpcomingLifeEvents(getUpcomingEvents(todayStr, 14));
+
+    const equipmentInventory = buildEquipmentInventory();
+    setEquipmentProfile(computeEquipmentProfile(equipmentInventory.allEquipmentNames));
+    setEquipmentUsageAnalytics(analyzeEquipmentUsage(equipmentInventory.allEquipmentNames));
   }, []);
 
   const patch = useCallback((update: Partial<OnboardingData>) => {
@@ -191,6 +208,15 @@ export default function ProfilePage() {
             </div>
             <CustomExerciseLibrary />
           </div>
+
+          {equipmentProfile && (
+            <div className="mt-6">
+              <EquipmentInsightsCard
+                profile={equipmentProfile}
+                usageAnalytics={equipmentUsageAnalytics ?? undefined}
+              />
+            </div>
+          )}
         </section>
 
         <div className="border-t border-[#EAE7DE]" />

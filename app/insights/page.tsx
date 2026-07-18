@@ -10,15 +10,34 @@
 // why); a missing or stale snapshot renders an explanatory empty state instead
 // of silently showing wrong data.
 //
-// Phase 4 ships the scaffolding and empty/stale states only. Phase 5 renders
-// the actual 10 cards, grouped "How am I trending" / "Explore my data" /
-// "How good is Axis" per the strategy report's own tiering.
+// Phase 5 renders the actual 10 cards, grouped "How am I trending" /
+// "Explore my data" / "How good is Axis" per the strategy report's own
+// tiering — not raw inheritance of the old section names they came from.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { readInsightsSnapshot, type InsightsSnapshot } from "@/lib/insights/insightsSnapshot";
 import { AxisIcon } from "@/components/ui/Icon";
+import { ForecastCard }              from "@/components/dashboard/ForecastCard";
+import { AdaptiveInsightsPanel }     from "@/components/intelligence/AdaptiveInsightsPanel";
+import { PerformanceForecastCard }   from "@/components/dashboard/PerformanceForecastCard";
+import { InsightDiscoveryCard }      from "@/components/insights/InsightDiscoveryCard";
+import { ExerciseAnalyticsCard }     from "@/components/insights/ExerciseAnalyticsCard";
+import { CorrelationExplorerCard }   from "@/components/insights/CorrelationExplorerCard";
+import { ConfidenceAccuracyHubCard } from "@/components/dashboard/ConfidenceAccuracyHubCard";
+import { WhatAxisLearnedHubCard }    from "@/components/dashboard/WhatAxisLearnedHubCard";
+import { OutcomeIntelligenceHubCard } from "@/components/dashboard/OutcomeIntelligenceHubCard";
+import { CapacityHubCard }           from "@/components/dashboard/CapacityHubCard";
+
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 px-1 mb-2">
+      <span className="text-[10px] font-semibold text-ink-faint uppercase tracking-[0.12em]">{children}</span>
+      <div className="flex-1 h-px bg-border" />
+    </div>
+  );
+}
 
 type LoadState =
   | { status: "loading" }
@@ -77,9 +96,29 @@ export default function InsightsPage() {
         {state.status === "empty" && <EmptyState stale={false} router={router} />}
         {state.status === "stale" && <EmptyState stale={true} router={router} />}
         {state.status === "ready" && (
-          <p className="text-[13px] text-ink-muted text-center py-10">
-            Your insights are ready — full cards land in the next update.
-          </p>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <GroupLabel>How am I trending</GroupLabel>
+              <ForecastCard {...state.snapshot.forecast} />
+              <PerformanceForecastCard {...state.snapshot.performanceForecast} />
+              <AdaptiveInsightsPanel {...state.snapshot.adaptiveInsights} />
+            </div>
+
+            <div className="space-y-2">
+              <GroupLabel>Explore my data</GroupLabel>
+              {state.snapshot.insightDiscovery && <InsightDiscoveryCard report={state.snapshot.insightDiscovery} />}
+              {state.snapshot.exerciseAnalytics && <ExerciseAnalyticsCard report={state.snapshot.exerciseAnalytics} />}
+              {state.snapshot.correlationExplorer && <CorrelationExplorerCard report={state.snapshot.correlationExplorer} />}
+            </div>
+
+            <div className="space-y-2">
+              <GroupLabel>How good is Axis</GroupLabel>
+              <ConfidenceAccuracyHubCard {...state.snapshot.confidenceAccuracy} />
+              <WhatAxisLearnedHubCard {...state.snapshot.whatAxisLearned} />
+              <OutcomeIntelligenceHubCard {...state.snapshot.outcomeIntelligence} />
+              <CapacityHubCard {...state.snapshot.capacity} />
+            </div>
+          </div>
         )}
       </div>
     </DashboardShell>

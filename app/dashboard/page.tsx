@@ -8,6 +8,7 @@ import { useRecoveryData }    from "@/hooks/useRecoveryData";
 import { useProgressionData } from "@/hooks/useProgressionData";
 import { useAdaptiveData }    from "@/hooks/useAdaptiveData";
 import { useWorkoutData }     from "@/hooks/useWorkoutData";
+import { AxisIcon }           from "@/components/ui/Icon";
 
 import type { OnboardingData } from "@/lib/onboarding-types";
 import type { AdaptiveProfile } from "@/lib/adaptive-profile";
@@ -93,10 +94,6 @@ import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
 import { SymptomSummaryCard }    from "@/components/dashboard/SymptomSummaryCard";
-import { ConfidenceAccuracyHubCard } from "@/components/dashboard/ConfidenceAccuracyHubCard";
-import { WhatAxisLearnedHubCard }    from "@/components/dashboard/WhatAxisLearnedHubCard";
-import { OutcomeIntelligenceHubCard } from "@/components/dashboard/OutcomeIntelligenceHubCard";
-import { CapacityHubCard }           from "@/components/dashboard/CapacityHubCard";
 import { OverloadCard }         from "@/components/dashboard/OverloadCard";
 import { DeloadAlertCard }        from "@/components/dashboard/DeloadAlertCard";
 import { RecoveryHubCard }          from "@/components/dashboard/RecoveryHubCard";
@@ -195,13 +192,9 @@ import { computeRiskPrediction }        from "@/lib/performance/riskPrediction";
 import { computeReadinessForecast }     from "@/lib/performance/readinessForecast";
 import { computeStrategyPrediction }    from "@/lib/performance/strategyPrediction";
 import { detectOpportunity }            from "@/lib/performance/opportunityDetection";
-import { PerformanceForecastCard }      from "@/components/dashboard/PerformanceForecastCard";
-import { EquipmentInsightsCard }        from "@/components/dashboard/EquipmentInsightsCard";
-import { useEquipmentData }             from "@/hooks/useEquipmentData";
 import { buildEquipmentInventory }      from "@/lib/equipment/equipmentInventory";
-import { computeEquipmentProfile }      from "@/lib/equipment/equipmentProfile";
 import { logEquipmentSkip }             from "@/lib/equipment/equipmentLearning";
-import { logEquipmentUsage, analyzeEquipmentUsage } from "@/lib/equipment/equipmentUsage";
+import { logEquipmentUsage }            from "@/lib/equipment/equipmentUsage";
 import { saveFatigueEntry, getFatigueHistory, sleepQualityToScore } from "@/lib/recovery/fatigueHistory";
 import type { SleepQuality as FatigueSleepQuality } from "@/lib/recovery/fatigueHistory";
 import { predictFatigue, type FatiguePrediction } from "@/lib/recovery/fatiguePrediction";
@@ -403,13 +396,11 @@ import { computeTrainingMaturity, type TrainingMaturity }                      f
 import { buildSeasonalityReport, type SeasonalityReport }                      from "@/lib/planning/seasonalityAnalysis";
 import { detectGoalConflicts, type GoalConflictReport }                        from "@/lib/planning/goalConflict";
 import { buildAnnualForecast, type AnnualForecast }                            from "@/lib/planning/annualForecast";
-import { ForecastCard }                                                         from "@/components/dashboard/ForecastCard";
 import { AccordionSection }                                                     from "@/components/dashboard/AccordionSection";
 import { DailyStatus }                                                          from "@/components/dashboard/DailyStatus";
 import { BodyStatusCard }                                                        from "@/components/dashboard/BodyStatusCard";
 import { computeBodyIntelligenceSnapshot }                                      from "@/lib/bodyIntelligence/muscleStateEngine";
 import type { BodyIntelligenceSnapshot }                                        from "@/lib/bodyIntelligence/bodyIntelligenceTypes";
-import { AdaptiveInsightsPanel }                                                from "@/components/intelligence/AdaptiveInsightsPanel";
 // ─── Phase 62: Athlete Profile & Longitudinal Intelligence ───────────────────
 import { buildAthleteProfile, type AthleteProfile }                            from "@/lib/athlete/athleteProfile";
 // ─── Phase 63: Insight Discovery & Performance Analytics ─────────────────────
@@ -418,9 +409,6 @@ import { computeTrainingEfficiency, type TrainingEfficiencyReport }            f
 import { computeCorrelations as computeSignalCorrelations, type CorrelationReport } from "@/lib/insights/correlationEngine";
 import { buildInsightDiscoveryReport, type InsightDiscoveryReport }            from "@/lib/insights/insightDiscovery";
 import { writeInsightsSnapshot }                                               from "@/lib/insights/insightsSnapshot";
-import { InsightDiscoveryCard }                                                 from "@/components/insights/InsightDiscoveryCard";
-import { ExerciseAnalyticsCard }                                                from "@/components/insights/ExerciseAnalyticsCard";
-import { CorrelationExplorerCard }                                              from "@/components/insights/CorrelationExplorerCard";
 // ─── Phase A: Safety Engine Integration ──────────────────────────────────────
 import { applySafetyGovernance, type SafetyResult }                            from "@/lib/intelligence/safety/SafetyEngine";
 import { buildSafetyContext, computeStreakDays }                                from "@/lib/intelligence/safety/buildSafetyContext";
@@ -742,11 +730,6 @@ export default function DashboardPage() {
     strategyPrediction,     setStrategyPrediction,
     performanceOpportunity, setPerformanceOpportunity,
   } = usePerformanceData();
-
-  const {
-    equipmentProfile,        setEquipmentProfile,
-    equipmentUsageAnalytics, setEquipmentUsageAnalytics,
-  } = useEquipmentData();
 
   const [fatiguePrediction,    setFatiguePrediction]    = useState<FatiguePrediction | undefined>(undefined);
   const [dailyGuidance,        setDailyGuidance]        = useState<DailyGuidance | undefined>(undefined);
@@ -1381,8 +1364,6 @@ export default function DashboardPage() {
     // ── Phase 27 / 27.5: Equipment ───────────────────────────────────────────
     const equipmentInventoryVal = buildEquipmentInventory();
     userEquipmentRef.current = equipmentInventoryVal.allEquipmentNames;
-    setEquipmentProfile(computeEquipmentProfile(equipmentInventoryVal.allEquipmentNames));
-    setEquipmentUsageAnalytics(analyzeEquipmentUsage(equipmentInventoryVal.allEquipmentNames));
 
     // ── Phase 30: Goal Periodization Engine ──────────────────────────────────
     const periodizationGoalType = mapOnboardingGoalToGoalType(user.goals ?? []);
@@ -2778,7 +2759,6 @@ export default function DashboardPage() {
   function handleMarkComplete() {
     markWorkoutCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
-    setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
     setShowRescueSession(false);
     refreshAfterMark();
     refreshAdherenceAfterMark("completed");
@@ -2787,7 +2767,6 @@ export default function DashboardPage() {
   function handleMarkPartial() {
     markWorkoutPartiallyCompleted(new Date().toISOString().slice(0, 10));
     if (workout) logEquipmentUsage(workout.exercises.map(ex => ex.exercise), userEquipmentRef.current);
-    setEquipmentUsageAnalytics(analyzeEquipmentUsage(userEquipmentRef.current));
     setShowRescueSession(false);
     refreshAfterMark();
     refreshAdherenceAfterMark("partially_completed");
@@ -3187,7 +3166,6 @@ export default function DashboardPage() {
                       forecast: achievementForecast,
                     } : undefined}
                   />
-                  <AdaptiveInsightsPanel insights={adaptiveInsights} />
                 </>
               }
               trends={
@@ -3210,11 +3188,6 @@ export default function DashboardPage() {
                     trends={performanceTrends ?? []}
                     summaries={exerciseSummaries}
                     trainingProfile={trainingResponse}
-                  />
-                  <ForecastCard
-                    forecast={annualForecast}
-                    macrocycle={macrocyclePlan}
-                    goalConflict={goalConflict}
                   />
                 </>
               }
@@ -3259,121 +3232,25 @@ export default function DashboardPage() {
                 />
               }
             />
+
+            {/* Dashboard 3.0 — Batch 20, Phase 5. Teaser entry point for the
+                Insights destination, matching BodyStatusCard's button-not-Link
+                pattern. Sits at the base of the This Week umbrella rather than
+                a 6th bottom-nav item, per the approved strategy doc. */}
+            <button
+              type="button"
+              onClick={() => router.push("/insights")}
+              className="w-full text-left bg-surface rounded-2xl border border-border shadow-card p-4 flex items-center justify-between hover:bg-canvas active:bg-surface-subtle transition-colors mt-2"
+              aria-label="See your full Insights"
+            >
+              <div>
+                <div className="text-[13px] font-semibold text-ink">See your full Insights</div>
+                <div className="text-[11px] text-ink-muted mt-0.5">Trends, discovered patterns & how good Axis has been</div>
+              </div>
+              <AxisIcon name="arrow-right" size={14} strokeWidth={1.5} className="text-ink-muted flex-shrink-0" />
+            </button>
           </AccordionSection>
 
-          {/* Dashboard 2.0 — CoachAccuracyCard and CoachingMemoryCard
-              relocated to the Axis Intelligence hubs below: both answer "how
-              accurate/what has Axis learned," not an athletic-performance
-              question — they were misfiled here. */}
-          <AccordionSection
-            id="performance-tracking"
-            title="Performance Tracking"
-            summary="Metrics, coaching history & forecasts"
-          >
-            <PerformanceForecastCard
-              potential={performancePotential}
-              trainingRisk={trainingRisk}
-              readinessForecast={readinessForecast}
-              strategyPrediction={strategyPrediction}
-              opportunity={performanceOpportunity}
-              primeWindow={primeTrainingWindow}
-              currentCycleDay={recommendation.phase.cycleDay}
-            />
-            {equipmentProfile && (
-              <EquipmentInsightsCard
-                profile={equipmentProfile}
-                usageAnalytics={equipmentUsageAnalytics ?? undefined}
-              />
-            )}
-          </AccordionSection>
-
-          <AccordionSection
-            id="insights-analytics"
-            title="Insights & Analytics"
-            summary="Discovered patterns, exercise intelligence &amp; correlations"
-          >
-            {insightDiscovery && <InsightDiscoveryCard report={insightDiscovery} />}
-            {exerciseAnalytics && <ExerciseAnalyticsCard report={exerciseAnalytics} />}
-            {correlationReport && <CorrelationExplorerCard report={correlationReport} />}
-          </AccordionSection>
-
-        </div>
-
-        {/* ── LAYER 3: ADVANCED ANALYTICS ────────────────────────────────── */}
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center gap-3 px-1">
-            <div className="flex-1 h-px bg-[#EAE7DE]" />
-            <span className="text-[10px] font-semibold text-[#C8C5BC] uppercase tracking-[0.12em]">Advanced</span>
-            <div className="flex-1 h-px bg-[#EAE7DE]" />
-          </div>
-          {/* Dashboard 2.0 — four hubs replace 19 previously-separate cards.
-              Confidence & Accuracy Hub merges 9 "how accurate is Axis" cards
-              (including CoachAccuracyCard, relocated) — every raw percentage
-              converted to qualitative language, the biggest single violation
-              of the brief's "no numerical contribution percentages" rule
-              found in the whole audit. What Axis Learned Hub merges 5
-              related-but-distinct "what does Axis know about me" cards
-              (including CoachingMemoryCard, relocated — its own header was
-              literally "What Axis has learned"). Outcome Intelligence Hub and
-              Capacity Hub each merge 2 confirmed-duplicate cards. InsightsCard
-              (legacy, superseded by InsightDiscoveryCard + this hub's unified
-              insights) is removed outright. */}
-          <AccordionSection
-            id="intelligence"
-            title="Axis Intelligence"
-            summary="Calibration, accuracy, and learning data"
-          >
-            <ConfidenceAccuracyHubCard
-              calibration={predictionCalibration}
-              bias={forecastBias}
-              confCalibration={confCalibration}
-              readinessConfidence={readinessConfidence}
-              predictionAccuracy={predictionAccuracy}
-              recConfidence={recConfidence}
-              calibrationReport={calibrationReport}
-              driftReport={driftReport}
-              forecastAccuracy={forecastAccuracy}
-              physiologyConf={physiologyConf}
-              feedbackSummary={feedbackSummary}
-              predictorRanking={predictorRanking}
-              personalEquation={personalEquation}
-              coachAccuracy={accuracyReport}
-              recEffectiveness={recEffectiveness}
-            />
-            <WhatAxisLearnedHubCard
-              fingerprint={physiologyFingerprint}
-              patternConfidences={patternConfidences}
-              recoveryCapacity={recoveryCapacity}
-              personalWeights={personalWeights}
-              personalizationProgress={personalizationProgress}
-              phaseResponse={phaseResponse}
-              symptomImpact={symptomImpact}
-              recoveryModel={recoveryResponseProf}
-              physiologyConf={physiologyConf}
-              narrative={p45Narrative}
-              identity={identityModel}
-              similar={similarSituations}
-              memoryItems={coachingMemory}
-            />
-            <OutcomeIntelligenceHubCard
-              successModel={goalSuccessModel}
-              behaviorImpact={behaviorImpact}
-              bottlenecks={bottleneckReport}
-              leveragePoint={leveragePoint}
-              forecast={completionForecast}
-              scorecard={outcomeScorecard}
-              successPatterns={successPatterns}
-            />
-            <CapacityHubCard
-              capacity={capacityScore}
-              momentum={unifiedMomentum}
-              forecast={capacityForecast}
-              balance={lifeBalance}
-              sufficiency={recoverySufficiency}
-              trajectory={trajectoryScore}
-              insights={unifiedInsights}
-            />
-          </AccordionSection>
         </div>
 
         {/* ── LAYER 5: EDUCATION & EXPLORATION ───────────────────────────── */}
