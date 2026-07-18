@@ -17,6 +17,7 @@ import {
 } from "@/components/onboarding/Steps6to10";
 import { SymptomPreferencesPanel } from "@/components/profile/SymptomPreferencesPanel";
 import { Step11Equipment } from "@/components/onboarding/EquipmentStep";
+import { Step12Physiology } from "@/components/onboarding/PhysiologyStep";
 import { CustomEquipmentManager } from "@/components/profile/CustomEquipmentManager";
 import { CustomExerciseLibrary } from "@/components/profile/CustomExerciseLibrary";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -163,6 +164,20 @@ export default function ProfilePage() {
             </div>
             <CustomExerciseLibrary />
           </div>
+        </section>
+
+        <div className="border-t border-[#EAE7DE]" />
+
+        {/* Body metrics (Nutrition Intelligence 2.0 backfill) — optional,
+            not part of isProfileValid()'s gate. Adding these unlocks
+            personalized BMR/TDEE-based nutrition targets in place of the
+            default estimate; leaving them blank keeps today's behavior. */}
+        <section>
+          <SectionHeader
+            title="Body metrics"
+            subtitle="Optional. Adding these gives you personalized nutrition targets instead of a general default."
+          />
+          <Step12Physiology data={data} onChange={patch} />
         </section>
 
         <div className="border-t border-[#EAE7DE]" />

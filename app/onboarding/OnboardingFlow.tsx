@@ -19,10 +19,11 @@ import {
   Step10Priorities,
 } from "@/components/onboarding/Steps6to10";
 import { Step11Equipment } from "@/components/onboarding/EquipmentStep";
+import { Step12Physiology } from "@/components/onboarding/PhysiologyStep";
 import { EMPTY_ONBOARDING, canAdvance, type OnboardingData } from "@/lib/onboarding-types";
 import { buildAdaptiveProfile } from "@/lib/adaptive-profile";
 
-const TOTAL_STEPS = 11;
+const TOTAL_STEPS = 12;
 
 // ─── Main orchestrator ────────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ export function OnboardingFlow({ onComplete }: { onComplete: (data: OnboardingDa
           {step === 9  && <Step9Symptoms       {...stepProps} />}
           {step === 10 && <Step10Priorities    {...stepProps} />}
           {step === 11 && <Step11Equipment     {...stepProps} />}
+          {step === 12 && <Step12Physiology    {...stepProps} />}
         </StepWrapper>
       </div>
     </div>

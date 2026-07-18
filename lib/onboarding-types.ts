@@ -43,6 +43,16 @@ export interface OnboardingData {
 
   // Step 11: Equipment inventory
   equipment: string[];
+
+  // Step 12: Body metrics (Nutrition Intelligence 2.0) — all optional so
+  // undefined naturally distinguishes "legacy user" from "hasn't reached
+  // step 12 yet." See lib/nutrition/tdee.ts for how these are consumed.
+  age?:               number;   // years
+  heightCm?:          number;   // centimeters
+  weightKg?:          number;   // kilograms
+  sex?:               "female" | "male" | "prefer_not_to_say";
+  activityLevel?:     string;   // one of tdee.ts's ACTIVITY_MULTIPLIERS keys
+  dietaryPreference?: string;
 }
 
 export const EMPTY_ONBOARDING: OnboardingData = {
@@ -86,6 +96,7 @@ export function canAdvance(step: number, data: OnboardingData): boolean {
     case 9:  return data.symptoms.length > 0;
     case 10: return data.performancePriorities.length > 0;
     case 11: return true; // equipment selection is optional
+    case 12: return !!data.age && !!data.heightCm && !!data.weightKg && !!data.activityLevel; // sex + diet stay optional
     default: return true;
   }
 }
@@ -109,4 +120,5 @@ export const STEPS: StepConfig[] = [
   { id: 9,  title: "Symptoms that affect training.", subtitle: "Only what's relevant to performance. This is not a health form.", category: "Symptoms" },
   { id: 10, title: "What matters most to you?",      subtitle: "Your top priorities shape how the adaptive engine weights its decisions.", category: "Priorities" },
   { id: 11, title: "What equipment do you have?",   subtitle: "Axis filters and substitutes exercises to match your setup. You can change this anytime.", category: "Equipment" },
+  { id: 12, title: "A few body basics.",            subtitle: "This establishes your starting nutrition targets before Axis learns from your training and check-ins.", category: "Body Metrics" },
 ];
