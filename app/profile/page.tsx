@@ -21,6 +21,13 @@ import { Step12Physiology } from "@/components/onboarding/PhysiologyStep";
 import { CustomEquipmentManager } from "@/components/profile/CustomEquipmentManager";
 import { CustomExerciseLibrary } from "@/components/profile/CustomExerciseLibrary";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ScheduleInsightsCard }   from "@/components/dashboard/ScheduleInsightsCard";
+import { UpcomingLifeEventsCard } from "@/components/dashboard/UpcomingLifeEventsCard";
+import { getWorkoutHistory }      from "@/lib/history/workoutHistory";
+import { getAdherenceHistory }    from "@/lib/adherence/adherenceTracker";
+import { buildScheduleLearningProfile, type ScheduleLearningProfile } from "@/lib/lifestyle/scheduleLearning";
+import { buildTrainingAvailabilityProfile, type TrainingAvailabilityProfile } from "@/lib/lifestyle/scheduleIntelligence";
+import { getUpcomingEvents, type ScheduledLifeEventWithContext } from "@/lib/lifestyle/lifeStressCalendar";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -47,6 +54,17 @@ export default function ProfilePage() {
   const [data, setData] = useState<OnboardingData | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
 
+  // Dashboard 3.0 — Batch 20. ScheduleInsightsCard/UpcomingLifeEventsCard
+  // relocated here from the dashboard's "Lifestyle & Adherence" section
+  // (calendar inputs, not body readouts). Recomputed independently rather
+  // than shared with /dashboard's state — both inputs are pure localStorage
+  // reads (workout/adherence history, scheduled events), so recomputing here
+  // carries none of the double-side-effect risk that ruled out this approach
+  // for the Insights destination (Phase 4).
+  const [scheduleLearning,    setScheduleLearning]    = useState<ScheduleLearningProfile | undefined>(undefined);
+  const [availabilityProfile, setAvailabilityProfile] = useState<TrainingAvailabilityProfile | undefined>(undefined);
+  const [upcomingLifeEvents,  setUpcomingLifeEvents]  = useState<ScheduledLifeEventWithContext[] | undefined>(undefined);
+
   useEffect(() => {
     const raw = localStorage.getItem("axis_onboarding");
     if (!raw) { router.push("/onboarding"); return; }
@@ -56,6 +74,15 @@ export default function ProfilePage() {
       router.push("/onboarding");
     }
   }, [router]);
+
+  useEffect(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const adherenceHistory = getAdherenceHistory();
+    const rawHistory       = getWorkoutHistory();
+    setScheduleLearning(buildScheduleLearningProfile(adherenceHistory, rawHistory));
+    setAvailabilityProfile(buildTrainingAvailabilityProfile(adherenceHistory));
+    setUpcomingLifeEvents(getUpcomingEvents(todayStr, 14));
+  }, []);
 
   const patch = useCallback((update: Partial<OnboardingData>) => {
     setData(prev => prev ? { ...prev, ...update } : null);
@@ -189,6 +216,21 @@ export default function ProfilePage() {
             subtitle="Choose which symptoms appear in your daily check-in."
           />
           <SymptomPreferencesPanel />
+        </section>
+
+        <div className="border-t border-[#EAE7DE]" />
+
+        {/* Schedule & life events (Dashboard 3.0 — relocated from the daily
+            dashboard; calendar inputs, not body readouts). */}
+        <section>
+          <SectionHeader
+            title="Schedule & life events"
+            subtitle="When you train best, and any upcoming events Axis has adjusted your plan around."
+          />
+          <div className="space-y-4">
+            <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
+            <UpcomingLifeEventsCard events={upcomingLifeEvents} />
+          </div>
         </section>
 
         {/* Validation error */}

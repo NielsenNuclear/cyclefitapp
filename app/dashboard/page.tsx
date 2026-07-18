@@ -259,14 +259,14 @@ import {
 } from "@/lib/adherence/skipReasonStore";
 import { computeAdherenceAnalytics, type AdherenceAnalytics } from "@/lib/adherence/adherenceAnalytics";
 import { buildBehaviorPatterns, type BehaviorPatterns }       from "@/lib/adherence/behaviorPatterns";
-import { computeAdherenceRisk, riskToVolumeScale, type AdherenceRisk } from "@/lib/adherence/adherenceRisk";
+import { computeAdherenceRisk, riskToVolumeScale } from "@/lib/adherence/adherenceRisk";
 import { saveRisk35Level, loadRisk35Level, risk35ToVolumeScale }       from "@/lib/adherence/risk35VolumeAdapter";
 import { getMinimumViableWorkout, type MinimumViableWorkout } from "@/lib/adherence/minimumWorkout";
 import { buildPersonalAdherenceProfile, type PersonalAdherenceProfile } from "@/lib/adherence/personalAdherenceProfile";
-import { HabitIntelligenceCard }       from "@/components/dashboard/HabitIntelligenceCard";
+import { AdherenceHubCard }            from "@/components/dashboard/AdherenceHubCard";
 // ─── Phase 35: Adherence Intelligence Engine ──────────────────────────────────
 import { computeConsistencyScore, saveConsistencyScore, getConsistencyHistory, type ConsistencyScore } from "@/lib/adherence/consistency";
-import { detectAdherenceRisk, type AdherenceRiskReport }           from "@/lib/adherence/riskDetection";
+import { detectAdherenceRisk }           from "@/lib/adherence/riskDetection";
 import { activateRescueMode, deactivateRescueMode, getRescueModeState, maybeAutoActivateRescueMode, type RescueModeState } from "@/lib/adherence/rescueMode";
 import { computeMultiDomainStreaks, type MultiDomainStreaks }       from "@/lib/adherence/streaks";
 import { computeMomentum, type MomentumScore }                     from "@/lib/adherence/momentum";
@@ -274,7 +274,6 @@ import { decideMissedWorkout, type WorkoutRecoveryPlan }           from "@/lib/a
 import { recordLifeEvent, clearLifeEvent, getActiveLifeEvent, type ActiveLifeEvent, type LifeEventType } from "@/lib/adherence/lifeEvents";
 import { buildMotivationPatterns, type MotivationPatterns }        from "@/lib/adherence/motivationPatterns";
 import { buildSuccessFormula, type SuccessFormula }                from "@/lib/adherence/successFormula";
-import { AdherenceCard }   from "@/components/dashboard/AdherenceCard";
 import { MomentumCard }    from "@/components/dashboard/MomentumCard";
 // ─── Phase 37: Auto-Regulation & Dynamic Training Intelligence ─────────────────
 import { computeCurrentFatigueScore, saveFatigueScore, getFatigueScoreHistory, type FatigueScoreEntry } from "@/lib/autoregulation/fatigueModel";
@@ -294,19 +293,18 @@ import { computeGoalVelocity, type GoalVelocity }                             fr
 import { buildPerformancePredictors, type PerformancePredictors }             from "@/lib/performance/performancePredictors";
 import { computeGoalAdjustments, type GoalAdjustmentAdvice }                  from "@/lib/performance/goalAdjustment";
 // ─── Phase 39: Lifestyle Intelligence Engine ───────────────────────────────────
-import { buildTrainingAvailabilityProfile, type TrainingAvailabilityProfile }  from "@/lib/lifestyle/scheduleIntelligence";
+import { buildTrainingAvailabilityProfile }  from "@/lib/lifestyle/scheduleIntelligence";
 import { computeDailyTimeBudget, type DailyTimeBudget }                        from "@/lib/lifestyle/timeBudget";
 import { getTravelModeState, type TravelModeState }                             from "@/lib/lifestyle/travelMode";
-import { getScheduledEvents, getUpcomingEvents, getCurrentActiveScheduledEvent, type ScheduledLifeEventWithContext } from "@/lib/lifestyle/lifeStressCalendar";
+import { getScheduledEvents, getUpcomingEvents, getCurrentActiveScheduledEvent } from "@/lib/lifestyle/lifeStressCalendar";
 import { computeEnergyAvailability, type EnergyAvailability }                  from "@/lib/lifestyle/energyAvailability";
 import { applyWorkoutMode }                                                     from "@/lib/lifestyle/workoutModes";
-import { buildScheduleLearningProfile, type ScheduleLearningProfile }          from "@/lib/lifestyle/scheduleLearning";
+import { buildScheduleLearningProfile }          from "@/lib/lifestyle/scheduleLearning";
 import { computeLifestyleBurnout, saveBurnoutEntry, type LifestyleBurnoutReport } from "@/lib/lifestyle/burnoutDetection";
 import { buildLifeContext, type LifeContext }                                   from "@/lib/lifestyle/lifeContextEngine";
 import { LifestyleCard }                                                         from "@/components/dashboard/LifestyleCard";
 import { BurnoutPreventionCard }                                                 from "@/components/dashboard/BurnoutPreventionCard";
-import { ScheduleInsightsCard }                                                  from "@/components/dashboard/ScheduleInsightsCard";
-import { UpcomingLifeEventsCard }                                                from "@/components/dashboard/UpcomingLifeEventsCard";
+import { ThisWeekSection }                                                       from "@/components/dashboard/ThisWeekSection";
 // ─── Phase 43: Outcome Optimization Engine ────────────────────────────────────
 import { recordSuccessSnapshot, buildGoalSuccessModel, type GoalSuccessModel } from "@/lib/outcomes/goalSuccessModel";
 import { computeBehaviorImpactRanking, type BehaviorImpactReport }            from "@/lib/outcomes/behaviorImpactRanking";
@@ -362,9 +360,8 @@ import { recordSituation, scoreSituationOutcome, findSimilarSituations, type Sim
 import { buildRecommendationMemoryProfile, type RecommendationMemoryProfile } from "@/lib/memory/recommendationMemory";
 import { buildCoachingNarrative, type CoachingNarrative as P45Narrative }     from "@/lib/memory/coachingNarrative";
 import { buildIdentityModel, type IdentityModel }                             from "@/lib/memory/identityModel";
-import { AdherenceIntelligenceCard }                                           from "@/components/dashboard/AdherenceIntelligenceCard";
 // ─── Phase 46: Behavioral Adherence Intelligence ───────────────────────────────
-import { computeAdherencePatterns, type AdherencePatternReport }              from "@/lib/adherence/patternEngine";
+import { computeAdherencePatterns }              from "@/lib/adherence/patternEngine";
 import { analyzeMissedWorkouts, type MissedWorkoutAnalysis }                  from "@/lib/adherence/missedWorkoutAnalysis";
 import { forecastAdherenceRisk, type AdherenceRiskForecast }                  from "@/lib/adherence/adherenceRiskForecast";
 import { computeAdaptiveWorkoutSize, type WorkoutSizeRecommendation }         from "@/lib/adherence/adaptiveWorkoutSizing";
@@ -776,7 +773,6 @@ export default function DashboardPage() {
   // Phase 34 state
   const [adherenceAnalytics,   setAdherenceAnalytics]   = useState<AdherenceAnalytics | undefined>(undefined);
   const [behaviorPatterns,     setBehaviorPatterns]      = useState<BehaviorPatterns | undefined>(undefined);
-  const [adherenceRisk,        setAdherenceRisk]         = useState<AdherenceRisk | undefined>(undefined);
   const [adherenceProfile,     setAdherenceProfile]      = useState<PersonalAdherenceProfile | undefined>(undefined);
   const [showRescueSession,    setShowRescueSession]     = useState(false);
   const [rescueWorkout,        setRescueWorkout]         = useState<MinimumViableWorkout | undefined>(undefined);
@@ -784,7 +780,6 @@ export default function DashboardPage() {
   const [consistencyScore,     setConsistencyScore]      = useState<ConsistencyScore | undefined>(undefined);
   const [multiDomainStreaks,   setMultiDomainStreaks]    = useState<MultiDomainStreaks | undefined>(undefined);
   const [momentumScore,        setMomentumScore]         = useState<MomentumScore | undefined>(undefined);
-  const [adherenceRiskReport,  setAdherenceRiskReport]  = useState<AdherenceRiskReport | undefined>(undefined);
   const [rescueModeState,      setRescueModeState]       = useState<RescueModeState | null>(null);
   const [lifeEvent,            setLifeEvent]             = useState<ActiveLifeEvent | null>(null);
   const [motivationPatterns,   setMotivationPatterns]    = useState<MotivationPatterns | undefined>(undefined);
@@ -811,9 +806,6 @@ export default function DashboardPage() {
   const [timeBudget,             setTimeBudget]             = useState<DailyTimeBudget | undefined>(undefined);
   const [lifeContext,            setLifeContext]            = useState<LifeContext | undefined>(undefined);
   const [lifestyleBurnout,       setLifestyleBurnout]       = useState<LifestyleBurnoutReport | undefined>(undefined);
-  const [scheduleLearning,       setScheduleLearning]       = useState<ScheduleLearningProfile | undefined>(undefined);
-  const [availabilityProfile,    setAvailabilityProfile]    = useState<TrainingAvailabilityProfile | undefined>(undefined);
-  const [upcomingLifeEvents,     setUpcomingLifeEvents]     = useState<ScheduledLifeEventWithContext[] | undefined>(undefined);
   // Phase 38 state
   const [goalRoadmap,          setGoalRoadmap]          = useState<GoalRoadmap | undefined>(undefined);
   const [macrocyclePlan,       setMacrocyclePlan]       = useState<MacroCyclePlan | undefined>(undefined);
@@ -867,7 +859,6 @@ export default function DashboardPage() {
   const [p45Narrative,         setP45Narrative]         = useState<P45Narrative | undefined>(undefined);
   const [identityModel,        setIdentityModel]        = useState<IdentityModel | undefined>(undefined);
   // Phase 46 state
-  const [adherencePatterns,    setAdherencePatterns]    = useState<AdherencePatternReport | undefined>(undefined);
   const [missedWorkoutAnalysis, setMissedWorkoutAnalysis] = useState<MissedWorkoutAnalysis | undefined>(undefined);
   const [nextWorkoutRiskForecast, setNextWorkoutRiskForecast] = useState<AdherenceRiskForecast | undefined>(undefined);
   const [adaptiveWorkoutSize,  setAdaptiveWorkoutSize]  = useState<WorkoutSizeRecommendation | undefined>(undefined);
@@ -1533,11 +1524,9 @@ export default function DashboardPage() {
     setTravelModeState(travelModeVal);
 
     const availProfileVal = buildTrainingAvailabilityProfile(adherenceHistoryPre);
-    setAvailabilityProfile(availProfileVal);
 
     const scheduledEventsVal = getScheduledEvents(todayStr);
     const upcomingEventsVal  = getUpcomingEvents(todayStr, 14);
-    setUpcomingLifeEvents(upcomingEventsVal);
     const currentScheduledEvent = getCurrentActiveScheduledEvent(todayStr);
 
     const energyAvailabilityVal = computeEnergyAvailability({
@@ -1578,7 +1567,6 @@ export default function DashboardPage() {
     setLifestyleBurnout(lifestyleBurnoutVal);
 
     const scheduleLearningVal = buildScheduleLearningProfile(adherenceHistoryPre, rawHistory);
-    setScheduleLearning(scheduleLearningVal);
 
     const lifeContextVal = buildLifeContext({
       energyAvailability:  energyAvailabilityVal,
@@ -1974,7 +1962,6 @@ export default function DashboardPage() {
     const adherenceAnalyticsVal = computeAdherenceAnalytics(adherenceHistoryVal, todayStr);
     setAdherenceAnalytics(adherenceAnalyticsVal);
     setBehaviorPatterns(behaviorPatternsPre);
-    setAdherenceRisk(adherenceRiskPre);
 
     const skipSummaryVal      = buildSkipReasonSummary(getSkipReasonHistory());
     const adherenceProfileVal = buildPersonalAdherenceProfile(
@@ -2007,7 +1994,6 @@ export default function DashboardPage() {
     const risk35Val = detectAdherenceRisk(
       todayStr, adherenceHistoryVal, checkinHistoryVal, recoveryLogsAll, fullRdxHistory, consistencyHistoryVal,
     );
-    setAdherenceRiskReport(risk35Val);
     saveRisk35Level(risk35Val.level); // Phase 55: persist for next session's volume gate
     maybeAutoActivateRescueMode(risk35Val, todayStr);
     setRescueModeState(getRescueModeState(todayStr));
@@ -2324,7 +2310,6 @@ export default function DashboardPage() {
 
     // ── Phase 46: Behavioral Adherence Intelligence ───────────────────────────
     const adherencePatternsVal = computeAdherencePatterns(rawHistory);
-    setAdherencePatterns(adherencePatternsVal);
 
     const missedAnalysisVal = analyzeMissedWorkouts(adherenceHistoryVal);
     setMissedWorkoutAnalysis(missedAnalysisVal);
@@ -2691,7 +2676,6 @@ export default function DashboardPage() {
     const skipSum34   = buildSkipReasonSummary(getSkipReasonHistory());
     setAdherenceAnalytics(analytics34);
     setBehaviorPatterns(patterns34);
-    setAdherenceRisk(risk34);
     setAdherenceProfile(buildPersonalAdherenceProfile(analytics34, patterns34, risk34, skipSum34));
   }
 
@@ -3052,115 +3036,133 @@ export default function DashboardPage() {
             )}
           </AccordionSection>
 
-          {/* Dashboard 2.0 — Progress Hub merges PerformanceHubCard (anchor) +
-              ProgressCard + ProgressInsightsCard. ExerciseTrendsCard merges
-              PerformanceTrendsCard + ExerciseIntelligenceCard (confirmed
-              identical PerformanceTrend[] data, rendered twice before this).
-              MomentumCard and ForecastCard stay standalone (distinct
-              questions, not duplicates). */}
+          {/* Dashboard 3.0 — LifestyleCard joins the Body Today umbrella
+              (4th member alongside Recovery/Cycle/Nutrition). Moved here in
+              Phase 3 rather than Phase 2 to avoid touching this JSX block
+              twice — Phase 3 already restructures the rest of its former
+              "Lifestyle & Adherence" section (AdherenceHubCard below,
+              ScheduleInsightsCard/UpcomingLifeEventsCard to /profile). */}
           <AccordionSection
-            id="progress"
-            title="Progress & Performance"
+            id="lifestyle"
+            title="Lifestyle"
+            summary="Today's mode & time budget"
+          >
+            <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
+          </AccordionSection>
+
+          {/* Dashboard 3.0 — "This Week" umbrella replaces the three
+              previously-separate Progress & Performance / Athlete
+              Development / Training Plan sections with one tabbed card
+              (ThisWeekSection), matching TrainingPlanHubCard's own nested
+              tab pattern one level up. Consistency tab hosts the new
+              AdherenceHubCard (merges AdherenceCard + AdherenceIntelligenceCard
+              + HabitIntelligenceCard — see AdherenceHubCard.tsx for the
+              per-field dedup rationale). MomentumCard/ForecastCard still
+              render in the Trends tab for now; ForecastCard moves to the
+              Insights destination in Phase 5. */}
+          <AccordionSection
+            id="this-week"
+            title="This Week"
             summary={unifiedMomentum?.dataReady
               ? `Momentum: ${unifiedMomentum.direction}`
-              : "Log workouts to see progress"}
+              : "Plan, trends, athlete profile & consistency"}
           >
-            <MomentumCard momentum={momentumScore} />
-            <ProgressHubCard
-              quality={trainingQuality}
-              plateaus={plateauReport}
-              personalBests={personalBests}
-              velocity={goalVelocity}
-              adjustments={goalAdjustments}
-              predictors={perfPredictors}
-              progressionTargets={progressionTargets}
-              exerciseMastery={exerciseMastery}
-              plateauInterventions={plateauInterventions}
-              mesocycle={mesocycle}
-              weeklyPrescription={weeklyPrescription}
+            <ThisWeekSection
+              plan={
+                <>
+                  <CoachingHubCard
+                    daily={dailyGuidance}
+                    weekly={weeklyReview}
+                    monthly={monthlyReview}
+                    decision={trainingDecision}
+                    prediction={outcomePrediction}
+                    coachView={coachView}
+                    progression={{ profile: progressionProfile, adjustment: coachingAdjustment }}
+                  />
+                  <TrainingPlanHubCard
+                    weeklyPlan={weeklyPlan}
+                    trainingBlock={trainingBlock}
+                    calendar={periodizedCalendar}
+                    periodization={periodizationStatus && onboardingRef.current ? {
+                      status: periodizationStatus,
+                      goalLabel: getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label,
+                      cycleSynergy: cycleSynergySignal,
+                      deloadDecision: adaptiveDeloadDecision,
+                      forecast: achievementForecast,
+                    } : undefined}
+                  />
+                  <AdaptiveInsightsPanel insights={adaptiveInsights} />
+                </>
+              }
+              trends={
+                <>
+                  <MomentumCard momentum={momentumScore} />
+                  <ProgressHubCard
+                    quality={trainingQuality}
+                    plateaus={plateauReport}
+                    personalBests={personalBests}
+                    velocity={goalVelocity}
+                    adjustments={goalAdjustments}
+                    predictors={perfPredictors}
+                    progressionTargets={progressionTargets}
+                    exerciseMastery={exerciseMastery}
+                    plateauInterventions={plateauInterventions}
+                    mesocycle={mesocycle}
+                    weeklyPrescription={weeklyPrescription}
+                  />
+                  <ExerciseTrendsCard
+                    trends={performanceTrends ?? []}
+                    summaries={exerciseSummaries}
+                    trainingProfile={trainingResponse}
+                  />
+                  <ForecastCard
+                    forecast={annualForecast}
+                    macrocycle={macrocyclePlan}
+                    goalConflict={goalConflict}
+                  />
+                </>
+              }
+              athlete={
+                <>
+                  {onboardingRef.current && (
+                    <GoalsMilestonesHubCard
+                      goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
+                      sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
+                      milestones={milestones}
+                      athleteMilestones={developmentMilestones}
+                      timelineEvents={athleteProfile?.timeline ?? []}
+                    />
+                  )}
+                  <AthleteProfileHubCard
+                    profile={athleteProfile}
+                    trainingAge={athleteTrainingAge}
+                    resilienceIndex={resilienceIndex}
+                    progressionVelocity={progressionVelocity}
+                    athleteIdentity={athleteIdentity}
+                    trainingMaturity={trainingMaturity}
+                    historySummary={historySummary}
+                  />
+                </>
+              }
+              consistency={
+                <AdherenceHubCard
+                  consistency={consistencyScore}
+                  streaks={multiDomainStreaks}
+                  momentum={momentumScore}
+                  lifeEvent={lifeEvent}
+                  onLifeEvent={handleLifeEvent}
+                  onClearLifeEvent={handleClearLifeEvent}
+                  riskForecast={nextWorkoutRiskForecast}
+                  missedAnalysis={missedWorkoutAnalysis}
+                  workoutSize={adaptiveWorkoutSize}
+                  habitStrength={habitStrength}
+                  formula={successFormula}
+                  profile={adherenceProfile}
+                  behaviorPatterns={behaviorPatterns}
+                  analytics={adherenceAnalytics}
+                />
+              }
             />
-            <ExerciseTrendsCard
-              trends={performanceTrends ?? []}
-              summaries={exerciseSummaries}
-              trainingProfile={trainingResponse}
-            />
-            <ForecastCard
-              forecast={annualForecast}
-              macrocycle={macrocyclePlan}
-              goalConflict={goalConflict}
-            />
-          </AccordionSection>
-
-          {/* Dashboard 2.0 — Goals & Milestones Hub merges GoalProgressCard
-              (anchor) + GoalRoadmapCard (confirmed duplicate, second engine)
-              + MilestoneCard + LongitudinalTimelineCard. Athlete Profile Hub
-              merges AthleteProfileCard (anchor) + AthleteDevelopmentCard's
-              non-milestone content + TrainingMaturityCard +
-              TrainingSummaryCard — its milestone content redirects to the
-              Goals & Milestones Hub instead of a 5th milestone surface. */}
-          <AccordionSection
-            id="athlete"
-            title="Athlete Development"
-            summary="Long-term training age & athlete profile"
-          >
-            {onboardingRef.current && (
-              <GoalsMilestonesHubCard
-                goalType={mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])}
-                sessionsPerWeek={onboardingRef.current.sessionsPerWeek}
-                milestones={milestones}
-                athleteMilestones={developmentMilestones}
-                timelineEvents={athleteProfile?.timeline ?? []}
-              />
-            )}
-            <AthleteProfileHubCard
-              profile={athleteProfile}
-              trainingAge={athleteTrainingAge}
-              resilienceIndex={resilienceIndex}
-              progressionVelocity={progressionVelocity}
-              athleteIdentity={athleteIdentity}
-              trainingMaturity={trainingMaturity}
-              historySummary={historySummary}
-            />
-          </AccordionSection>
-
-          {/* Dashboard 2.0 — Training Plan Hub merges WeeklyPlanCard (anchor,
-              tab 1) + TrainingBlockCard/PeriodizationCard (tab 2 — block-
-              progress deduplicated, PeriodizationCard's richer version wins)
-              + PeriodizedCalendarCard (tab 3). Coaching Hub merges
-              AdaptiveCoachCard (anchor) + TrainingDecisionCard (raw
-              percentages converted to qualitative language) + CoachViewCard
-              + ProgressionCard — four previously-separate "what should I do
-              today" cards. AdaptiveInsightsCard removed — confirmed literal
-              duplicate of AdaptiveInsightsPanel (identical insights prop),
-              which uses DS-2 tokens correctly and the shared
-              ConfidenceIndicator component; AdaptiveInsightsCard did neither. */}
-          <AccordionSection
-            id="training-plan"
-            title="Training Plan"
-            summary="Weekly plan & periodization"
-          >
-            <CoachingHubCard
-              daily={dailyGuidance}
-              weekly={weeklyReview}
-              monthly={monthlyReview}
-              decision={trainingDecision}
-              prediction={outcomePrediction}
-              coachView={coachView}
-              progression={{ profile: progressionProfile, adjustment: coachingAdjustment }}
-            />
-            <TrainingPlanHubCard
-              weeklyPlan={weeklyPlan}
-              trainingBlock={trainingBlock}
-              calendar={periodizedCalendar}
-              periodization={periodizationStatus && onboardingRef.current ? {
-                status: periodizationStatus,
-                goalLabel: getPeriodizationProfile(mapOnboardingGoalToGoalType(onboardingRef.current.goals ?? [])).label,
-                cycleSynergy: cycleSynergySignal,
-                deloadDecision: adaptiveDeloadDecision,
-                forecast: achievementForecast,
-              } : undefined}
-            />
-            <AdaptiveInsightsPanel insights={adaptiveInsights} />
           </AccordionSection>
 
           {/* Dashboard 2.0 — CoachAccuracyCard and CoachingMemoryCard
@@ -3197,41 +3199,6 @@ export default function DashboardPage() {
             {insightDiscovery && <InsightDiscoveryCard report={insightDiscovery} />}
             {exerciseAnalytics && <ExerciseAnalyticsCard report={exerciseAnalytics} />}
             {correlationReport && <CorrelationExplorerCard report={correlationReport} />}
-          </AccordionSection>
-
-          <AccordionSection
-            id="lifestyle"
-            title="Lifestyle & Adherence"
-            summary={consistencyScore && consistencyScore.maturityStage === "ready"
-              ? `${consistencyScore.composite}/100 consistency`
-              : "Habits & schedule"}
-          >
-            <AdherenceCard
-              consistency={consistencyScore}
-              risk={adherenceRiskReport}
-              streaks={multiDomainStreaks}
-              formula={successFormula}
-              momentum={momentumScore}
-              lifeEvent={lifeEvent}
-              onLifeEvent={handleLifeEvent}
-              onClearLifeEvent={handleClearLifeEvent}
-            />
-            <AdherenceIntelligenceCard
-              patterns={adherencePatterns}
-              missedAnalysis={missedWorkoutAnalysis}
-              riskForecast={nextWorkoutRiskForecast}
-              workoutSize={adaptiveWorkoutSize}
-              habitStrength={habitStrength}
-            />
-            <HabitIntelligenceCard
-              analytics={adherenceAnalytics}
-              patterns={behaviorPatterns}
-              risk={adherenceRisk}
-              profile={adherenceProfile}
-            />
-            <LifestyleCard context={lifeContext} energy={energyAvailability} budget={timeBudget} />
-            <ScheduleInsightsCard learning={scheduleLearning} availability={availabilityProfile} />
-            <UpcomingLifeEventsCard events={upcomingLifeEvents} />
           </AccordionSection>
 
         </div>
