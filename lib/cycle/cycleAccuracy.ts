@@ -61,6 +61,41 @@ export function logPeriod(date: string): void {
   persistHistory(history);
 }
 
+// ─── Quick-log conflict detection ──────────────────────────────────────────────
+
+export type PeriodLogConflict =
+  | { type: "future_date" }
+  | { type: "duplicate"; existingDate: string }
+  | { type: "before_latest"; latestDate: string }
+  | { type: "too_soon"; latestDate: string; daysSince: number }
+  | null;
+
+const MIN_PLAUSIBLE_CYCLE_DAYS = 10;
+
+/**
+ * Sanity-checks a period-start date a user is about to log against existing
+ * history, before it's written. Doesn't block on its own — the caller decides
+ * whether "too_soon"/"before_latest" warrant a confirm-anyway step, while
+ * "future_date" should always be a hard block (a period can't start tomorrow)
+ * and "duplicate" is an informational no-op (the date's already recorded).
+ */
+export function checkPeriodLogConflict(selectedDate: string, history: PeriodEntry[]): PeriodLogConflict {
+  const today = new Date().toISOString().slice(0, 10);
+  if (selectedDate > today) return { type: "future_date" };
+  if (history.length === 0) return null;
+
+  const sorted = [...history].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const latest = sorted[sorted.length - 1];
+
+  if (selectedDate === latest.startDate) return { type: "duplicate", existingDate: latest.startDate };
+  if (selectedDate < latest.startDate) return { type: "before_latest", latestDate: latest.startDate };
+
+  const daysSince = daysBetween(latest.startDate, selectedDate);
+  if (daysSince < MIN_PLAUSIBLE_CYCLE_DAYS) return { type: "too_soon", latestDate: latest.startDate, daysSince };
+
+  return null;
+}
+
 // ─── Statistics helpers ───────────────────────────────────────────────────────
 
 function daysBetween(a: string, b: string): number {

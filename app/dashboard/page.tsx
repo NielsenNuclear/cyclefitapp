@@ -2692,6 +2692,168 @@ export default function DashboardPage() {
     setIsRecalculating(false);
   }
 
+  // "My period started" quick action (PhaseCard). Writes the new period start
+  // to both storage systems that need it — axis_period_history (via
+  // logPeriod(), feeds cycle accuracy/ovulation/effective-cycle-length) and
+  // axis_onboarding's lastPeriodDate (the single input calculatePhase()
+  // actually reads for today's cycleDay/phase) — then re-runs the same
+  // phase-dependent recompute cascade the mount effect and
+  // handleCheckinComplete already use. Modeled closely on
+  // handleCheckinComplete, extended to also refresh the period-history-
+  // derived signals (cycle accuracy, ovulation, prime/recovery windows,
+  // learned patterns, cycle forecast, recovery score) that checkin doesn't
+  // touch since checkin never changes period history. Freshly-computed local
+  // values are threaded through the modifier chain below rather than the
+  // (about-to-be-stale) learnedPatterns/cycleForecast/primeTrainingWindow
+  // state variables, since — unlike a check-in — this action does change them.
+  function handleLogPeriod(dateStr: string) {
+    const user = onboardingRef.current;
+    if (!user) return;
+    setIsRecalculating(true);
+
+    logPeriod(dateStr);
+    const updatedUser: OnboardingData = { ...user, lastPeriodDate: dateStr };
+    onboardingRef.current = updatedUser;
+    localStorage.setItem("axis_onboarding", JSON.stringify(updatedUser));
+
+    const ph = getPeriodHistory();
+    const cl = deriveEffectiveCycleLength(ph, updatedUser.cycleLength);
+    const cycleAccuracyVal = computeCycleAccuracy(ph, updatedUser.cycleLength);
+    setCycleAccuracy(cycleAccuracyVal);
+    if (cycleAccuracyVal) setCycleHealthReport(buildCycleHealthReport(cycleAccuracyVal));
+
+    const checkin = getTodayCheckin();
+    const effectiveUser: OnboardingData = checkin
+      ? { ...updatedUser, sleepQuality: checkin.sleepQuality, stressLevel: checkin.stressLevel }
+      : updatedUser;
+    const phase = computePhase(effectiveUser, cl);
+
+    const symptomHistoryAll = getSymptomHistory();
+    const patternsVal = getLearnedPatterns(symptomHistoryAll, updatedUser.lastPeriodDate, cl);
+    setLearnedPatterns(patternsVal);
+    const cycleForecastVal = computeCycleForecast(patternsVal, phase.cycleDay, cl);
+    setCycleForecast(cycleForecastVal);
+
+    const fullRdxHistory = getReadinessHistory();
+    const ovulationEstimateVal = estimateOvulation(ph, fullRdxHistory, cl);
+    setOvulationEstimate(ovulationEstimateVal);
+    const primeWindowVal = detectPrimeTrainingWindow(fullRdxHistory, ph, cl);
+    setPrimeTrainingWindow(primeWindowVal);
+    const recoveryWindowVal = detectRecoveryWindow(fullRdxHistory, ph, cl);
+    setRecoveryWindow(recoveryWindowVal);
+
+    const profile = profileRef.current ?? undefined;
+    const newReadiness = progressionProfile && loadReport
+      ? calculateReadiness({ user: effectiveUser, phase, loadReport, progressionProfile, adaptiveProfile: profile })
+      : readinessScore;
+    if (newReadiness) {
+      setReadinessScore(newReadiness);
+      saveReadiness(newReadiness.score, newReadiness.category, newReadiness.contributors);
+      setReadinessTrend(getReadinessTrend());
+      setReadinessHistory(getReadinessHistory().slice(0, 7));
+    }
+
+    if (loadReport) {
+      const recoveryScoreVal = computeRecoveryScore({
+        date:         new Date().toISOString().slice(0, 10),
+        sleepQuality: effectiveUser.sleepQuality as "excellent" | "good" | "variable" | "poor",
+        stressLevel:  effectiveUser.stressLevel,
+        symptoms:     todaySymptoms,
+        loadReport,
+        cyclePhase:   toCyclePhaseName(phase.cycleDay, cl),
+      });
+      setRecoveryScore(recoveryScoreVal);
+      setRecoveryTrend(computeRecoveryTrend(getRecoveryScores()));
+    }
+
+    const newRec = runPipeline(effectiveUser, phase, profile, progressionProfile ?? undefined, newReadiness ?? undefined, fatiguePrediction);
+    const forecastBurden  = computeForecastBurden(cycleForecastVal.symptomEvents);
+    const personalizedRec = applyAccuracyCalibration(
+      applyForecastModifier(
+        applyTodaySymptomsModifier(
+          applyPatternModifiers(newRec, patternsVal, phase.cycleDay),
+          todaySymptoms,
+        ),
+        forecastBurden,
+      ),
+      calibrationFactors,
+      todaySymptoms,
+    );
+    setRecommendation(personalizedRec);
+    setDailyGuidance(generateDailyGuidance({
+      readiness:      newReadiness ?? readinessScore,
+      debt:           recoveryDebt,
+      burnout:        burnoutRisk,
+      fatigue:        fatiguePrediction,
+      recommendation: personalizedRec,
+    }));
+
+    const goalType = mapOnboardingGoalToGoalType(updatedUser.goals);
+    let wkt = workout;
+    // Only regenerate today's workout if it hasn't already been logged —
+    // otherwise leave a completed/partial/skipped session exactly as-is.
+    if (todayStatus === "pending") {
+      const wktRaw = runWorkoutPipeline(effectiveUser, personalizedRec.phase, environment, profile, adjustmentRef.current ?? undefined, newReadiness ?? undefined, badgeToEnergyCap(personalizedRec.training.badge), recoveryCapacity?.level ?? undefined, exerciseSummaries, adaptiveModifier ?? undefined, userEquipmentRef.current, todaySymptoms, periodizationStatus ?? undefined, exerciseMastery ?? undefined, progressionTargets ?? undefined, safetyResult?.volumeScale ?? trainingDecision?.finalVolumeScale ?? 1.0, confidenceProfile ? confidenceVolumeDamping(confidenceProfile.level) : 1.0);
+      const wktAdj = trainingDecision ? applyExerciseAdjustments(wktRaw, trainingDecision) : wktRaw;
+      wkt = applyWorkoutMode(wktAdj, lifeContext?.recommendedMode ?? "full");
+      setWorkout(wkt);
+      if (wkt.equipmentFallbacks) {
+        for (const { exerciseName, missingEquip } of wkt.equipmentFallbacks) {
+          logEquipmentSkip(exerciseName, missingEquip);
+        }
+      }
+      const { summary, load, insights, todayStatus: ts } = runAnalyticsPipeline(wkt, personalizedRec.phase, goalType, progressionProfile ?? undefined, newReadiness ?? undefined, volumeLandmarks ?? undefined);
+      setHistorySummary(summary);
+      setLoadReport(load);
+      setInsightReport(insights);
+      setTodayStatus(ts);
+    }
+
+    if (wkt) {
+      const bodyMetricsLog = onboardingRef.current && hasBodyMetrics(onboardingRef.current) ? onboardingRef.current : undefined;
+      const trainingStylesLog = onboardingRef.current?.trainingStyles ?? [];
+      const fuelTargetsLog = computeFuelTargets(phase, newReadiness ?? readinessScore, wkt, recoveryCapacity, todaySymptoms, goalType, bodyMetricsLog, trainingStylesLog);
+      setFuelTargets(fuelTargetsLog);
+      setWorkoutFueling(computeWorkoutFueling(wkt, fuelTargetsLog.fuelingLevel));
+      const nutritionTargetsLog = computeNutritionTargets(
+        phase, newReadiness ?? readinessScore, wkt, recoveryCapacity ?? null, todaySymptoms, goalType, bodyMetricsLog, trainingStylesLog,
+      );
+      let finalNutritionTargetsLog = nutritionTargetsLog;
+      if (periodizationStatus) {
+        const periodAdj = applyNutritionPeriodization(nutritionTargetsLog, periodizationStatus.phase);
+        finalNutritionTargetsLog  = periodAdj.targets;
+        setNutritionPeriodNote(periodAdj.periodizationNote);
+      }
+      setNutritionTargets(finalNutritionTargetsLog);
+    }
+
+    const activeReadiness = newReadiness ?? readinessScore;
+    if (activeReadiness && recoveryDebt && burnoutRisk && recoveryTrend) {
+      setPerformancePotential(computePerformancePotential(
+        activeReadiness.score, phase.name, recoveryDebt.debtScore, burnoutRisk.score, recoveryCapacity?.level ?? "moderate",
+      ));
+      if (symptomEscalations) {
+        setTrainingRisk(computeRiskPrediction(
+          recoveryDebt, burnoutRisk, recoveryTrend, symptomEscalations, phase.name, cycleForecastVal.symptomEvents,
+        ));
+      }
+      const rdxForecastLog = computeReadinessForecast(
+        activeReadiness.score, recoveryTrend.slope7d, cycleForecastVal.readinessDays, recoveryDebt.trend, getReadinessHistory().length,
+      );
+      setReadinessForecast(rdxForecastLog);
+      const logMeanSev = todaySymptoms.length > 0
+        ? todaySymptoms.reduce((s, e) => s + e.severity, 0) / todaySymptoms.length
+        : 0;
+      setStrategyPrediction(computeStrategyPrediction(activeReadiness.score, phase.name, recoveryDebt.debtScore, logMeanSev));
+      setPerformanceOpportunity(detectOpportunity(
+        rdxForecastLog, cycleForecastVal.readinessDays, phase.name, recoveryDebt.category, primeWindowVal, phase.cycleDay,
+      ));
+    }
+
+    setIsRecalculating(false);
+    showToast("Cycle updated — today's recommendations have been refreshed.", { variant: "success" });
+  }
+
   function refreshAfterMark() {
     if (!workout || !recommendation) return;
     const goalType    = mapOnboardingGoalToGoalType(onboardingRef.current?.goals ?? []);
@@ -3003,7 +3165,7 @@ export default function DashboardPage() {
             Dashboard 2.0 — PhaseCard/SymptomSummaryCard moved out of the
             Cycle accordion: today-only facts, not historical intelligence. */}
         <div className="space-y-2 pt-1">
-          <PhaseCard phase={recommendation.phase} />
+          <PhaseCard phase={recommendation.phase} periodHistory={getPeriodHistory()} onLogPeriod={handleLogPeriod} />
           <SymptomSummaryCard symptoms={todaySymptoms} />
         </div>
 
