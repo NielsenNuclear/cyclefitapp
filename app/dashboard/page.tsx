@@ -90,6 +90,8 @@ import { buildCycleHealthReport, type CycleHealthReport } from "@/lib/cycle/cycl
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DailyCheckIn } from "@/components/dashboard/DailyCheckIn";
+import { WelcomeOverlay, type WelcomeVariant } from "@/components/dashboard/WelcomeOverlay";
+import { isFirstLaunchToday, markLaunchedToday } from "@/lib/launch/dailyLaunch";
 import { PhaseCard } from "@/components/dashboard/PhaseCard";
 import { RecommendationWhyCard } from "@/components/dashboard/RecommendationWhyCard";
 import { WorkoutCard } from "@/components/dashboard/WorkoutCard";
@@ -630,6 +632,10 @@ export default function DashboardPage() {
 
   // ── UI state ─────────────────────────────────────────────────────────────────
   const [checkinComplete, setCheckinComplete] = useState(false);
+  // Daily Briefing — welcome overlay. null = not showing.
+  const [welcomeVariant, setWelcomeVariant]   = useState<WelcomeVariant | null>(null);
+  const [forceOpenCheckin, setForceOpenCheckin] = useState(false);
+  const checkinRef = useRef<HTMLDivElement>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [environment, setEnvironment]         = useState<TrainingEnvironment>("gym");
 
@@ -2584,6 +2590,21 @@ export default function DashboardPage() {
       setReadinessTrend(getReadinessTrend());
       setReadinessHistory(getReadinessHistory().slice(0, 7));
     }
+    // Daily Briefing — recovery guidance is sleep/stress-driven, both of
+    // which the check-in just changed, but this wasn't previously refreshed
+    // here (only ever computed once, at mount).
+    if (loadReport) {
+      const recoveryScoreCheckin = computeRecoveryScore({
+        date:         data.date,
+        sleepQuality: data.sleepQuality,
+        stressLevel:  data.stressLevel,
+        symptoms:     todaySymptomsVal,
+        loadReport,
+        cyclePhase:   toCyclePhaseName(phase.cycleDay, cl),
+      });
+      setRecoveryScore(recoveryScoreCheckin);
+      setRecoveryTrend(computeRecoveryTrend(getRecoveryScores()));
+    }
     // Update fatigue entry with fresh check-in data
     const checkinSymSev = todaySymptomsVal.length > 0
       ? todaySymptomsVal.reduce((s, e) => s + e.severity, 0) / todaySymptomsVal.length
@@ -2689,7 +2710,21 @@ export default function DashboardPage() {
         rdxForecastCheckin, cycleForecast.readinessDays, phase.name, recoveryDebt.category, primeTrainingWindow, phase.cycleDay,
       ));
     }
+
+    // Daily Briefing — confidence should visibly improve once today's
+    // check-in exists (hasTodayCheckin is the single heaviest factor in this
+    // model), not stay pinned at its mount-time value all day.
+    setReadinessConfidence(computeReadinessConfidence({
+      readinessScore:       activeReadiness?.score ?? 50,
+      checkinHistoryCount:  getReadinessHistory().length,
+      hasTodayCheckin:      getTodayCheckin() !== null,
+      cycleDataConfidence:  patternConfidences.reduce((s, p) => s + p.confidence, 0) / Math.max(1, patternConfidences.length),
+      symptomHistoryCount:  getSymptomHistory().length,
+      recoveryHistoryCount: getRecoveryStrategyHistory().length,
+    }));
+
     setIsRecalculating(false);
+    showToast("✓ Check-in complete. Today's recommendations are ready.", { variant: "success" });
   }
 
   // "My period started" quick action (PhaseCard). Writes the new period start
@@ -3050,6 +3085,51 @@ export default function DashboardPage() {
     registerErrorTelemetryHook(trackErrorRecovery);
   }, []);
 
+  // Daily Briefing — Launch Behavior. Decide the welcome overlay once
+  // recommendation data is ready (this whole effect only ever runs
+  // client-side, past the loading skeleton below, same reasoning as the
+  // density-preference lookup above it). Session-scoped suppression
+  // (sessionStorage, not localStorage) so navigating within the app during
+  // the same tab session never re-shows it — a fresh tab/reload is a new
+  // "launch" and re-evaluates normally. A second launch of the same day
+  // that still hasn't checked in gets the dashboard's existing DailyCheckIn
+  // banner as its reminder, not a second intrusive overlay — only the very
+  // first launch of the day earns the guided "Begin Check-in" prompt.
+  useEffect(() => {
+    if (!recommendation) return;
+    let alreadyShown = false;
+    try { alreadyShown = sessionStorage.getItem("axis_welcome_shown_session") === "true"; } catch {}
+    if (alreadyShown) return;
+
+    const checkedInToday = getTodayCheckin() !== null;
+    const firstLaunch    = isFirstLaunchToday();
+    markLaunchedToday();
+
+    if (checkedInToday) {
+      setWelcomeVariant("done");
+    } else if (firstLaunch) {
+      setWelcomeVariant("guide");
+    } else {
+      return; // second+ launch, still not checked in — no overlay, banner remains
+    }
+    try { sessionStorage.setItem("axis_welcome_shown_session", "true"); } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recommendation]);
+
+  function handleBeginCheckin() {
+    setWelcomeVariant(null);
+    setForceOpenCheckin(true);
+    checkinRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function handleSkipWelcomeCheckin() {
+    setWelcomeVariant(null);
+  }
+
+  function handleDismissWelcome() {
+    setWelcomeVariant(null);
+  }
+
   if (!recommendation) {
     return (
       <DashboardShell isRecalculating={false}>
@@ -3073,6 +3153,12 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell isRecalculating={isRecalculating}>
+      <WelcomeOverlay
+        variant={welcomeVariant}
+        onBeginCheckin={handleBeginCheckin}
+        onSkip={handleSkipWelcomeCheckin}
+        onDismiss={handleDismissWelcome}
+      />
       <DashboardHeader recommendation={recommendation} />
 
       <div className="px-5 pb-8 space-y-3 pt-2">
@@ -3080,9 +3166,10 @@ export default function DashboardPage() {
         {/* ── LAYER 1: ALWAYS VISIBLE ───────────────────────────────────── */}
 
         {!checkinComplete && (
-          <div className="pt-2">
+          <div className="pt-2" ref={checkinRef}>
             <DailyCheckIn
               onComplete={handleCheckinComplete}
+              forceOpen={forceOpenCheckin}
               lowReadinessAlert={(() => {
                 const d = new Date();
                 d.setDate(d.getDate() - 1);

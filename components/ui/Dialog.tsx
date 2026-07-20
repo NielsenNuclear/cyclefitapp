@@ -20,12 +20,16 @@ interface DialogProps {
   isOpen:     boolean;
   onClose:    () => void;
   title?:     string;
+  /** Accessible name when the dialog renders its own custom heading in
+   *  `children` instead of using `title` (which also renders a visible,
+   *  bordered header row). Ignored if `title` is set. */
+  ariaLabel?: string;
   size?:      DialogSize;
   children:   React.ReactNode;
   className?: string;
 }
 
-export function Dialog({ isOpen, onClose, title, size = "md", children, className = "" }: DialogProps) {
+export function Dialog({ isOpen, onClose, title, ariaLabel, size = "md", children, className = "" }: DialogProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -54,6 +58,7 @@ export function Dialog({ isOpen, onClose, title, size = "md", children, classNam
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-label={!title ? ariaLabel : undefined}
         className={`
           relative w-full ${SIZE_CLS[size]}
           bg-surface rounded-2xl shadow-modal border border-border

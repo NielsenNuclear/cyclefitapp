@@ -5,7 +5,10 @@ export interface CheckinSymptom {
 
 export interface CheckinData {
   sleepQuality: "excellent" | "good" | "variable" | "poor";
-  stressLevel:  number;
+  stressLevel:  number; // 1-10
+  energy:       number; // 1-10
+  soreness:     number; // 1-10
+  motivation:   number; // 1-10
   date:         string; // "YYYY-MM-DD"
   symptoms?:    CheckinSymptom[];
 }

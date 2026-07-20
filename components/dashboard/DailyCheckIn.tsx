@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CheckinData, CheckinSymptom } from "@/lib/checkin";
 import { getTodayCheckin, saveTodayCheckin } from "@/lib/checkin";
 import type { Symptom } from "@/lib/symptoms/symptomCatalog";
@@ -50,6 +50,49 @@ function ProgressBar({ step }: { step: 1 | 2 | 3 | 4 }) {
   );
 }
 
+function FeelingSlider({
+  label,
+  lowLabel,
+  highLabel,
+  value,
+  onChange,
+}: {
+  label:     string;
+  lowLabel:  string;
+  highLabel: string;
+  value:     number;
+  onChange:  (v: number) => void;
+}) {
+  const id = `feeling-slider-${label.toLowerCase().replace(/\s+/g, "-")}`;
+  return (
+    <div className="mb-5 last:mb-0">
+      <div className="flex items-center justify-between mb-2">
+        <label htmlFor={id} className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+          {label}
+        </label>
+        <div className="text-[13px] font-semibold text-ink">
+          {value}
+          <span className="text-ink-muted font-normal">/10</span>
+        </div>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min="1"
+        max="10"
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full accent-brand cursor-pointer"
+        aria-label={`${label}: ${value} out of 10`}
+      />
+      <div className="flex justify-between mt-1">
+        <span className="text-[10px] text-ink-muted">{lowLabel}</span>
+        <span className="text-[10px] text-ink-muted">{highLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 function SymptomRow({
   symptom,
   severity,
@@ -85,9 +128,12 @@ function SymptomRow({
 interface DailyCheckInProps {
   onComplete:         (data: CheckinData) => void;
   lowReadinessAlert?: boolean;
+  /** Daily Briefing — set true to force the form open (e.g. "Begin Check-in"
+   *  from the welcome overlay), bypassing the collapsed-banner tap step. */
+  forceOpen?:         boolean;
 }
 
-export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyCheckInProps) {
+export function DailyCheckIn({ onComplete, lowReadinessAlert = false, forceOpen = false }: DailyCheckInProps) {
   const [priorCheckin]   = useState<CheckinData | null>(() => getTodayCheckin());
   const [isEditing, setIsEditing]             = useState(false);
   // Dashboard 2.0 — Layer 1. Check-in no longer blocks the workout hero: it
@@ -97,9 +143,18 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
   const [step, setStep]                       = useState<1 | 2 | 3 | 4>(1);
   const [sleepQuality, setSleepQuality]       = useState<CheckinData["sleepQuality"] | null>(null);
   const [stressLevel, setStressLevel]         = useState(5);
+  const [energy, setEnergy]                   = useState(5);
+  const [soreness, setSoreness]               = useState(5);
+  const [motivation, setMotivation]           = useState(5);
   const [symptomSeverities, setSymptomSeverities] = useState<Record<string, 0 | 1 | 2 | 3>>({});
   const [quickSymptoms] = useState<Symptom[]>(() => getQuickSymptoms());
   const [otherSymptoms] = useState<Symptom[]>(() => getOtherSymptoms());
+
+  // Daily Briefing — "Begin Check-in" opens the form directly, skipping the
+  // collapsed banner tap.
+  useEffect(() => {
+    if (forceOpen) setShowForm(true);
+  }, [forceOpen]);
 
   function getSeverity(id: string): 0 | 1 | 2 | 3 {
     return symptomSeverities[id] ?? 0;
@@ -113,6 +168,9 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
     if (priorCheckin) {
       setSleepQuality(priorCheckin.sleepQuality);
       setStressLevel(priorCheckin.stressLevel);
+      setEnergy(priorCheckin.energy ?? 5);
+      setSoreness(priorCheckin.soreness ?? 5);
+      setMotivation(priorCheckin.motivation ?? 5);
       if (priorCheckin.symptoms) {
         const map: Record<string, 0 | 1 | 2 | 3> = {};
         for (const s of priorCheckin.symptoms) map[s.symptomId] = s.severity;
@@ -131,6 +189,9 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
     const data: CheckinData = {
       sleepQuality,
       stressLevel,
+      energy,
+      soreness,
+      motivation,
       date:     new Date().toISOString().slice(0, 10),
       symptoms: allSymptoms.length > 0 ? allSymptoms : undefined,
     };
@@ -150,7 +211,7 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
         <div className="flex-1 min-w-0">
           <div className="text-[12px] font-semibold text-ink">Checked in for today</div>
           <div className="text-[11px] text-ink-muted">
-            Sleep: {priorCheckin.sleepQuality} · Stress: {priorCheckin.stressLevel}/10
+            Sleep: {priorCheckin.sleepQuality} · Energy: {priorCheckin.energy}/10 · Stress: {priorCheckin.stressLevel}/10
             {symptomCount > 0 && ` · ${symptomCount} symptom${symptomCount > 1 ? "s" : ""}`}
           </div>
         </div>
@@ -267,41 +328,24 @@ export function DailyCheckIn({ onComplete, lowReadinessAlert = false }: DailyChe
         </>
       )}
 
-      {/* ── Step 2: Stress level ──────────────────────────────────────────── */}
+      {/* ── Step 2: How are you feeling — energy/soreness/stress/motivation ── */}
       {step === 2 && (
         <>
           <h3 className="text-[1.1rem] font-light font-serif text-ink leading-snug mb-4">
-            What&apos;s your stress level today?
+            How are you feeling today?
           </h3>
 
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-                Stress level
-              </div>
-              <div className="text-[13px] font-semibold text-ink">
-                {stressLevel}
-                <span className="text-ink-muted font-normal">/10</span>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={stressLevel}
-              onChange={e => setStressLevel(Number(e.target.value))}
-              className="w-full accent-brand cursor-pointer"
-            />
-            <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-ink-muted">Low</span>
-              <span className="text-[10px] text-ink-muted">High</span>
-            </div>
+          <div className="mb-2">
+            <FeelingSlider label="Energy" lowLabel="Exhausted" highLabel="Energized" value={energy} onChange={setEnergy} />
+            <FeelingSlider label="Soreness" lowLabel="None" highLabel="Very sore" value={soreness} onChange={setSoreness} />
+            <FeelingSlider label="Stress" lowLabel="Low" highLabel="High" value={stressLevel} onChange={setStressLevel} />
+            <FeelingSlider label="Motivation" lowLabel="Low" highLabel="High" value={motivation} onChange={setMotivation} />
           </div>
 
           <button
             type="button"
             onClick={() => setStep(3)}
-            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-brand text-white hover:bg-brand-dark transition-colors"
+            className="w-full py-3 rounded-xl text-[13px] font-semibold bg-brand text-white hover:bg-brand-dark transition-colors mt-4"
           >
             Next
           </button>
